@@ -2,8 +2,16 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import sensible from '@fastify/sensible';
+import prisma from '@garage-os/db';
+import { authRoutes } from './routes/auth.js';
 
-export async function buildApp() {
+export type AppDependencies = {
+  prisma?: typeof prisma;
+  jwtSecret?: string;
+  refreshTokenSecret?: string;
+};
+
+export async function buildApp(dependencies: AppDependencies = {}) {
   const app = Fastify({
     logger: {
       level: process.env.LOG_LEVEL ?? 'info',
@@ -27,10 +35,19 @@ export async function buildApp() {
 
   await app.register(sensible);
 
+  app.decorate('deps', {
+    prisma: dependencies.prisma ?? prisma,
+    jwtSecret: dependencies.jwtSecret ?? process.env.JWT_SECRET ?? 'dev-access-token-secret',
+    refreshTokenSecret:
+      dependencies.refreshTokenSecret ?? process.env.JWT_REFRESH_SECRET ?? 'dev-refresh-token-secret',
+  });
+
   // ── Health Check ─────────────────────────────────────────────────────────
   app.get('/api/v1/health', async () => {
     return { status: 'ok', timestamp: new Date().toISOString() };
   });
+
+  await app.register(authRoutes, { prefix: '/api/v1/auth' });
 
   return app;
 }

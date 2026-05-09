@@ -13,10 +13,11 @@
 - `apps/web/` - Next.js 14 web application (Admin, Front Desk, Mechanic, Customer)
 - `apps/api/` - Fastify REST API server
 - `apps/api/src/server.ts` - Fastify server entry point
-- `apps/api/src/plugins/auth.ts` - JWT auth and RBAC plugin
+- `apps/api/src/plugins/auth.ts` - JWT auth plugin
 - `apps/api/src/plugins/auth.test.ts` - Tests for auth plugin
 - `apps/api/src/routes/auth.ts` - Auth route handlers
 - `apps/api/src/routes/auth.test.ts` - Tests for auth routes
+- `apps/api/src/lib/jwt.ts` - HMAC JWT signing and verification helpers
 - `apps/api/src/routes/users.ts` - User CRUD route handlers
 - `apps/api/src/routes/users.test.ts` - Tests for user routes
 - `apps/api/src/routes/customers.ts` - Customer management routes
@@ -77,30 +78,30 @@
 ## Tasks
 
 - [x] 1.1 Initialise root monorepo with `package.json`, Turborepo (`turbo.json`), and shared TypeScript config
-  - [ ] 1.2 Scaffold `apps/web` using Next.js 14 with App Router and TypeScript
+  - [x] 1.2 Scaffold `apps/web` using Next.js 14 with App Router and TypeScript
   - [x] 1.3 Scaffold `apps/api` using Fastify with TypeScript, Pino logger, and CORS/rate-limit plugins
   - [x] 1.4 Create `packages/shared-types` with role enums (`admin`, `mechanic`, `front_desk`, `customer`) and base interfaces
   - [x] 1.5 Create `packages/validation` with Zod and export placeholder schemas
   - [x] 1.6 Create `packages/db` with Prisma, configure PostgreSQL, write `schema.prisma` with all 15 entities from PRD §4
-  - [ ] 1.7 Run `prisma migrate dev` to generate initial migration and verify schema
+  - [x] 1.7 Run `prisma migrate dev` to generate initial migration and verify schema
   - [x] 1.8 Create `packages/db/prisma/seed.ts` with sample data (admin user, test customer, test vehicle)
   - [x] 1.9 Create `packages/config` with shared ESLint, Prettier, and TSConfig presets
   - [x] 1.10 Scaffold `workers/queue` with BullMQ and Redis connection setup
-  - [ ] 1.11 Configure Turborepo pipelines (`build`, `dev`, `lint`, `test`) and verify `npm run dev` starts web + api
-  - [ ] 1.12 Set up Vitest for `apps/api` and `packages/*`; set up Playwright for `apps/web`
+  - [x] 1.11 Configure Turborepo pipelines (`build`, `dev`, `lint`, `test`) and verify `npm run dev` starts web + api
+  - [x] 1.12 Set up Vitest for `apps/api` and `packages/*`; set up Playwright for `apps/web`
 
 - [ ] 2.0 Authentication, Authorisation, and User Management
   - [x] 2.1 Define Zod schemas for login, register, refresh-token, forgot-password in `packages/validation`
-  - [ ] 2.2 🔴 Write tests for `POST /auth/register` — valid registration returns tokens, duplicate email returns 409, invalid input returns 400
-  - [ ] 2.3 Implement `POST /api/v1/auth/register` — make tests from 2.2 pass
-  - [ ] 2.4 🔴 Write tests for `POST /auth/login` — valid credentials return tokens, wrong password returns 401, missing user returns 404
-  - [ ] 2.5 Implement `POST /api/v1/auth/login` — make tests from 2.4 pass
-  - [ ] 2.6 🔴 Write tests for `POST /auth/refresh` — valid refresh returns new pair, expired token returns 401
-  - [ ] 2.7 Implement `POST /api/v1/auth/refresh` — make tests from 2.6 pass
-  - [ ] 2.8 🔴 Write tests for auth plugin — requests without token return 401, invalid token returns 401, valid token attaches user to request
-  - [ ] 2.9 Implement Fastify auth plugin (`plugins/auth.ts`) — make tests from 2.8 pass
-  - [ ] 2.10 🔴 Write tests for RBAC middleware — admin can access admin routes, mechanic cannot access admin routes, etc. (full role × route matrix)
-  - [ ] 2.11 Implement RBAC middleware (`middleware/rbac.ts`) — make tests from 2.10 pass
+  - [x] 2.2 🔴 Write tests for `POST /auth/register` — valid registration returns tokens, duplicate email returns 409, invalid input returns 400
+  - [x] 2.3 Implement `POST /api/v1/auth/register` — make tests from 2.2 pass
+  - [x] 2.4 🔴 Write tests for `POST /auth/login` — valid credentials return tokens, wrong password returns 401, missing user returns 404
+  - [x] 2.5 Implement `POST /api/v1/auth/login` — make tests from 2.4 pass
+  - [x] 2.6 🔴 Write tests for `POST /auth/refresh` — valid refresh returns new pair, expired token returns 401
+  - [x] 2.7 Implement `POST /api/v1/auth/refresh` — make tests from 2.6 pass
+  - [x] 2.8 🔴 Write tests for auth plugin — requests without token return 401, invalid token returns 401, valid token attaches user to request
+  - [x] 2.9 Implement Fastify auth plugin (`plugins/auth.ts`) — make tests from 2.8 pass
+  - [x] 2.10 🔴 Write tests for RBAC middleware — admin can access admin routes, mechanic cannot access admin routes, etc. (full role × route matrix)
+  - [x] 2.11 Implement RBAC middleware (`middleware/rbac.ts`) — make tests from 2.10 pass
   - [ ] 2.12 🔴 Write tests for user CRUD — admin can list/create/update/delete users, non-admin gets 403, GET /me returns own profile
   - [ ] 2.13 Implement user endpoints (`GET /me`, `PATCH /me`, admin CRUD) — make tests from 2.12 pass
   - [ ] 2.14 Implement `POST /auth/forgot-password` — generate reset token, send email via Nodemailer

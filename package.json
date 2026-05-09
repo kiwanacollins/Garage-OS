@@ -15,6 +15,7 @@
     "type-check": "turbo run type-check",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,json,css,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,json,css,md}\"",
+    "e2e": "playwright test",
     "db:migrate": "npm run migrate --workspace=@garage-os/db",
     "db:seed": "npm run seed --workspace=@garage-os/db",
     "db:studio": "npm run studio --workspace=@garage-os/db"
