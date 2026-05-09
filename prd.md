@@ -117,7 +117,72 @@ stateDiagram-v2
     Collected --> [*]
 ```
 ---
-## 3. Recommended Technology Stack (JavaScript Ecosystem)
+## 3. Branding and Design Tokens
+
+### 3.1 Brand Colors
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `--brand-primary` | `#3857A3` | Primary buttons, links, active states, navigation, headers |
+| `--brand-accent` | `#EE1E24` | CTAs, alerts, urgent badges, destructive actions, highlights |
+
+### 3.2 Extended Palette (derived from brand)
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `--primary-50` | `#EBF0F9` | Primary tinted backgrounds |
+| `--primary-100` | `#C5D3EC` | Hover states, selected rows |
+| `--primary-200` | `#9FB5DE` | Secondary borders |
+| `--primary-500` | `#3857A3` | Base primary (same as brand) |
+| `--primary-700` | `#2A4280` | Pressed states, dark mode primary |
+| `--primary-900` | `#1C2D5C` | Dark backgrounds, sidebar |
+| `--accent-50` | `#FDE8E8` | Warning/error backgrounds |
+| `--accent-100` | `#F9BABB` | Error field borders |
+| `--accent-500` | `#EE1E24` | Base accent (same as brand) |
+| `--accent-700` | `#C4181D` | Pressed accent states |
+
+### 3.3 Semantic Colors
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--color-success` | `#16A34A` | Completed jobs, paid invoices, success toasts |
+| `--color-warning` | `#F59E0B` | Awaiting parts, pending approval, expiring items |
+| `--color-error` | `#EE1E24` | Uses brand accent — errors, overdue invoices, rejected |
+| `--color-info` | `#3857A3` | Uses brand primary — info banners, links, notifications |
+
+### 3.4 Neutrals
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `--neutral-0` | `#FFFFFF` | Page backgrounds, cards |
+| `--neutral-50` | `#F8FAFC` | Subtle backgrounds, table stripes |
+| `--neutral-100` | `#F1F5F9` | Input backgrounds, dividers |
+| `--neutral-300` | `#CBD5E1` | Borders, disabled states |
+| `--neutral-500` | `#64748B` | Secondary text, placeholders |
+| `--neutral-700` | `#334155` | Body text |
+| `--neutral-900` | `#0F172A` | Headings, high-emphasis text |
+
+### 3.5 Typography
+
+| Token | Value |
+|-------|-------|
+| `--font-family` | `'Inter', system-ui, -apple-system, sans-serif` |
+| `--font-heading` | `'Inter', system-ui, sans-serif` (weight 600–700) |
+| `--font-mono` | `'JetBrains Mono', monospace` |
+
+### 3.6 Role Accent Mapping
+
+Each user role gets a subtle visual identity derived from the brand palette:
+
+| Role | Sidebar/Header Accent | Badge Color |
+|------|----------------------|-------------|
+| Admin | `--primary-900` (#1C2D5C) | `--brand-primary` |
+| Mechanic | `--primary-700` (#2A4280) | `--color-warning` |
+| Front Desk | `--primary-500` (#3857A3) | `--color-info` |
+| Customer | `--neutral-0` (#FFFFFF) | `--brand-accent` |
+
+---
+## 4. Recommended Technology Stack (JavaScript Ecosystem)
 The entire system is built on a **unified JavaScript/TypeScript stack**, enabling code sharing, a single language across the team, and a consistent developer experience.
 | Layer | Technology | Rationale |
 |-------|-----------|-----------|
