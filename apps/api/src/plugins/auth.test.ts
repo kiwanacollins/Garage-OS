@@ -24,7 +24,8 @@ describe('auth plugin', () => {
             isActive: true,
           }),
         },
-      },
+      } as never,
+      mailer: { sendMail: async () => undefined },
       jwtSecret: 'test-access-secret',
       refreshTokenSecret: 'test-refresh-secret',
     });

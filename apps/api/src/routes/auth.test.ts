@@ -21,10 +21,12 @@ function createPrismaMock() {
 describe('auth routes', () => {
   let app: FastifyInstance;
   let prisma: ReturnType<typeof createPrismaMock>;
+  let mailer: { sendMail: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
     prisma = createPrismaMock();
-    app = await buildApp({ prisma: prisma as never, ...secrets });
+    mailer = { sendMail: vi.fn().mockResolvedValue(undefined) };
+    app = await buildApp({ prisma: prisma as never, mailer, ...secrets });
     await app.ready();
   });
 
@@ -203,5 +205,44 @@ describe('auth routes', () => {
     });
 
     expect(response.statusCode).toBe(401);
+  });
+
+  it('POST /auth/forgot-password sends a reset email for an existing user', async () => {
+    prisma.user.findUnique.mockResolvedValue({
+      id: 'user-1',
+      name: 'Alice Customer',
+      email: 'alice@example.com',
+      phone: null,
+      role: 'customer',
+      isActive: true,
+    });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/forgot-password',
+      payload: { email: 'alice@example.com' },
+    });
+
+    expect(response.statusCode).toBe(202);
+    expect(mailer.sendMail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'alice@example.com',
+        subject: 'Reset your GarageOS password',
+        text: expect.stringContaining('reset token'),
+      }),
+    );
+  });
+
+  it('POST /auth/forgot-password returns 202 without revealing missing users', async () => {
+    prisma.user.findUnique.mockResolvedValue(null);
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/forgot-password',
+      payload: { email: 'missing@example.com' },
+    });
+
+    expect(response.statusCode).toBe(202);
+    expect(mailer.sendMail).not.toHaveBeenCalled();
   });
 });

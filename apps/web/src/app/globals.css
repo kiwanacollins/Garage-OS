@@ -99,6 +99,8 @@ p {
 }
 
 .button {
+  display: inline-grid;
+  place-items: center;
   border: 0;
   border-radius: 6px;
   background: var(--accent);
@@ -107,10 +109,16 @@ p {
   padding: 0 16px;
   font-weight: 750;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .button:hover {
   background: var(--accent-strong);
+}
+
+.link-button {
+  width: max-content;
+  margin-top: 12px;
 }
 
 .inline-link {

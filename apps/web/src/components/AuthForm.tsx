@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from './AuthProvider';
 
 type AuthFormProps = {
   mode: 'login' | 'register';
@@ -8,33 +9,33 @@ type AuthFormProps = {
 
 export function AuthForm({ mode }: AuthFormProps) {
   const [status, setStatus] = useState<string>('');
+  const { login, register } = useAuth();
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const payload = Object.fromEntries(form.entries());
-    const endpoint = mode === 'login' ? '/api/v1/auth/login' : '/api/v1/auth/register';
+    const payload = Object.fromEntries(form.entries()) as {
+      name?: string;
+      email: string;
+      phone?: string;
+      password: string;
+    };
 
     setStatus('Submitting...');
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}${endpoint}`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const body = (await response.json().catch(() => null)) as { message?: string } | null;
-        setStatus(body?.message ?? 'Unable to continue');
-        return;
+      if (mode === 'login') {
+        await login({ email: payload.email, password: payload.password });
+      } else {
+        await register({
+          name: payload.name ?? '',
+          email: payload.email,
+          phone: payload.phone,
+          password: payload.password,
+        });
       }
-
-      const body = (await response.json()) as { accessToken: string; refreshToken: string };
-      window.localStorage.setItem('garageos.accessToken', body.accessToken);
-      window.localStorage.setItem('garageos.refreshToken', body.refreshToken);
       setStatus('Signed in');
-    } catch {
-      setStatus('API is not reachable');
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : 'Unable to continue');
     }
   }
 

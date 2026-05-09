@@ -36,6 +36,34 @@ export const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address'),
 });
 
+export const createUserSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100),
+  email: z.string().email('Invalid email address'),
+  phone: z.string().optional(),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  role: z.enum(['admin', 'mechanic', 'front_desk', 'customer']),
+  isActive: z.boolean().optional().default(true),
+});
+
+export const updateUserSchema = z
+  .object({
+    name: z.string().min(2).max(100).optional(),
+    email: z.string().email().optional(),
+    phone: z.string().nullable().optional(),
+    role: z.enum(['admin', 'mechanic', 'front_desk', 'customer']).optional(),
+    isActive: z.boolean().optional(),
+    password: z.string().min(8).optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, 'At least one field is required');
+
+export const updateMeSchema = z
+  .object({
+    name: z.string().min(2).max(100).optional(),
+    phone: z.string().nullable().optional(),
+    password: z.string().min(8).optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, 'At least one field is required');
+
 // ─── Vehicle Schemas ───────────────────────────────────────────────────────────
 
 export const createVehicleSchema = z.object({
@@ -91,6 +119,9 @@ export const updateCustomerSchema = createCustomerSchema.partial();
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+export type UpdateMeInput = z.infer<typeof updateMeSchema>;
 export type CreateVehicleInput = z.infer<typeof createVehicleSchema>;
 export type UpdateVehicleInput = z.infer<typeof updateVehicleSchema>;
 export type CreateWorkOrderInput = z.infer<typeof createWorkOrderSchema>;

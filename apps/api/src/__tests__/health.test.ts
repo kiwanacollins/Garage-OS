@@ -20,7 +20,8 @@ describe('GET /api/v1/health', () => {
             isActive: true,
           }),
         },
-      },
+      } as never,
+      mailer: { sendMail: async () => undefined },
     });
     await app.ready();
   });

@@ -1,6 +1,7 @@
+import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import type { FastifyPluginAsync } from 'fastify';
-import { loginSchema, refreshTokenSchema, registerSchema } from '@garage-os/validation';
+import { forgotPasswordSchema, loginSchema, refreshTokenSchema, registerSchema } from '@garage-os/validation';
 import { signJwt, verifyJwt } from '../lib/jwt.js';
 
 const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
@@ -123,5 +124,27 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
 
     const tokens = createTokenPair(user, app.deps);
     return { user: publicUser(user), ...tokens };
+  });
+
+  app.post('/forgot-password', async (request, reply) => {
+    const parsed = forgotPasswordSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.badRequest('Invalid forgot password input');
+    }
+
+    const user = await app.deps.prisma.user.findUnique({ where: { email: parsed.data.email } });
+    if (user) {
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      await app.deps.mailer.sendMail({
+        to: user.email,
+        from: process.env.MAIL_FROM ?? 'no-reply@garageos.local',
+        subject: 'Reset your GarageOS password',
+        text: `Use this reset token to reset your password: ${resetToken}`,
+      });
+    }
+
+    return reply.code(202).send({
+      message: 'If that email exists, a reset link has been sent.',
+    });
   });
 };

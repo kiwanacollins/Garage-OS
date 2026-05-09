@@ -90,7 +90,7 @@
   - [x] 1.11 Configure Turborepo pipelines (`build`, `dev`, `lint`, `test`) and verify `npm run dev` starts web + api
   - [x] 1.12 Set up Vitest for `apps/api` and `packages/*`; set up Playwright for `apps/web`
 
-- [ ] 2.0 Authentication, Authorisation, and User Management
+- [x] 2.0 Authentication, Authorisation, and User Management
   - [x] 2.1 Define Zod schemas for login, register, refresh-token, forgot-password in `packages/validation`
   - [x] 2.2 🔴 Write tests for `POST /auth/register` — valid registration returns tokens, duplicate email returns 409, invalid input returns 400
   - [x] 2.3 Implement `POST /api/v1/auth/register` — make tests from 2.2 pass
@@ -102,13 +102,13 @@
   - [x] 2.9 Implement Fastify auth plugin (`plugins/auth.ts`) — make tests from 2.8 pass
   - [x] 2.10 🔴 Write tests for RBAC middleware — admin can access admin routes, mechanic cannot access admin routes, etc. (full role × route matrix)
   - [x] 2.11 Implement RBAC middleware (`middleware/rbac.ts`) — make tests from 2.10 pass
-  - [ ] 2.12 🔴 Write tests for user CRUD — admin can list/create/update/delete users, non-admin gets 403, GET /me returns own profile
-  - [ ] 2.13 Implement user endpoints (`GET /me`, `PATCH /me`, admin CRUD) — make tests from 2.12 pass
-  - [ ] 2.14 Implement `POST /auth/forgot-password` — generate reset token, send email via Nodemailer
-  - [ ] 2.15 🟢 Build Next.js login page with form, validation, error handling, JWT storage
-  - [ ] 2.16 🟢 Build Next.js registration page for customer self-registration
-  - [ ] 2.17 🟢 Implement auth context/provider — token management, auto-refresh, protected route wrappers
-  - [ ] 2.18 🟢 Write Playwright E2E test for login and registration flows
+  - [x] 2.12 🔴 Write tests for user CRUD — admin can list/create/update/delete users, non-admin gets 403, GET /me returns own profile
+  - [x] 2.13 Implement user endpoints (`GET /me`, `PATCH /me`, admin CRUD) — make tests from 2.12 pass
+  - [x] 2.14 Implement `POST /auth/forgot-password` — generate reset token, send email via Nodemailer
+  - [x] 2.15 🟢 Build Next.js login page with form, validation, error handling, JWT storage
+  - [x] 2.16 🟢 Build Next.js registration page for customer self-registration
+  - [x] 2.17 🟢 Implement auth context/provider — token management, auto-refresh, protected route wrappers
+  - [x] 2.18 🟢 Write Playwright E2E test for login and registration flows
 
 - [ ] 3.0 Vehicle Register and Customer Management
   - [ ] 3.1 Define Zod schemas for customer and vehicle CRUD in `packages/validation`

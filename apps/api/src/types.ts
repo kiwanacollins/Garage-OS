@@ -1,4 +1,4 @@
-type UserRecord = {
+export type UserRecord = {
   id: string;
   name: string;
   email: string;
@@ -11,6 +11,10 @@ type UserRecord = {
 export type AppPrisma = {
   user: {
     findUnique(args: { where: { id?: string; email?: string } }): Promise<UserRecord | null>;
+    findMany(args?: {
+      orderBy?: { createdAt?: 'asc' | 'desc'; name?: 'asc' | 'desc' };
+      select?: Record<string, boolean>;
+    }): Promise<UserRecord[]>;
     create(args: {
       data: {
         name: string;
@@ -26,11 +30,28 @@ export type AppPrisma = {
         };
       };
     }): Promise<UserRecord>;
+    update(args: {
+      where: { id: string };
+      data: Partial<
+        Pick<UserRecord, 'name' | 'email' | 'phone' | 'passwordHash' | 'role' | 'isActive'>
+      >;
+    }): Promise<UserRecord>;
+    delete(args: { where: { id: string } }): Promise<UserRecord>;
   };
+};
+
+export type AppMailer = {
+  sendMail(message: {
+    to: string;
+    from?: string;
+    subject: string;
+    text: string;
+  }): Promise<unknown>;
 };
 
 export type AppDeps = {
   prisma: AppPrisma;
+  mailer: AppMailer;
   jwtSecret: string;
   refreshTokenSecret: string;
 };

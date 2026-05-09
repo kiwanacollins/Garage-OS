@@ -2,12 +2,16 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import sensible from '@fastify/sensible';
+import nodemailer from 'nodemailer';
+import { authPlugin } from './plugins/auth.js';
 import { authRoutes } from './routes/auth.js';
-import type { AppPrisma } from './types.js';
+import { userRoutes } from './routes/users.js';
+import type { AppMailer, AppPrisma } from './types.js';
 import './types.js';
 
 export type AppDependencies = {
   prisma?: AppPrisma;
+  mailer?: AppMailer;
   jwtSecret?: string;
   refreshTokenSecret?: string;
 };
@@ -21,8 +25,21 @@ async function resolvePrisma(dependency?: AppPrisma) {
   return database.prisma as unknown as AppPrisma;
 }
 
+function resolveMailer(dependency?: AppMailer) {
+  if (dependency) {
+    return dependency;
+  }
+
+  if (process.env.SMTP_URL) {
+    return nodemailer.createTransport(process.env.SMTP_URL);
+  }
+
+  return nodemailer.createTransport({ jsonTransport: true });
+}
+
 export async function buildApp(dependencies: AppDependencies = {}) {
   const defaultPrisma = await resolvePrisma(dependencies.prisma);
+  const defaultMailer = resolveMailer(dependencies.mailer);
 
   const app = Fastify({
     logger: {
@@ -49,6 +66,7 @@ export async function buildApp(dependencies: AppDependencies = {}) {
 
   app.decorate('deps', {
     prisma: defaultPrisma,
+    mailer: defaultMailer,
     jwtSecret: dependencies.jwtSecret ?? process.env.JWT_SECRET ?? 'dev-access-token-secret',
     refreshTokenSecret:
       dependencies.refreshTokenSecret ?? process.env.JWT_REFRESH_SECRET ?? 'dev-refresh-token-secret',
@@ -60,6 +78,10 @@ export async function buildApp(dependencies: AppDependencies = {}) {
   });
 
   await app.register(authRoutes, { prefix: '/api/v1/auth' });
+  await app.register(async (secureApp) => {
+    await secureApp.register(authPlugin);
+    await secureApp.register(userRoutes, { prefix: '/api/v1' });
+  });
 
   return app;
 }
