@@ -1,0 +1,339 @@
+// ─── GarageOS Prisma Schema ────────────────────────────────────────────────────
+// All 15 entities from PRD §4
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ─────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  admin
+  mechanic
+  front_desk
+  customer
+}
+
+enum WorkOrderStatus {
+  created
+  assigned
+  in_progress
+  awaiting_parts
+  completed
+  quality_check
+  invoiced
+  paid
+  collected
+}
+
+enum PartsRequestStatus {
+  pending
+  approved
+  rejected
+  fulfilled
+}
+
+enum InvoiceStatus {
+  draft
+  issued
+  paid
+  overdue
+  cancelled
+}
+
+enum PaymentMethod {
+  cash
+  mobile_money
+  bank_transfer
+  card
+}
+
+enum AppointmentStatus {
+  scheduled
+  confirmed
+  cancelled
+  completed
+  no_show
+}
+
+enum PurchaseOrderStatus {
+  ordered
+  shipped
+  received
+  cancelled
+}
+
+enum NotificationChannel {
+  in_app
+  sms
+  email
+  whatsapp
+}
+
+// ─── Models ────────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @db.VarChar(100)
+  email        String   @unique @db.VarChar(255)
+  phone        String?  @db.VarChar(20)
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(customer)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  customerProfile    CustomerProfile?
+  assignedWorkOrders WorkOrder[]    @relation("AssignedMechanic")
+  createdWorkOrders  WorkOrder[]    @relation("CreatedBy")
+  labourLogs         LabourLog[]
+  partsRequests      PartsRequest[]
+  auditLogs          AuditLog[]
+  notifications      Notification[]
+
+  @@map("users")
+}
+
+model CustomerProfile {
+  id               String  @id @default(uuid()) @db.Uuid
+  userId           String  @unique @map("user_id") @db.Uuid
+  address          String? @db.VarChar(500)
+  preferredContact String? @map("preferred_contact") @db.VarChar(50)
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicles     Vehicle[]
+  appointments Appointment[]
+  feedbacks    Feedback[]
+
+  @@map("customer_profiles")
+}
+
+model Vehicle {
+  id                String   @id @default(uuid()) @db.Uuid
+  customerId        String   @map("customer_id") @db.Uuid
+  make              String   @db.VarChar(100)
+  model             String   @db.VarChar(100)
+  year              Int
+  colour            String?  @db.VarChar(50)
+  registrationPlate String   @unique @map("registration_plate") @db.VarChar(20)
+  odometerReading   Int?     @map("odometer_reading")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  customer     CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  workOrders   WorkOrder[]
+  appointments Appointment[]
+
+  @@map("vehicles")
+}
+
+model WorkOrder {
+  id                 String          @id @default(uuid()) @db.Uuid
+  vehicleId          String          @map("vehicle_id") @db.Uuid
+  assignedMechanicId String?         @map("assigned_mechanic_id") @db.Uuid
+  createdById        String          @map("created_by") @db.Uuid
+  status             WorkOrderStatus @default(created)
+  customerNotes      String?         @map("customer_notes") @db.Text
+  mechanicNotes      String?         @map("mechanic_notes") @db.Text
+  createdAt          DateTime        @default(now()) @map("created_at")
+  updatedAt          DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  vehicle          Vehicle        @relation(fields: [vehicleId], references: [id])
+  assignedMechanic User?          @relation("AssignedMechanic", fields: [assignedMechanicId], references: [id])
+  createdBy        User           @relation("CreatedBy", fields: [createdById], references: [id])
+  inspection       Inspection?
+  labourLogs       LabourLog[]
+  partsRequests    PartsRequest[]
+  invoice          Invoice?
+  feedback         Feedback?
+
+  @@map("work_orders")
+}
+
+model Inspection {
+  id              String   @id @default(uuid()) @db.Uuid
+  workOrderId     String   @unique @map("work_order_id") @db.Uuid
+  findings        String?  @db.Text
+  recommendations String?  @db.Text
+  photos          Json     @default("[]")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+
+  @@map("inspections")
+}
+
+model LabourLog {
+  id          String    @id @default(uuid()) @db.Uuid
+  workOrderId String    @map("work_order_id") @db.Uuid
+  mechanicId  String    @map("mechanic_id") @db.Uuid
+  startTime   DateTime  @map("start_time")
+  endTime     DateTime? @map("end_time")
+  description String?   @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  mechanic  User      @relation(fields: [mechanicId], references: [id])
+
+  @@map("labour_logs")
+}
+
+model PartsRequest {
+  id            String             @id @default(uuid()) @db.Uuid
+  workOrderId   String             @map("work_order_id") @db.Uuid
+  requestedById String             @map("requested_by") @db.Uuid
+  partName      String             @map("part_name") @db.VarChar(200)
+  quantity      Int                @default(1)
+  status        PartsRequestStatus @default(pending)
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  workOrder     WorkOrder      @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  requestedBy   User           @relation(fields: [requestedById], references: [id])
+  purchaseOrder PurchaseOrder?
+
+  @@map("parts_requests")
+}
+
+model Invoice {
+  id          String        @id @default(uuid()) @db.Uuid
+  workOrderId String        @unique @map("work_order_id") @db.Uuid
+  labourTotal Decimal       @default(0) @map("labour_total") @db.Decimal(12, 2)
+  partsTotal  Decimal       @default(0) @map("parts_total") @db.Decimal(12, 2)
+  tax         Decimal       @default(0) @db.Decimal(12, 2)
+  grandTotal  Decimal       @default(0) @map("grand_total") @db.Decimal(12, 2)
+  status      InvoiceStatus @default(draft)
+  issuedAt    DateTime?     @map("issued_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id])
+  payments  Payment[]
+
+  @@map("invoices")
+}
+
+model Payment {
+  id             String        @id @default(uuid()) @db.Uuid
+  invoiceId      String        @map("invoice_id") @db.Uuid
+  amount         Decimal       @db.Decimal(12, 2)
+  method         PaymentMethod
+  transactionRef String?       @map("transaction_ref") @db.VarChar(100)
+  paidAt         DateTime      @default(now()) @map("paid_at")
+
+  // Relations
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+
+  @@map("payments")
+}
+
+model Appointment {
+  id               String            @id @default(uuid()) @db.Uuid
+  customerId       String            @map("customer_id") @db.Uuid
+  vehicleId        String            @map("vehicle_id") @db.Uuid
+  scheduledAt      DateTime          @map("scheduled_at")
+  issueDescription String?           @map("issue_description") @db.Text
+  status           AppointmentStatus @default(scheduled)
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  customer CustomerProfile @relation(fields: [customerId], references: [id])
+  vehicle  Vehicle         @relation(fields: [vehicleId], references: [id])
+
+  @@map("appointments")
+}
+
+model Supplier {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @db.VarChar(200)
+  contactPhone String?  @map("contact_phone") @db.VarChar(20)
+  contactEmail String?  @map("contact_email") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  purchaseOrders PurchaseOrder[]
+
+  @@map("suppliers")
+}
+
+model PurchaseOrder {
+  id             String              @id @default(uuid()) @db.Uuid
+  supplierId     String              @map("supplier_id") @db.Uuid
+  partsRequestId String              @unique @map("parts_request_id") @db.Uuid
+  status         PurchaseOrderStatus @default(ordered)
+  cost           Decimal?            @db.Decimal(12, 2)
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+
+  // Relations
+  supplier     Supplier     @relation(fields: [supplierId], references: [id])
+  partsRequest PartsRequest @relation(fields: [partsRequestId], references: [id])
+
+  @@map("purchase_orders")
+}
+
+model Feedback {
+  id          String   @id @default(uuid()) @db.Uuid
+  workOrderId String   @unique @map("work_order_id") @db.Uuid
+  customerId  String   @map("customer_id") @db.Uuid
+  rating      Int      @db.SmallInt
+  comment     String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  workOrder WorkOrder       @relation(fields: [workOrderId], references: [id])
+  customer  CustomerProfile @relation(fields: [customerId], references: [id])
+
+  @@map("feedbacks")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  entityType String   @map("entity_type") @db.VarChar(100)
+  entityId   String   @map("entity_id") @db.Uuid
+  action     String   @db.VarChar(50)
+  changes    Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Notification {
+  id          String              @id @default(uuid()) @db.Uuid
+  recipientId String              @map("recipient_id") @db.Uuid
+  channel     NotificationChannel @default(in_app)
+  title       String              @db.VarChar(200)
+  body        String              @db.Text
+  isRead      Boolean             @default(false) @map("is_read")
+  createdAt   DateTime            @default(now()) @map("created_at")
+
+  // Relations
+  recipient User @relation(fields: [recipientId], references: [id])
+
+  @@index([recipientId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}

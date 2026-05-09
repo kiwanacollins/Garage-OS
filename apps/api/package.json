@@ -1,0 +1,30 @@
+{
+  "name": "@garage-os/api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "fastify": "^5.3.0",
+    "@fastify/cors": "^11.0.0",
+    "@fastify/rate-limit": "^10.2.0",
+    "@fastify/sensible": "^6.0.0",
+    "@garage-os/db": "*",
+    "@garage-os/shared-types": "*",
+    "@garage-os/validation": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0",
+    "tsx": "^4.19.0",
+    "vitest": "^3.1.0",
+    "@types/node": "^22.15.0",
+    "pino-pretty": "^13.0.0"
+  }
+}

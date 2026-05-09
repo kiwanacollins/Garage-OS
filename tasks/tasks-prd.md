@@ -89,7 +89,6 @@
   - [ ] 1.10 Scaffold `workers/queue` with BullMQ and Redis connection setup
   - [ ] 1.11 Configure Turborepo pipelines (`build`, `dev`, `lint`, `test`) and verify `npm run dev` starts web + api
   - [ ] 1.12 Set up Vitest for `apps/api` and `packages/*`; set up Playwright for `apps/web`
-  - [ ] 1.13 Create GitHub Actions CI workflow (lint, type-check, test)
 
 - [ ] 2.0 Authentication, Authorisation, and User Management
   - [ ] 2.1 Define Zod schemas for login, register, refresh-token, forgot-password in `packages/validation`
