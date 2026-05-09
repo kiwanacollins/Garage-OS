@@ -76,22 +76,21 @@
 
 ## Tasks
 
-- [ ] 1.0 Project Scaffolding and Monorepo Setup
-  - [ ] 1.1 Initialise root monorepo with `package.json`, Turborepo (`turbo.json`), and shared TypeScript config
+- [x] 1.1 Initialise root monorepo with `package.json`, Turborepo (`turbo.json`), and shared TypeScript config
   - [ ] 1.2 Scaffold `apps/web` using Next.js 14 with App Router and TypeScript
-  - [ ] 1.3 Scaffold `apps/api` using Fastify with TypeScript, Pino logger, and CORS/rate-limit plugins
-  - [ ] 1.4 Create `packages/shared-types` with role enums (`admin`, `mechanic`, `front_desk`, `customer`) and base interfaces
-  - [ ] 1.5 Create `packages/validation` with Zod and export placeholder schemas
-  - [ ] 1.6 Create `packages/db` with Prisma, configure PostgreSQL, write `schema.prisma` with all 15 entities from PRD §4
+  - [x] 1.3 Scaffold `apps/api` using Fastify with TypeScript, Pino logger, and CORS/rate-limit plugins
+  - [x] 1.4 Create `packages/shared-types` with role enums (`admin`, `mechanic`, `front_desk`, `customer`) and base interfaces
+  - [x] 1.5 Create `packages/validation` with Zod and export placeholder schemas
+  - [x] 1.6 Create `packages/db` with Prisma, configure PostgreSQL, write `schema.prisma` with all 15 entities from PRD §4
   - [ ] 1.7 Run `prisma migrate dev` to generate initial migration and verify schema
-  - [ ] 1.8 Create `packages/db/prisma/seed.ts` with sample data (admin user, test customer, test vehicle)
-  - [ ] 1.9 Create `packages/config` with shared ESLint, Prettier, and TSConfig presets
-  - [ ] 1.10 Scaffold `workers/queue` with BullMQ and Redis connection setup
+  - [x] 1.8 Create `packages/db/prisma/seed.ts` with sample data (admin user, test customer, test vehicle)
+  - [x] 1.9 Create `packages/config` with shared ESLint, Prettier, and TSConfig presets
+  - [x] 1.10 Scaffold `workers/queue` with BullMQ and Redis connection setup
   - [ ] 1.11 Configure Turborepo pipelines (`build`, `dev`, `lint`, `test`) and verify `npm run dev` starts web + api
   - [ ] 1.12 Set up Vitest for `apps/api` and `packages/*`; set up Playwright for `apps/web`
 
 - [ ] 2.0 Authentication, Authorisation, and User Management
-  - [ ] 2.1 Define Zod schemas for login, register, refresh-token, forgot-password in `packages/validation`
+  - [x] 2.1 Define Zod schemas for login, register, refresh-token, forgot-password in `packages/validation`
   - [ ] 2.2 🔴 Write tests for `POST /auth/register` — valid registration returns tokens, duplicate email returns 409, invalid input returns 400
   - [ ] 2.3 Implement `POST /api/v1/auth/register` — make tests from 2.2 pass
   - [ ] 2.4 🔴 Write tests for `POST /auth/login` — valid credentials return tokens, wrong password returns 401, missing user returns 404
