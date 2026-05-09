@@ -24,7 +24,6 @@ The system follows a **layered, modular architecture** with clear separation bet
 graph TB
     subgraph Clients["Client Layer"]
         WEB["Web App — Next.js"]
-        MOB["Mobile App — React Native"]
     end
     subgraph Gateway["API Gateway Layer"]
         GW["API Gateway / Load Balancer"]
@@ -53,7 +52,6 @@ graph TB
         PAY["Payment Gateway"]
     end
     WEB --> GW
-    MOB --> GW
     GW --> AUTH
     AUTH --> CS
     AUTH --> VS
@@ -125,7 +123,7 @@ The entire system is built on a **unified JavaScript/TypeScript stack**, enablin
 |-------|-----------|-----------|
 | **Language** | TypeScript | Type safety across the full stack; shared types between frontend and backend |
 | **Frontend (Web)** | Next.js 14 (React) | SSR/SSG for customer portal SEO; App Router for admin dashboards; API routes for BFF |
-| **Frontend (Mobile)** | React Native (Expo) | Cross-platform iOS/Android; shared business logic with web via TypeScript |
+
 | **Backend API** | Node.js + Fastify | High-performance HTTP server; schema-based validation; plugin architecture |
 | **ORM** | Prisma | Type-safe database queries; auto-generated client; migration management |
 | **Database** | PostgreSQL 16 | Relational integrity, JSON support, full-text search, mature ecosystem |
@@ -138,7 +136,7 @@ The entire system is built on a **unified JavaScript/TypeScript stack**, enablin
 | **Real-time** | Socket.io | Live job-status updates, in-app notifications |
 | **Email** | Nodemailer + SendGrid | Transactional emails (invoices, password reset) |
 | **Testing** | Vitest + Playwright | Unit/integration tests (Vitest); E2E browser tests (Playwright) |
-| **Monorepo** | Turborepo | Shared packages (types, utils, validation schemas) across web, mobile, and API |
+| **Monorepo** | Turborepo | Shared packages (types, utils, validation schemas) across web and API |
 | **CI/CD** | GitHub Actions | Automated testing, linting, type checking, deployment |
 | **Hosting** | AWS / DigitalOcean / Hetzner | Cost-effective VPS or managed services |
 | **Monitoring** | Grafana + Prometheus + prom-client | Node.js metrics, alerting, uptime tracking |
@@ -148,7 +146,7 @@ The entire system is built on a **unified JavaScript/TypeScript stack**, enablin
 garage-os/
 ├── apps/
 │   ├── web/              # Next.js — Admin, Front Desk, Customer portal
-│   ├── mobile/           # React Native (Expo) — Mechanic and Customer apps
+
 │   └── api/              # Fastify — REST API server
 ├── packages/
 │   ├── shared-types/     # TypeScript interfaces and enums (shared)
@@ -413,8 +411,8 @@ The backend exposes a **RESTful JSON API** via Fastify:
 ### 7.4 Usability
 | Requirement | Detail |
 |-------------|--------|
-| Responsive design | Fully functional on desktop (1024px+) and mobile (360px+) |
-| Offline capability | React Native app caches current job cards for offline viewing |
+| Responsive design | Fully functional on desktop (1024px+) and tablet (768px+); mobile-friendly at 360px+ |
+| Offline capability | Service worker caches current job cards for offline viewing (PWA) |
 | Accessibility | WCAG 2.1 AA compliance |
 | Localisation | English (default); next-intl for future i18n support |
 | Onboarding | In-app walkthrough for first-time users per role |
@@ -494,7 +492,7 @@ gantt
 | Mobile money payment failures | Revenue delay | Medium | Webhook-based reconciliation; manual payment recording fallback |
 | Data loss | Critical | Low | Daily automated backups, WAL archiving, tested restore procedures |
 | Scope creep across phases | Schedule delay | High | Strict phase boundaries; change requests require formal approval |
-| Low mechanic adoption | Incomplete data | Medium | Simplified React Native UI; in-person training; offline support |
+| Low mechanic adoption | Incomplete data | Medium | Simplified responsive web UI; in-person training; PWA offline support |
 | Security breach | Reputation / legal | Low | Pen testing before launch; OWASP Top 10 compliance; audit logging |
 ---
 ## 11. Acceptance Criteria — Definition of Done
@@ -502,7 +500,7 @@ Each feature is considered complete when:
 1. Functional requirements are implemented and pass Vitest unit/integration tests
 2. API endpoints return correct responses for valid and invalid inputs
 3. RBAC is enforced — no cross-role data access
-4. UI is responsive on desktop (1024px and above) and mobile (360px and above)
+4. UI is responsive on desktop (1024px and above), tablet (768px+), and mobile-friendly (360px+)
 5. All state-changing actions are recorded in the audit log
 6. Code is reviewed and merged via pull request
 7. No critical or high-severity bugs remain open
@@ -512,7 +510,7 @@ Each feature is considered complete when:
 ## 12. Open Questions
 > **Important — the following items need stakeholder input before finalising:**
 1. **Hosting environment** — Cloud provider preference? Budget constraints for VPS/managed services?
-2. **Mobile app scope** — Is a React Native app required from Phase 1, or is a responsive Next.js web app sufficient for mechanics initially?
+2. **PWA scope** — Should the web app be installable as a PWA from Phase 1 for mechanic workshop use?
 3. **Payment providers** — Which specific mobile money providers should be integrated (MTN MoMo, Airtel Money, etc.)?
 4. **SMS provider** — Africa's Talking, Twilio, or another regional provider?
 5. **Multi-garage support** — Should the system support multiple garage branches under one account, or is single-garage sufficient for v1?
