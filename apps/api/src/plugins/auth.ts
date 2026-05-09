@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
+import fp from 'fastify-plugin';
 import { verifyJwt } from '../lib/jwt.js';
 
 type AccessPayload = {
@@ -8,7 +9,7 @@ type AccessPayload = {
   tokenType: 'access' | 'refresh';
 };
 
-export const authPlugin: FastifyPluginAsync = async (app) => {
+const plugin: FastifyPluginAsync = async (app) => {
   app.decorateRequest('user', undefined);
 
   app.addHook('preHandler', async (request, reply) => {
@@ -33,3 +34,7 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
     }
   });
 };
+
+export const authPlugin = fp(plugin, {
+  name: 'garage-os-auth',
+});

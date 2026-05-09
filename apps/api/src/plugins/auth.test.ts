@@ -11,7 +11,20 @@ describe('auth plugin', () => {
     app = Fastify();
     await app.register(sensible);
     app.decorate('deps', {
-      prisma: {},
+      prisma: {
+        user: {
+          findUnique: async () => null,
+          create: async () => ({
+            id: 'user-1',
+            name: 'Test User',
+            email: 'test@example.com',
+            phone: null,
+            passwordHash: 'hash',
+            role: 'customer',
+            isActive: true,
+          }),
+        },
+      },
       jwtSecret: 'test-access-secret',
       refreshTokenSecret: 'test-refresh-secret',
     });

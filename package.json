@@ -8,7 +8,7 @@
     "workers/*"
   ],
   "scripts": {
-    "dev": "turbo run dev",
+    "dev": "turbo run dev --filter=@garage-os/web --filter=@garage-os/api",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",

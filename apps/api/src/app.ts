@@ -2,16 +2,28 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import sensible from '@fastify/sensible';
-import prisma from '@garage-os/db';
 import { authRoutes } from './routes/auth.js';
+import type { AppPrisma } from './types.js';
+import './types.js';
 
 export type AppDependencies = {
-  prisma?: typeof prisma;
+  prisma?: AppPrisma;
   jwtSecret?: string;
   refreshTokenSecret?: string;
 };
 
+async function resolvePrisma(dependency?: AppPrisma) {
+  if (dependency) {
+    return dependency;
+  }
+
+  const database = await import('@garage-os/db');
+  return database.prisma as unknown as AppPrisma;
+}
+
 export async function buildApp(dependencies: AppDependencies = {}) {
+  const defaultPrisma = await resolvePrisma(dependencies.prisma);
+
   const app = Fastify({
     logger: {
       level: process.env.LOG_LEVEL ?? 'info',
@@ -36,7 +48,7 @@ export async function buildApp(dependencies: AppDependencies = {}) {
   await app.register(sensible);
 
   app.decorate('deps', {
-    prisma: dependencies.prisma ?? prisma,
+    prisma: defaultPrisma,
     jwtSecret: dependencies.jwtSecret ?? process.env.JWT_SECRET ?? 'dev-access-token-secret',
     refreshTokenSecret:
       dependencies.refreshTokenSecret ?? process.env.JWT_REFRESH_SECRET ?? 'dev-refresh-token-secret',

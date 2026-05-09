@@ -6,7 +6,22 @@ describe('GET /api/v1/health', () => {
   let app: FastifyInstance;
 
   beforeAll(async () => {
-    app = await buildApp();
+    app = await buildApp({
+      prisma: {
+        user: {
+          findUnique: async () => null,
+          create: async () => ({
+            id: 'user-1',
+            name: 'Test User',
+            email: 'test@example.com',
+            phone: null,
+            passwordHash: 'hash',
+            role: 'customer',
+            isActive: true,
+          }),
+        },
+      },
+    });
     await app.ready();
   });
 
