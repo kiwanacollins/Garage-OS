@@ -28,7 +28,7 @@ Write these three lines before any substantial visual work:
 - Radius: 6-8px for routine controls and panels. Avoid pill-heavy interfaces unless the element is a status badge or segmented control.
 - Component priority: use Mantine first for buttons, inputs, selects, tables, tabs, segmented controls, badges, modals, drawers, notifications, date/time inputs, dropzones, overlays, and layout primitives. Add custom React/CSS only when the workflow needs a GarageOS-specific composition that Mantine does not provide directly.
 - Mantine packages: prefer `@mantine/core`, `@mantine/hooks`, `@mantine/form`, `@mantine/dates`, `@mantine/notifications`, `@mantine/modals`, and `@mantine/dropzone` before adding new UI dependencies.
-- Icons: use an installed icon library when present; otherwise keep controls textual and clear instead of adding custom decorative SVGs. Do not add an icon library solely for ornament.
+- Icons: use `react-icons` as the default icon library. Prefer Phosphor icons from `react-icons/pi` for GarageOS UI because they feel technical, clear, and less generic; use `react-icons/fi` only when a Phosphor equivalent is not suitable. Do not use Lucide React for new UI. Keep icons functional: actions, status, navigation, vehicles, invoices, payments, scheduling, search, and warnings.
 - Motion: plain CSS transitions by default. Add Framer Motion only if the project already has it or the user explicitly wants it.
 - Loading indicators: use the GarageOS global analyzer loader only. Do not add generic spinners, bouncing dots, pulse blobs, or framework-default loaders. See `references/implementation-patterns.md`.
 
@@ -42,6 +42,24 @@ For dashboards and operational screens, Mantine is the default UI framework. Whe
 - Avoid Mantine demos copied verbatim. Adapt components to GarageOS workflows and copy.
 - Prefer Mantine Forms for complex forms and Zod-compatible validation paths; simple `FormData` forms are acceptable only for prototypes or very small surfaces.
 - Keep custom CSS focused on layout composition, selected-row affordances, responsive grids, and GarageOS-specific states.
+
+## Icon Rule
+
+Use `react-icons` before adding any other icon package. Default import family:
+
+```tsx
+import { PiCarProfile, PiCalendarCheck, PiReceipt, PiCreditCard, PiWrench } from 'react-icons/pi';
+```
+
+GarageOS icon guidance:
+
+- Vehicles/register: `PiCarProfile`, `PiIdentificationCard`, `PiGauge`
+- Work orders/mechanic: `PiWrench`, `PiClipboardText`, `PiTimer`
+- Appointments: `PiCalendarCheck`, `PiClock`
+- Invoices/payments: `PiReceipt`, `PiCreditCard`, `PiMoney`
+- Alerts/status: `PiWarning`, `PiCheckCircle`, `PiSealCheck`
+- Use Mantine `leftSection`, `rightSection`, or `ActionIcon` for placement.
+- Keep icon size consistent: 16-18px inside compact controls, 20-24px for section affordances.
 
 ## Product UI Workflow
 

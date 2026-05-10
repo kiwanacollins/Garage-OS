@@ -70,6 +70,9 @@ If a panel can become plain layout without losing meaning, remove the card treat
 UI Framework Rule
 For GarageOS app UI, use Mantine as the first-choice UI framework. Prefer Mantine components for dashboards, forms, tables, tabs, segmented controls, badges, modals/drawers, notifications, date inputs, dropzones, and layout primitives before writing custom controls. Map GarageOS brand tokens into the Mantine theme and keep custom CSS limited to workflow-specific composition, dense layout, selected-row affordances, and responsive polish. Do not introduce another UI framework unless the user explicitly requests it or Mantine cannot reasonably handle the requirement.
 
+Icon Rule
+Use `react-icons` as the default icon library for GarageOS React UI. Prefer Phosphor icons from `react-icons/pi` for vehicles, work orders, invoices, payments, scheduling, status, and navigation. Do not add or use Lucide React for new UI. Icons should improve scanning or communicate an action/state; avoid ornamental icons.
+
 Imagery
 Imagery must do narrative work.
 

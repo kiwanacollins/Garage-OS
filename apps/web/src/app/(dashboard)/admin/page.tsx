@@ -14,6 +14,7 @@ import {
   UnstyledButton,
 } from '@mantine/core';
 import { io } from 'socket.io-client';
+import { JobCardIcon, WorkOrderIcon } from '@/components/icons';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { API_URL } from '@/lib/api';
 
@@ -140,7 +141,10 @@ export default function AdminDashboardPage() {
         <Group className="workspace-header" align="flex-end" justify="space-between" aria-labelledby="admin-title">
           <Stack gap={4}>
             <Text className="eyebrow">Admin</Text>
-            <Title id="admin-title" order={1}>Work order assignment</Title>
+            <Group gap="xs">
+              <WorkOrderIcon size={30} />
+              <Title id="admin-title" order={1}>Work order assignment</Title>
+            </Group>
             <Text c="dimmed">Review new work, balance mechanic load, and move job cards into active service.</Text>
           </Stack>
           <SimpleGrid className="assignment-metrics" cols={3} spacing={0} aria-label="Plan status">
@@ -227,7 +231,7 @@ export default function AdminDashboardPage() {
               }))}
             />
 
-            <Button type="button" onClick={assignMechanic}>
+            <Button type="button" leftSection={<JobCardIcon size={18} />} onClick={assignMechanic}>
               Assign job card
             </Button>
           </Paper>

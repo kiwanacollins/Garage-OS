@@ -14,6 +14,7 @@ import {
   UnstyledButton,
 } from '@mantine/core';
 import { io } from 'socket.io-client';
+import { JobCardIcon, WorkOrderIcon } from '@/components/icons';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { API_URL } from '@/lib/api';
 
@@ -152,7 +153,10 @@ export default function MechanicPage() {
         <Group className="workspace-header" align="flex-end" justify="space-between" aria-labelledby="mechanic-title">
           <Stack gap={4}>
             <Text className="eyebrow">Mechanic</Text>
-            <Title id="mechanic-title" order={1}>Job cards</Title>
+            <Group gap="xs">
+              <JobCardIcon size={30} />
+              <Title id="mechanic-title" order={1}>Job cards</Title>
+            </Group>
             <Text c="dimmed">Review assigned work, record findings, track labour, and request parts.</Text>
           </Stack>
           <SegmentedControl
@@ -207,7 +211,7 @@ export default function MechanicPage() {
               <Stack className="detail-actions" gap="xs" align="flex-end">
                 <Badge color={statusColors[selectedJob.status]}>{statusLabels[selectedJob.status]}</Badge>
                 {selectedAction ? (
-                  <Button size="xs" type="button" onClick={advanceSelectedJob}>
+                  <Button size="xs" type="button" leftSection={<WorkOrderIcon size={16} />} onClick={advanceSelectedJob}>
                     {selectedAction.label}
                   </Button>
                 ) : null}
@@ -245,7 +249,7 @@ export default function MechanicPage() {
                       <span>{finding}</span>
                     </div>
                   ))}
-                  <Button type="button">Record finding</Button>
+                  <Button type="button" leftSection={<JobCardIcon size={18} />}>Record finding</Button>
                 </div>
               </Tabs.Panel>
 
@@ -261,7 +265,7 @@ export default function MechanicPage() {
                   ) : (
                     <div className="empty-state">No labour logged yet.</div>
                   )}
-                  <Button type="button">Start labour timer</Button>
+                  <Button type="button" leftSection={<WorkOrderIcon size={18} />}>Start labour timer</Button>
                 </div>
               </Tabs.Panel>
 
@@ -273,7 +277,7 @@ export default function MechanicPage() {
                       <strong>{part.status}</strong>
                     </div>
                   ))}
-                  <Button type="button">Request part</Button>
+                  <Button type="button" leftSection={<WorkOrderIcon size={18} />}>Request part</Button>
                 </div>
               </Tabs.Panel>
             </Tabs>

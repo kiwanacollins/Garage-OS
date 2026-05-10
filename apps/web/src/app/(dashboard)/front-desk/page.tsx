@@ -15,6 +15,15 @@ import {
   Title,
   UnstyledButton,
 } from '@mantine/core';
+import {
+  CalendarIcon,
+  CheckIcon,
+  CustomerIcon,
+  InvoiceIcon,
+  OdometerIcon,
+  PaymentIcon,
+  VehicleIcon,
+} from '@/components/icons';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 type Vehicle = {
@@ -368,10 +377,10 @@ export default function FrontDeskPage() {
             <Text c="dimmed">Find an owner, verify linked vehicles, and create a clean intake record.</Text>
           </Stack>
           <Group className="workspace-actions">
-            <Button variant="default" type="button" onClick={() => setCustomerPanel('edit')}>
+            <Button variant="default" type="button" leftSection={<CustomerIcon size={18} />} onClick={() => setCustomerPanel('edit')}>
               Edit customer
             </Button>
-            <Button type="button" onClick={() => setCustomerPanel('new')}>
+            <Button type="button" leftSection={<CustomerIcon size={18} />} onClick={() => setCustomerPanel('new')}>
               Add customer
             </Button>
           </Group>
@@ -457,7 +466,7 @@ export default function FrontDeskPage() {
 
                 <div className="linked-heading">
                   <h3>Linked vehicles</h3>
-                  <Button variant="subtle" size="compact-sm" type="button" onClick={() => setVehiclePanel(true)}>
+                  <Button variant="subtle" size="compact-sm" type="button" leftSection={<VehicleIcon size={16} />} onClick={() => setVehiclePanel(true)}>
                     Add vehicle
                   </Button>
                 </div>
@@ -505,12 +514,13 @@ export default function FrontDeskPage() {
               <NumberInput name="odometerReading" label="Odometer" min={0} required defaultValue={selectedVehicle?.odometerReading} />
               <Textarea className="wide-field" name="notes" label="Customer notes" placeholder="Issue, symptoms, arrival condition" required autosize minRows={1} />
               <div className="operation-actions">
-                <Button type="submit">
+                <Button type="submit" leftSection={<OdometerIcon size={18} />}>
                   Check in vehicle
                 </Button>
                 <Button
                   variant="default"
                   type="button"
+                  leftSection={<CheckIcon size={18} />}
                   onClick={checkOutVehicle}
                   disabled={!selectedWorkOrder || selectedWorkOrder.status === 'collected'}
                 >
@@ -548,7 +558,7 @@ export default function FrontDeskPage() {
                 data={['Tomorrow, 08:30', 'Tomorrow, 10:00', 'Tomorrow, 11:30', 'Tomorrow, 14:00']}
               />
               <TextInput className="wide-field" name="issue" label="Issue" placeholder="Service reason" required />
-              <Button type="submit">
+              <Button type="submit" leftSection={<CalendarIcon size={18} />}>
                 Book appointment
               </Button>
             </form>
@@ -578,7 +588,7 @@ export default function FrontDeskPage() {
               <NumberInput name="labourTotal" label="Labour" min={0} required defaultValue={150000} />
               <NumberInput name="partsTotal" label="Parts" min={0} required defaultValue={85000} />
               <NumberInput name="tax" label="Tax" min={0} required defaultValue={42300} />
-              <Button type="submit" disabled={!selectedWorkOrder}>
+              <Button type="submit" leftSection={<InvoiceIcon size={18} />} disabled={!selectedWorkOrder}>
                 Generate invoice
               </Button>
             </form>
@@ -604,7 +614,7 @@ export default function FrontDeskPage() {
                 data={['Cash', 'Mobile money', 'Card', 'Bank transfer']}
               />
               <NumberInput name="amount" label="Amount" min={1} required defaultValue={selectedInvoice?.grandTotal ?? 277300} />
-              <Button type="submit" disabled={!selectedInvoice}>
+              <Button type="submit" leftSection={<PaymentIcon size={18} />} disabled={!selectedInvoice}>
                 Record payment
               </Button>
             </form>
