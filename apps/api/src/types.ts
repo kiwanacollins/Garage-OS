@@ -43,6 +43,7 @@ export type AppPrisma = {
   };
   invoice: {
     findUnique(args: Record<string, unknown>): Promise<any>;
+    findMany(args?: Record<string, unknown>): Promise<any[]>;
     create(args: Record<string, unknown>): Promise<any>;
     update(args: Record<string, unknown>): Promise<any>;
   };
@@ -63,6 +64,22 @@ export type AppPrisma = {
     findMany(args?: Record<string, unknown>): Promise<any[]>;
     create(args: Record<string, unknown>): Promise<any>;
     update(args: Record<string, unknown>): Promise<any>;
+  };
+  expense: {
+    findMany(args?: Record<string, unknown>): Promise<any[]>;
+    create(args: Record<string, unknown>): Promise<any>;
+    update(args: Record<string, unknown>): Promise<any>;
+    delete(args: Record<string, unknown>): Promise<any>;
+  };
+  service: {
+    findMany(args?: Record<string, unknown>): Promise<any[]>;
+    create(args: Record<string, unknown>): Promise<any>;
+    update(args: Record<string, unknown>): Promise<any>;
+    delete(args: Record<string, unknown>): Promise<any>;
+  };
+  attendance: {
+    findMany(args?: Record<string, unknown>): Promise<any[]>;
+    create(args: Record<string, unknown>): Promise<any>;
   };
 };
 

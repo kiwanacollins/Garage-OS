@@ -175,31 +175,31 @@
   - [x] 6.16 🟢 Build mechanic job completion UI — final notes textarea, recommendations, submit for quality check
   - [x] 6.17 🟢 Write Playwright E2E test for mechanic workflow (inspect → log labour → request parts → complete)
 
-- [ ] 7.0 Admin Dashboard, Analytics, Reports, and Staff Management
-  - [ ] 7.1 🔴 Write tests for report endpoints — revenue returns correct totals for date range, jobs returns completion stats, staff-performance returns per-mechanic data
-  - [ ] 7.2 Implement `GET /api/v1/reports/revenue` with date-range filtering — make tests pass
-  - [ ] 7.3 Implement `GET /api/v1/reports/jobs` (completion stats, avg turnaround, by status) — make tests pass
-  - [ ] 7.4 Implement `GET /api/v1/reports/staff-performance` (per-mechanic stats) — make tests pass
-  - [ ] 7.5 Implement Redis caching for report queries (< 2s dashboard load target)
-  - [ ] 7.6 🔴 Write tests for admin dashboard KPI endpoint — returns revenue today/month, outstanding invoices, jobs by status, average turnaround time, mechanic utilisation, parts awaiting approval, appointments today, and collection-ready vehicles
-  - [ ] 7.7 Implement `GET /api/v1/reports/dashboard-kpis` with date-range filtering and role-safe aggregation — make tests pass
-  - [ ] 7.8 🔴 Write tests for expense CRUD and tax summary endpoints — create expense, list by category/date, revenue less expenses, VAT/tax totals, export-ready totals
-  - [ ] 7.9 Implement expense tracking and tax reporting endpoints (`/api/v1/expenses`, `/api/v1/reports/tax-summary`) — make tests pass
-  - [ ] 7.10 🔴 Write tests for service catalogue CRUD — create service with price, update price, delete, category filter works
-  - [ ] 7.11 Implement service catalogue CRUD (`POST /api/v1/services`, `GET`, `PATCH`, `DELETE`) — make tests pass
-  - [ ] 7.12 🔴 Write tests for staff shift/attendance endpoints — update shifts, log attendance, GET returns records
-  - [ ] 7.13 Implement shift management (`PATCH /api/v1/users/:id/shifts`) and attendance tracking — make tests pass
-  - [ ] 7.14 Implement PDF/Excel report export via BullMQ background job
-  - [ ] 7.15 🟢 Build admin dashboard page — KPI cards for revenue, outstanding invoices, jobs by status, average turnaround, mechanic utilisation, parts awaiting approval, appointments today, and collection-ready vehicles; include trend charts and date-range picker
-  - [ ] 7.16 🟢 Build revenue and expense chart component — line/bar chart with daily/weekly/monthly toggle and net revenue display
-  - [ ] 7.17 🟢 Build mechanic performance table component — sortable by jobs, avg time, utilisation
-  - [ ] 7.18 🟢 Build reports page UI — select type, date range, format (PDF/Excel), download with progress, tax summary option
-  - [ ] 7.19 🟢 Build staff management UI — staff list, add/edit modal, role dropdown, shift calendar, attendance
-  - [ ] 7.20 🟢 Build service catalogue UI — table with add/edit/delete, category filters, price editing
-  - [ ] 7.21 🟢 Write Playwright E2E test for dashboard load, KPI filtering, and report export
+- [x] 7.0 Admin Dashboard, Analytics, Reports, and Staff Management
+  - [x] 7.1 🔴 Write tests for report endpoints — revenue returns correct totals for date range, jobs returns completion stats, staff-performance returns per-mechanic data
+  - [x] 7.2 Implement `GET /api/v1/reports/revenue` with date-range filtering — make tests pass
+  - [x] 7.3 Implement `GET /api/v1/reports/jobs` (completion stats, avg turnaround, by status) — make tests pass
+  - [x] 7.4 Implement `GET /api/v1/reports/staff-performance` (per-mechanic stats) — make tests pass
+  - [x] 7.5 Implement Redis caching for report queries (< 2s dashboard load target)
+  - [x] 7.6 🔴 Write tests for admin dashboard KPI endpoint — returns revenue today/month, outstanding invoices, jobs by status, average turnaround time, mechanic utilisation, parts awaiting approval, appointments today, and collection-ready vehicles
+  - [x] 7.7 Implement `GET /api/v1/reports/dashboard-kpis` with date-range filtering and role-safe aggregation — make tests pass
+  - [x] 7.8 🔴 Write tests for expense CRUD and tax summary endpoints — create expense, list by category/date, revenue less expenses, VAT/tax totals, export-ready totals
+  - [x] 7.9 Implement expense tracking and tax reporting endpoints (`/api/v1/expenses`, `/api/v1/reports/tax-summary`) — make tests pass
+  - [x] 7.10 🔴 Write tests for service catalogue CRUD — create service with price, update price, delete, category filter works
+  - [x] 7.11 Implement service catalogue CRUD (`POST /api/v1/services`, `GET`, `PATCH`, `DELETE`) — make tests pass
+  - [x] 7.12 🔴 Write tests for staff shift/attendance endpoints — update shifts, log attendance, GET returns records
+  - [x] 7.13 Implement shift management (`PATCH /api/v1/users/:id/shifts`) and attendance tracking — make tests pass
+  - [x] 7.14 Implement PDF/Excel report export via BullMQ background job
+  - [x] 7.15 🟢 Build admin dashboard page — KPI cards for revenue, outstanding invoices, jobs by status, average turnaround, mechanic utilisation, parts awaiting approval, appointments today, and collection-ready vehicles; include trend charts and date-range picker
+  - [x] 7.16 🟢 Build revenue and expense chart component — line/bar chart with daily/weekly/monthly toggle and net revenue display
+  - [x] 7.17 🟢 Build mechanic performance table component — sortable by jobs, avg time, utilisation
+  - [x] 7.18 🟢 Build reports page UI — select type, date range, format (PDF/Excel), download with progress, tax summary option
+  - [x] 7.19 🟢 Build staff management UI — staff list, add/edit modal, role dropdown, shift calendar, attendance
+  - [x] 7.20 🟢 Build service catalogue UI — table with add/edit/delete, category filters, price editing
+  - [x] 7.21 🟢 Write Playwright E2E test for dashboard load, KPI filtering, and report export
 
 - [ ] 8.0 Notification System and External Integrations
-  - [ ] 8.1 🔴 Write tests for notification service — in_app creates DB record + emits socket event, sms/email/whatsapp jobs are enqueued correctly
+  - [ ] 8.1 🔴 Write tests for notification service — in_app creates DB record + emits socket event, email jobs are enqueued correctly
   - [ ] 8.2 Set up BullMQ notification queue with job types: `sms`, `whatsapp`, `email`, `in_app`
   - [ ] 8.3 Implement `in_app` notification job — create Notification record, emit Socket.io event — make tests pass
   - [ ] 8.4 🔴 Write tests for notification API — GET returns paginated list for logged-in user, PATCH marks as read

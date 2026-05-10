@@ -80,7 +80,8 @@ test('mechanic can inspect, log labour, request parts, and submit completion', a
 
 test('admin can assign an unassigned work order', async ({ page }) => {
   await page.goto('/admin');
-  await expect(page.getByRole('heading', { name: 'Work order assignment' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Admin dashboard' })).toBeVisible();
+  await page.getByRole('tab', { name: 'operations' }).click();
   await expect(page.getByText('No mechanic')).toBeVisible();
 
   await page.getByRole('textbox', { name: 'Assign mechanic' }).click();
@@ -93,6 +94,7 @@ test('admin can assign an unassigned work order', async ({ page }) => {
 
 test('admin can approve a pending parts request', async ({ page }) => {
   await page.goto('/admin');
+  await page.getByRole('tab', { name: 'operations' }).click();
   await expect(page.getByRole('heading', { name: 'Parts approval' })).toBeVisible();
 
   await page.getByLabel('Approval note').fill('Customer approved this item by phone.');
@@ -100,4 +102,28 @@ test('admin can approve a pending parts request', async ({ page }) => {
 
   await expect(page.getByText('approved').first()).toBeVisible();
   await expect(page.getByText('Admin: Customer approved this item by phone.')).toBeVisible();
+});
+
+test('admin can review KPIs, filter reports, and add service catalogue items', async ({ page }) => {
+  await page.goto('/admin');
+  await expect(page.getByRole('heading', { name: 'Admin dashboard' })).toBeVisible();
+  await expect(page.getByText('Revenue today')).toBeVisible();
+  await expect(page.getByText('Mechanic utilisation')).toBeVisible();
+  await expect(page.getByText('Parts awaiting approval')).toBeVisible();
+
+  await page.getByRole('tab', { name: 'reports' }).click();
+  await page.getByLabel('From').fill('2026-05-01');
+  await page.getByLabel('To').fill('2026-05-10');
+  await page.getByRole('button', { name: 'Export Tax summary' }).click();
+  await expect(page.getByText('Tax summary export queued for 2026-05-01 to 2026-05-10')).toBeVisible();
+
+  await page.getByRole('tab', { name: 'staff' }).click();
+  await expect(page.getByRole('heading', { name: 'Staff management' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'Moses Kato' })).toBeVisible();
+
+  await page.getByRole('tab', { name: 'services' }).click();
+  await page.getByRole('textbox', { name: 'Service' }).fill('Wheel alignment');
+  await page.getByRole('textbox', { name: 'Price' }).fill('110000');
+  await page.getByRole('button', { name: 'Add service' }).click();
+  await expect(page.getByText('Wheel alignment')).toBeVisible();
 });

@@ -219,6 +219,63 @@ export const completeWorkOrderSchema = z.object({
   recommendations: z.string().max(4000).optional(),
 });
 
+// ─── Admin Reporting and Staff Schemas ────────────────────────────────────────
+
+export const reportDateRangeSchema = z.object({
+  dateFrom: z.string().datetime().optional(),
+  dateTo: z.string().datetime().optional(),
+});
+
+export const createExpenseSchema = z.object({
+  category: z.string().min(1).max(100),
+  description: z.string().max(500).optional(),
+  amount: z.number().positive(),
+  incurredAt: z.string().datetime().optional(),
+});
+
+export const updateExpenseSchema = createExpenseSchema.partial().refine(
+  (value) => Object.keys(value).length > 0,
+  'At least one field is required',
+);
+
+export const expenseSearchSchema = reportDateRangeSchema.extend({
+  category: z.string().max(100).optional(),
+});
+
+export const createServiceSchema = z.object({
+  name: z.string().min(1).max(160),
+  category: z.string().min(1).max(100),
+  price: z.number().min(0),
+  isActive: z.boolean().optional().default(true),
+});
+
+export const updateServiceSchema = createServiceSchema.partial().refine(
+  (value) => Object.keys(value).length > 0,
+  'At least one field is required',
+);
+
+export const serviceSearchSchema = z.object({
+  category: z.string().max(100).optional(),
+  isActive: z.coerce.boolean().optional(),
+});
+
+export const updateStaffShiftSchema = z.object({
+  shift: z.string().min(1).max(100),
+});
+
+export const createAttendanceSchema = z.object({
+  userId: z.string().min(1),
+  status: z.enum(['present', 'absent', 'late']),
+  loggedAt: z.string().datetime().optional(),
+});
+
+export const reportExportSchema = z.object({
+  type: z.enum(['revenue', 'jobs', 'staff-performance', 'tax-summary']),
+  format: z.enum(['pdf', 'excel']),
+  dateFrom: z.string().datetime().optional(),
+  dateTo: z.string().datetime().optional(),
+});
+
 // ─── Customer Schemas ──────────────────────────────────────────────────────────
 
 export const createCustomerSchema = z.object({
@@ -265,6 +322,8 @@ export type CreatePaymentInput = z.infer<typeof createPaymentSchema>;
 export type CreateInspectionInput = z.infer<typeof createInspectionSchema>;
 export type CreateLabourLogInput = z.infer<typeof createLabourLogSchema>;
 export type CreatePartsRequestInput = z.infer<typeof createPartsRequestSchema>;
+export type CreateExpenseInput = z.infer<typeof createExpenseSchema>;
+export type CreateServiceInput = z.infer<typeof createServiceSchema>;
 export type CreateCustomerInput = z.infer<typeof createCustomerSchema>;
 export type UpdateCustomerInput = z.infer<typeof updateCustomerSchema>;
 export type CustomerSearchInput = z.infer<typeof customerSearchSchema>;

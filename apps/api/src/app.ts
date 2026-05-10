@@ -5,6 +5,7 @@ import sensible from '@fastify/sensible';
 import nodemailer from 'nodemailer';
 import { authPlugin } from './plugins/auth.js';
 import { realtimePlugin } from './plugins/realtime.js';
+import { adminAnalyticsRoutes } from './routes/admin-analytics.js';
 import { authRoutes } from './routes/auth.js';
 import { customerRoutes } from './routes/customers.js';
 import { frontDeskRoutes } from './routes/front-desk.js';
@@ -87,6 +88,7 @@ export async function buildApp(dependencies: AppDependencies = {}) {
   await app.register(authRoutes, { prefix: '/api/v1/auth' });
   await app.register(async (secureApp) => {
     await secureApp.register(authPlugin);
+    await secureApp.register(adminAnalyticsRoutes, { prefix: '/api/v1' });
     await secureApp.register(customerRoutes, { prefix: '/api/v1' });
     await secureApp.register(frontDeskRoutes, { prefix: '/api/v1' });
     await secureApp.register(mechanicRoutes, { prefix: '/api/v1' });
