@@ -125,6 +125,55 @@ export const assignMechanicSchema = z.object({
   mechanicId: z.string().uuid(),
 });
 
+export const checkInSchema = z.object({
+  vehicleId: z.string().uuid(),
+  odometerReading: z.number().int().min(0),
+  customerNotes: z.string().max(2000).optional(),
+  photos: z.array(z.string().url()).optional().default([]),
+});
+
+export const checkOutSchema = z.object({
+  workOrderId: z.string().min(1),
+  collectedBy: z.string().min(2).max(100).optional(),
+});
+
+export const createAppointmentSchema = z.object({
+  customerId: z.string().uuid(),
+  vehicleId: z.string().uuid(),
+  scheduledAt: z.string().datetime(),
+  issueDescription: z.string().max(2000).optional(),
+});
+
+export const updateAppointmentSchema = z
+  .object({
+    scheduledAt: z.string().datetime().optional(),
+    issueDescription: z.string().max(2000).optional(),
+    status: z.enum(['scheduled', 'confirmed', 'cancelled', 'completed', 'no_show']).optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, 'At least one field is required');
+
+export const availableSlotsSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+
+export const createInvoiceSchema = z.object({
+  workOrderId: z.string().min(1),
+  labourTotal: z.number().min(0),
+  partsTotal: z.number().min(0),
+  tax: z.number().min(0).optional().default(0),
+});
+
+export const updateInvoiceStatusSchema = z.object({
+  status: z.enum(['draft', 'issued', 'paid', 'overdue', 'cancelled']),
+});
+
+export const createPaymentSchema = z.object({
+  invoiceId: z.string().min(1),
+  amount: z.number().positive(),
+  method: z.enum(['cash', 'mobile_money', 'bank_transfer', 'card']),
+  transactionRef: z.string().max(100).optional(),
+});
+
 // ─── Customer Schemas ──────────────────────────────────────────────────────────
 
 export const createCustomerSchema = z.object({
@@ -163,6 +212,11 @@ export type CreateVehicleInput = z.infer<typeof createVehicleSchema>;
 export type UpdateVehicleInput = z.infer<typeof updateVehicleSchema>;
 export type CreateWorkOrderInput = z.infer<typeof createWorkOrderSchema>;
 export type WorkOrderSearchInput = z.infer<typeof workOrderSearchSchema>;
+export type CheckInInput = z.infer<typeof checkInSchema>;
+export type CheckOutInput = z.infer<typeof checkOutSchema>;
+export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
+export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
+export type CreatePaymentInput = z.infer<typeof createPaymentSchema>;
 export type CreateCustomerInput = z.infer<typeof createCustomerSchema>;
 export type UpdateCustomerInput = z.infer<typeof updateCustomerSchema>;
 export type CustomerSearchInput = z.infer<typeof customerSearchSchema>;

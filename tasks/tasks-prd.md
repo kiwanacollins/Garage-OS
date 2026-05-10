@@ -136,25 +136,25 @@
   - [x] 4.13 Set up Socket.io for real-time status updates — emit on status change, listen on dashboards
   - [x] 4.14 🟢 Write Playwright E2E test for full work order lifecycle (create → assign → in progress → complete)
 
-- [ ] 5.0 Front Desk Operations (Check-in/out, Appointments, Invoicing, Payments)
-  - [ ] 5.1 🔴 Write tests for check-in endpoint — accepts odometer + photos, creates work order, returns 201
-  - [ ] 5.2 Implement vehicle check-in — capture odometer, upload condition photos to S3, set status `created` — make tests pass
-  - [ ] 5.3 🔴 Write tests for check-out endpoint — marks work order `collected`, records departure timestamp
-  - [ ] 5.4 Implement vehicle check-out — make tests from 5.3 pass
-  - [ ] 5.5 🔴 Write tests for appointment routes — CRUD, available-slots returns valid slots, cancel sends notification
-  - [ ] 5.6 Implement appointment CRUD (`POST`, `GET`, `PATCH`, `DELETE`) and `GET /available-slots` — make tests pass
-  - [ ] 5.7 🔴 Write tests for invoice generation — calculates labour + parts + tax correctly, PDF generation returns binary, status transitions valid
-  - [ ] 5.8 Implement `POST /api/v1/invoices` — auto-calculate totals from work order — make tests pass
-  - [ ] 5.9 Implement `GET /api/v1/invoices/:id/pdf` — generate PDF via pdf-lib/Puppeteer — make tests pass
-  - [ ] 5.10 Implement `PATCH /api/v1/invoices/:id/status` — make tests pass
-  - [ ] 5.11 🔴 Write tests for payment routes — record payment, GET by invoice returns list, invalid method returns 400
-  - [ ] 5.12 Implement `POST /api/v1/payments` and `GET /by-invoice/:id` — make tests pass
-  - [ ] 5.13 🟢 Build front desk check-in UI — vehicle lookup, odometer input, photo upload with drag-and-drop
-  - [ ] 5.14 🟢 Build front desk check-out UI — vehicle search, confirm collection, print summary
-  - [ ] 5.15 🟢 Build appointment calendar UI — daily/weekly view, click-to-book, drag-to-reschedule, colour-coded
-  - [ ] 5.16 🟢 Build invoice generation UI — preview, edit line items, generate PDF, print/download
-  - [ ] 5.17 🟢 Build payment processing UI — select method, enter amount, record transaction, issue receipt
-  - [ ] 5.18 🟢 Write Playwright E2E test for check-in → invoice → payment flow
+- [x] 5.0 Front Desk Operations (Check-in/out, Appointments, Invoicing, Payments)
+  - [x] 5.1 🔴 Write tests for check-in endpoint — accepts odometer + photos, creates work order, returns 201
+  - [x] 5.2 Implement vehicle check-in — capture odometer, upload condition photos to S3, set status `created` — make tests pass
+  - [x] 5.3 🔴 Write tests for check-out endpoint — marks work order `collected`, records departure timestamp
+  - [x] 5.4 Implement vehicle check-out — make tests from 5.3 pass
+  - [x] 5.5 🔴 Write tests for appointment routes — CRUD, available-slots returns valid slots, cancel sends notification
+  - [x] 5.6 Implement appointment CRUD (`POST`, `GET`, `PATCH`, `DELETE`) and `GET /available-slots` — make tests pass
+  - [x] 5.7 🔴 Write tests for invoice generation — calculates labour + parts + tax correctly, PDF generation returns binary, status transitions valid
+  - [x] 5.8 Implement `POST /api/v1/invoices` — auto-calculate totals from work order — make tests pass
+  - [x] 5.9 Implement `GET /api/v1/invoices/:id/pdf` — generate PDF via pdf-lib/Puppeteer — make tests pass
+  - [x] 5.10 Implement `PATCH /api/v1/invoices/:id/status` — make tests pass
+  - [x] 5.11 🔴 Write tests for payment routes — record payment, GET by invoice returns list, invalid method returns 400
+  - [x] 5.12 Implement `POST /api/v1/payments` and `GET /by-invoice/:id` — make tests pass
+  - [x] 5.13 🟢 Build front desk check-in UI — vehicle lookup, odometer input, photo upload with drag-and-drop
+  - [x] 5.14 🟢 Build front desk check-out UI — vehicle search, confirm collection, print summary
+  - [x] 5.15 🟢 Build appointment calendar UI — daily/weekly view, click-to-book, drag-to-reschedule, colour-coded
+  - [x] 5.16 🟢 Build invoice generation UI — preview, edit line items, generate PDF, print/download
+  - [x] 5.17 🟢 Build payment processing UI — select method, enter amount, record transaction, issue receipt
+  - [x] 5.18 🟢 Write Playwright E2E test for check-in → invoice → payment flow
 
 - [ ] 6.0 Mechanic Operations (Inspections, Labour Logging, Parts Requests)
   - [ ] 6.1 Define Zod schemas for inspection, labour log, parts request in `packages/validation`

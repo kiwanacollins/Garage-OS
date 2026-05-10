@@ -653,6 +653,23 @@ p {
   border-top: 1px solid var(--line);
 }
 
+.vehicle-button {
+  width: 100%;
+  color: var(--ink);
+  text-align: left;
+  background: transparent;
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+  cursor: pointer;
+}
+
+.vehicle-button:hover,
+.vehicle-button.is-selected {
+  background: var(--soft-blue);
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+
 .vehicle-item div {
   display: grid;
   gap: 4px;
@@ -668,6 +685,92 @@ p {
   width: 100%;
   padding: 18px;
   animation: panel-in 180ms ease-out;
+}
+
+.operations-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  max-width: 1320px;
+  width: 100%;
+}
+
+.operation-panel {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  padding: 18px;
+  background: rgb(255 255 255 / 92%);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 18px 50px rgb(23 32 42 / 6%);
+}
+
+.operation-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.operation-heading h2 {
+  margin: 0;
+}
+
+.operation-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(130px, 1fr));
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.operation-actions {
+  display: flex;
+  gap: 10px;
+  grid-column: span 3;
+  flex-wrap: wrap;
+}
+
+.operation-actions .button {
+  flex: 1;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.mini-list {
+  display: grid;
+  border-top: 1px solid var(--line);
+}
+
+.mini-row {
+  display: grid;
+  grid-template-columns: 130px 90px 1fr;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.mini-row span,
+.mini-row small {
+  color: var(--muted);
+}
+
+.invoice-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 12px;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+}
+
+.invoice-total strong {
+  color: var(--ink);
+  font-size: 1.4rem;
 }
 
 .entry-form {
@@ -743,6 +846,10 @@ p {
   .entry-form {
     grid-template-columns: 1fr 1fr;
   }
+
+  .operations-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
@@ -757,6 +864,19 @@ p {
   }
 
   .entry-form {
+    grid-template-columns: 1fr;
+  }
+
+  .operation-form {
+    grid-template-columns: 1fr;
+  }
+
+  .operation-actions,
+  .wide-field {
+    grid-column: auto;
+  }
+
+  .mini-row {
     grid-template-columns: 1fr;
   }
 

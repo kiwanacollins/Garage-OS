@@ -35,6 +35,21 @@ export type AppPrisma = {
     create(args: Record<string, unknown>): Promise<any>;
     update(args: Record<string, unknown>): Promise<any>;
   };
+  appointment: {
+    findMany(args?: Record<string, unknown>): Promise<any[]>;
+    create(args: Record<string, unknown>): Promise<any>;
+    update(args: Record<string, unknown>): Promise<any>;
+    delete(args: Record<string, unknown>): Promise<any>;
+  };
+  invoice: {
+    findUnique(args: Record<string, unknown>): Promise<any>;
+    create(args: Record<string, unknown>): Promise<any>;
+    update(args: Record<string, unknown>): Promise<any>;
+  };
+  payment: {
+    findMany(args?: Record<string, unknown>): Promise<any[]>;
+    create(args: Record<string, unknown>): Promise<any>;
+  };
 };
 
 export type AppMailer = {

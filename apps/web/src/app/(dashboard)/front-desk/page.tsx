@@ -25,6 +25,33 @@ type Customer = {
   lastVisit: string;
 };
 
+type WorkOrder = {
+  id: string;
+  vehicleId: string;
+  status: 'created' | 'invoiced' | 'paid' | 'collected';
+  notes: string;
+  checkedInAt: string;
+};
+
+type Appointment = {
+  id: string;
+  customerId: string;
+  vehicleId: string;
+  scheduledAt: string;
+  issue: string;
+  status: 'scheduled' | 'confirmed';
+};
+
+type Invoice = {
+  id: string;
+  workOrderId: string;
+  labourTotal: number;
+  partsTotal: number;
+  tax: number;
+  grandTotal: number;
+  status: 'issued' | 'paid';
+};
+
 const initialCustomers: Customer[] = [
   {
     id: 'customer-1',
@@ -91,16 +118,48 @@ const initialVehicles: Vehicle[] = [
   },
 ];
 
+const initialWorkOrders: WorkOrder[] = [
+  {
+    id: 'WO-1048',
+    vehicleId: 'vehicle-1',
+    status: 'created',
+    notes: 'Brake vibration above 80 km/h.',
+    checkedInAt: 'Today, 09:20',
+  },
+];
+
+const initialAppointments: Appointment[] = [
+  {
+    id: 'APT-208',
+    customerId: 'customer-3',
+    vehicleId: 'vehicle-2',
+    scheduledAt: 'Tomorrow, 10:00',
+    issue: 'Oil service and cabin filter',
+    status: 'confirmed',
+  },
+];
+
 export default function FrontDeskPage() {
   const [customers, setCustomers] = useState(initialCustomers);
   const [vehicles, setVehicles] = useState(initialVehicles);
   const [query, setQuery] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState(initialCustomers[0]?.id);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | undefined>(initialVehicles[0]?.id);
+  const [workOrders, setWorkOrders] = useState(initialWorkOrders);
+  const [appointments, setAppointments] = useState(initialAppointments);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [paymentStatus, setPaymentStatus] = useState('No payment recorded');
   const [customerPanel, setCustomerPanel] = useState<'closed' | 'new' | 'edit'>('closed');
   const [vehiclePanel, setVehiclePanel] = useState(false);
 
   const selectedCustomer = customers.find((customer) => customer.id === selectedCustomerId) ?? customers[0];
   const selectedVehicles = vehicles.filter((vehicle) => vehicle.customerId === selectedCustomer?.id);
+  const selectedVehicle =
+    selectedVehicles.find((vehicle) => vehicle.id === selectedVehicleId) ?? selectedVehicles[0] ?? vehicles[0];
+  const selectedWorkOrder = workOrders.find((workOrder) => workOrder.vehicleId === selectedVehicle?.id);
+  const selectedInvoice = selectedWorkOrder
+    ? invoices.find((invoice) => invoice.workOrderId === selectedWorkOrder.id)
+    : undefined;
 
   const filteredCustomers = useMemo(() => {
     const value = query.trim().toLowerCase();
@@ -149,9 +208,10 @@ export default function FrontDeskPage() {
     }
 
     const form = new FormData(event.currentTarget);
+    const id = `vehicle-${Date.now()}`;
     setVehicles((items) => [
       {
-        id: `vehicle-${Date.now()}`,
+        id,
         customerId: selectedCustomer.id,
         make: String(form.get('make')),
         model: String(form.get('model')),
@@ -163,7 +223,125 @@ export default function FrontDeskPage() {
       },
       ...items,
     ]);
+    setSelectedVehicleId(id);
     setVehiclePanel(false);
+  }
+
+  function checkInVehicle(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedVehicle) {
+      return;
+    }
+
+    const form = new FormData(event.currentTarget);
+    const odometerReading = Number(form.get('odometerReading'));
+    const notes = String(form.get('notes'));
+    const id = `WO-${Math.floor(Date.now() / 1000).toString().slice(-4)}`;
+
+    setVehicles((items) =>
+      items.map((vehicle) =>
+        vehicle.id === selectedVehicle.id
+          ? { ...vehicle, odometerReading, status: 'In service' }
+          : vehicle,
+      ),
+    );
+    setWorkOrders((items) => [
+      {
+        id,
+        vehicleId: selectedVehicle.id,
+        status: 'created',
+        notes,
+        checkedInAt: 'Just now',
+      },
+      ...items,
+    ]);
+    event.currentTarget.reset();
+  }
+
+  function checkOutVehicle() {
+    if (!selectedWorkOrder) {
+      return;
+    }
+
+    setWorkOrders((items) =>
+      items.map((workOrder) =>
+        workOrder.id === selectedWorkOrder.id ? { ...workOrder, status: 'collected' } : workOrder,
+      ),
+    );
+    setVehicles((items) =>
+      items.map((vehicle) =>
+        vehicle.id === selectedWorkOrder.vehicleId ? { ...vehicle, status: 'Ready' } : vehicle,
+      ),
+    );
+  }
+
+  function bookAppointment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedCustomer || !selectedVehicle) {
+      return;
+    }
+
+    const form = new FormData(event.currentTarget);
+    setAppointments((items) => [
+      {
+        id: `APT-${Math.floor(Date.now() / 1000).toString().slice(-3)}`,
+        customerId: selectedCustomer.id,
+        vehicleId: selectedVehicle.id,
+        scheduledAt: String(form.get('scheduledAt')),
+        issue: String(form.get('issue')),
+        status: 'scheduled',
+      },
+      ...items,
+    ]);
+    event.currentTarget.reset();
+  }
+
+  function generateInvoice(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedWorkOrder) {
+      return;
+    }
+
+    const form = new FormData(event.currentTarget);
+    const labourTotal = Number(form.get('labourTotal'));
+    const partsTotal = Number(form.get('partsTotal'));
+    const tax = Number(form.get('tax'));
+    const invoice = {
+      id: `INV-${Math.floor(Date.now() / 1000).toString().slice(-4)}`,
+      workOrderId: selectedWorkOrder.id,
+      labourTotal,
+      partsTotal,
+      tax,
+      grandTotal: labourTotal + partsTotal + tax,
+      status: 'issued' as const,
+    };
+
+    setInvoices((items) => [invoice, ...items.filter((item) => item.workOrderId !== selectedWorkOrder.id)]);
+    setWorkOrders((items) =>
+      items.map((workOrder) =>
+        workOrder.id === selectedWorkOrder.id ? { ...workOrder, status: 'invoiced' } : workOrder,
+      ),
+    );
+  }
+
+  function recordPayment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedInvoice || !selectedWorkOrder) {
+      return;
+    }
+
+    const form = new FormData(event.currentTarget);
+    setInvoices((items) =>
+      items.map((invoice) =>
+        invoice.id === selectedInvoice.id ? { ...invoice, status: 'paid' } : invoice,
+      ),
+    );
+    setWorkOrders((items) =>
+      items.map((workOrder) =>
+        workOrder.id === selectedWorkOrder.id ? { ...workOrder, status: 'paid' } : workOrder,
+      ),
+    );
+    setPaymentStatus(`${String(form.get('method'))} payment recorded`);
   }
 
   return (
@@ -216,7 +394,10 @@ export default function FrontDeskPage() {
                     type="button"
                     role="row"
                     key={customer.id}
-                    onClick={() => setSelectedCustomerId(customer.id)}
+                    onClick={() => {
+                      setSelectedCustomerId(customer.id);
+                      setSelectedVehicleId(vehicles.find((vehicle) => vehicle.customerId === customer.id)?.id);
+                    }}
                   >
                     <span>
                       <strong>{customer.name}</strong>
@@ -269,7 +450,12 @@ export default function FrontDeskPage() {
 
                 <div className="vehicle-list">
                   {selectedVehicles.map((vehicle) => (
-                    <article className="vehicle-item" key={vehicle.id}>
+                    <button
+                      className={`vehicle-item vehicle-button ${vehicle.id === selectedVehicle?.id ? 'is-selected' : ''}`}
+                      type="button"
+                      key={vehicle.id}
+                      onClick={() => setSelectedVehicleId(vehicle.id)}
+                    >
                       <div>
                         <strong className="mono-value">{vehicle.registrationPlate}</strong>
                         <span>
@@ -283,7 +469,7 @@ export default function FrontDeskPage() {
                       <span className={`status-badge ${vehicle.status === 'Awaiting parts' ? 'warning' : ''}`}>
                         {vehicle.status}
                       </span>
-                    </article>
+                    </button>
                   ))}
                 </div>
               </>
@@ -291,6 +477,164 @@ export default function FrontDeskPage() {
               <p>No customer selected.</p>
             )}
           </aside>
+        </section>
+
+        <section className="operations-grid" aria-label="Front desk operations">
+          <section className="operation-panel" aria-label="Check-in">
+            <div className="operation-heading">
+              <div>
+                <p className="eyebrow">Check-in</p>
+                <h2>{selectedVehicle ? selectedVehicle.registrationPlate : 'No vehicle'}</h2>
+              </div>
+              <span className="status-badge">{selectedWorkOrder?.status ?? 'Ready'}</span>
+            </div>
+            <form className="operation-form" onSubmit={checkInVehicle}>
+              <label className="field">
+                <span>Odometer</span>
+                <input
+                  name="odometerReading"
+                  type="number"
+                  min="0"
+                  required
+                  defaultValue={selectedVehicle?.odometerReading}
+                />
+              </label>
+              <label className="field wide-field">
+                <span>Customer notes</span>
+                <input name="notes" placeholder="Issue, symptoms, arrival condition" required />
+              </label>
+              <div className="operation-actions">
+                <button className="button" type="submit">
+                  Check in vehicle
+                </button>
+                <button
+                  className="button secondary-button"
+                  type="button"
+                  onClick={checkOutVehicle}
+                  disabled={!selectedWorkOrder || selectedWorkOrder.status === 'collected'}
+                >
+                  Confirm collection
+                </button>
+              </div>
+            </form>
+            <div className="mini-list">
+              {workOrders
+                .filter((workOrder) => workOrder.vehicleId === selectedVehicle?.id)
+                .slice(0, 3)
+                .map((workOrder) => (
+                  <div className="mini-row" key={workOrder.id}>
+                    <span>{workOrder.checkedInAt}</span>
+                    <strong>{workOrder.id}</strong>
+                    <small>{workOrder.notes}</small>
+                  </div>
+                ))}
+            </div>
+          </section>
+
+          <section className="operation-panel" aria-label="Appointments">
+            <div className="operation-heading">
+              <div>
+                <p className="eyebrow">Appointments</p>
+                <h2>Daily booking</h2>
+              </div>
+              <span className="register-count">{appointments.length} booked</span>
+            </div>
+            <form className="operation-form" onSubmit={bookAppointment}>
+              <label className="field">
+                <span>Slot</span>
+                <select name="scheduledAt" defaultValue="Tomorrow, 10:00">
+                  <option>Tomorrow, 08:30</option>
+                  <option>Tomorrow, 10:00</option>
+                  <option>Tomorrow, 11:30</option>
+                  <option>Tomorrow, 14:00</option>
+                </select>
+              </label>
+              <label className="field wide-field">
+                <span>Issue</span>
+                <input name="issue" placeholder="Service reason" required />
+              </label>
+              <button className="button" type="submit">
+                Book appointment
+              </button>
+            </form>
+            <div className="mini-list">
+              {appointments.slice(0, 3).map((appointment) => {
+                const vehicle = vehicles.find((item) => item.id === appointment.vehicleId);
+                return (
+                  <div className="mini-row" key={appointment.id}>
+                    <span>{appointment.scheduledAt}</span>
+                    <strong>{vehicle?.registrationPlate}</strong>
+                    <small>{appointment.issue}</small>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="operation-panel" aria-label="Invoice">
+            <div className="operation-heading">
+              <div>
+                <p className="eyebrow">Invoice</p>
+                <h2>{selectedInvoice?.id ?? 'Preview'}</h2>
+              </div>
+              <span className="status-badge">{selectedInvoice?.status ?? 'No invoice'}</span>
+            </div>
+            <form className="operation-form" onSubmit={generateInvoice}>
+              <label className="field">
+                <span>Labour</span>
+                <input name="labourTotal" type="number" min="0" required defaultValue="150000" />
+              </label>
+              <label className="field">
+                <span>Parts</span>
+                <input name="partsTotal" type="number" min="0" required defaultValue="85000" />
+              </label>
+              <label className="field">
+                <span>Tax</span>
+                <input name="tax" type="number" min="0" required defaultValue="42300" />
+              </label>
+              <button className="button" type="submit" disabled={!selectedWorkOrder}>
+                Generate invoice
+              </button>
+            </form>
+            <div className="invoice-total">
+              Grand total
+              <strong>UGX {(selectedInvoice?.grandTotal ?? 277300).toLocaleString()}</strong>
+            </div>
+          </section>
+
+          <section className="operation-panel" aria-label="Payment">
+            <div className="operation-heading">
+              <div>
+                <p className="eyebrow">Payment</p>
+                <h2>Receipt</h2>
+              </div>
+              <span className="status-badge">{paymentStatus}</span>
+            </div>
+            <form className="operation-form" onSubmit={recordPayment}>
+              <label className="field">
+                <span>Method</span>
+                <select name="method" defaultValue="Mobile money">
+                  <option>Cash</option>
+                  <option>Mobile money</option>
+                  <option>Card</option>
+                  <option>Bank transfer</option>
+                </select>
+              </label>
+              <label className="field">
+                <span>Amount</span>
+                <input
+                  name="amount"
+                  type="number"
+                  min="1"
+                  required
+                  defaultValue={selectedInvoice?.grandTotal ?? 277300}
+                />
+              </label>
+              <button className="button" type="submit" disabled={!selectedInvoice}>
+                Record payment
+              </button>
+            </form>
+          </section>
         </section>
 
         {customerPanel !== 'closed' ? (
