@@ -106,6 +106,162 @@ Suggested mapping:
 - Inspection/check-in photos need upload progress, preview, remove, retry, and empty state.
 - Invoice/report previews need amount, status, generated time, and print/download actions.
 
+## Global Analyzer Loader
+
+Use this loader for all indeterminate loading states. Do not introduce generic spinners, bouncing dots, pulse blobs, or framework-default loaders. For determinate work such as uploads or exports, pair this loader with a progress value when the value is available.
+
+Markup:
+
+```tsx
+<div className="global-analyzer-loader" role="status">
+  <div className="global-analyzer-loader__stage" aria-hidden="true">
+    <div className="global-analyzer-loader__track">
+      <div className="global-analyzer-loader__roller" />
+      <div className="global-analyzer-loader__roller" />
+    </div>
+    <div className="global-analyzer-loader__track">
+      <div className="global-analyzer-loader__roller" />
+      <div className="global-analyzer-loader__roller" />
+    </div>
+    <div className="global-analyzer-loader__track">
+      <div className="global-analyzer-loader__roller" />
+      <div className="global-analyzer-loader__roller" />
+    </div>
+  </div>
+  <span className="sr-only">Loading</span>
+</div>
+```
+
+CSS:
+
+```css
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.global-analyzer-loader {
+  --loader-size: 148px;
+  --loader-height: 100px;
+  --loader-duration: 1.2s;
+  --loader-dot: var(--brand-primary, #3857a3);
+  --loader-dot-alt: var(--brand-accent, #ee1e24);
+  --loader-shadow: rgb(28 45 92 / 28%);
+  display: inline-grid;
+  place-items: center;
+  width: var(--loader-size);
+  min-height: var(--loader-height);
+}
+
+.global-analyzer-loader__stage,
+.global-analyzer-loader__track {
+  position: relative;
+  width: var(--loader-size);
+  height: var(--loader-height);
+}
+
+.global-analyzer-loader__track {
+  position: absolute;
+  inset: 0;
+}
+
+.global-analyzer-loader__track:nth-child(2) {
+  --loader-delay: 0.15s;
+}
+
+.global-analyzer-loader__track:nth-child(3) {
+  --loader-delay: 0.3s;
+}
+
+.global-analyzer-loader__track::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 1rem;
+  height: 0.25rem;
+  border-radius: 999px;
+  background: var(--loader-shadow);
+  animation: analyzer-shadow var(--loader-duration) infinite linear;
+  animation-delay: var(--loader-delay, 0s);
+}
+
+.global-analyzer-loader__roller {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 70px;
+  height: 70px;
+  transform: rotate(135deg);
+  animation: analyzer-roller-a var(--loader-duration) infinite linear;
+  animation-delay: var(--loader-delay, 0s);
+}
+
+.global-analyzer-loader__roller:nth-child(2) {
+  right: 0;
+  left: auto;
+  transform: rotate(-45deg);
+  animation-name: analyzer-roller-b;
+}
+
+.global-analyzer-loader__roller::before {
+  content: "";
+  display: block;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--loader-dot);
+  box-shadow: 0 0 0 4px rgb(56 87 163 / 10%);
+}
+
+.global-analyzer-loader__track:nth-child(2n) .global-analyzer-loader__roller::before {
+  background: var(--loader-dot-alt);
+  box-shadow: 0 0 0 4px rgb(238 30 36 / 10%);
+}
+
+@keyframes analyzer-roller-a {
+  0% { transform: rotate(135deg); opacity: 1; }
+  8% { transform: rotate(240deg); }
+  20% { transform: rotate(300deg); }
+  40% { transform: rotate(380deg); }
+  45% { transform: rotate(440deg); }
+  50% { transform: rotate(495deg); opacity: 1; }
+  50.1%, 100% { transform: rotate(495deg); opacity: 0; }
+}
+
+@keyframes analyzer-roller-b {
+  0%, 49.9% { opacity: 0; }
+  50% { transform: rotate(-45deg); opacity: 1; }
+  58% { transform: rotate(-160deg); }
+  70% { transform: rotate(-240deg); }
+  80% { transform: rotate(-300deg); }
+  90% { transform: rotate(-340deg); }
+  100% { transform: rotate(-405deg); opacity: 1; }
+}
+
+@keyframes analyzer-shadow {
+  0% { transform: translateX(65px) scale(0.5); opacity: 0.3; }
+  8% { transform: translateX(30px) scale(2); }
+  13% { transform: translateX(0) scale(1.3); }
+  30% { transform: translateX(-15px) scale(0.5); opacity: 0.1; }
+  50% { transform: translateX(60px) scale(1.2); opacity: 0.3; }
+  60% { transform: translateX(130px) scale(2); opacity: 0.05; }
+  65% { transform: translateX(145px) scale(1.2); }
+  80% { transform: translateX(120px) scale(0.5); opacity: 0.1; }
+  90% { transform: translateX(80px) scale(0.8); }
+  100% { transform: translateX(60px); opacity: 0.3; }
+}
+```
+
+For full-page loading, center this inside the existing page shell. For local panel loading, keep the loader inside the affected region so operators know which data is pending.
+
 ## Motion
 
 Use 2-3 motions only when they improve comprehension:

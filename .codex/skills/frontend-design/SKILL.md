@@ -28,6 +28,7 @@ Write these three lines before any substantial visual work:
 - Radius: 6-8px for routine controls and panels. Avoid pill-heavy interfaces unless the element is a status badge or segmented control.
 - Icons: use an installed icon library when present; otherwise keep controls textual and clear instead of adding custom decorative SVGs.
 - Motion: plain CSS transitions by default. Add Framer Motion only if the project already has it or the user explicitly wants it.
+- Loading indicators: use the GarageOS global analyzer loader only. Do not add generic spinners, bouncing dots, pulse blobs, or framework-default loaders. See `references/implementation-patterns.md`.
 
 ## Product UI Workflow
 
@@ -55,6 +56,7 @@ Prefer utility copy: headings, labels, counts, freshness, filters, and next acti
 Include expected states for real workflows:
 
 - loading, empty, error, unauthorized, stale/offline, success, pending approval, and disabled states.
+- indeterminate loading uses the global analyzer loader with an accessible status label.
 - status badges for work order lifecycle: created, assigned, in progress, awaiting parts, completed, quality check, invoiced, paid, collected.
 - timestamps and freshness where operational decisions depend on recency.
 - confirmation for destructive or irreversible actions.
