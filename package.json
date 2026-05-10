@@ -21,9 +21,12 @@
     "db:studio": "npm run studio --workspace=@garage-os/db"
   },
   "devDependencies": {
+    "postcss": "^8.5.14",
+    "postcss-preset-mantine": "^1.18.0",
+    "postcss-simple-vars": "^7.0.1",
+    "prettier": "^3.5.0",
     "turbo": "^2.5.0",
-    "typescript": "^5.8.0",
-    "prettier": "^3.5.0"
+    "typescript": "^5.8.0"
   },
   "engines": {
     "node": ">=20.0.0"

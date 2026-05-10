@@ -1,6 +1,18 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import {
+  Badge,
+  Button,
+  Group,
+  Paper,
+  Select,
+  SimpleGrid,
+  Stack,
+  Text,
+  Title,
+  UnstyledButton,
+} from '@mantine/core';
 import { io } from 'socket.io-client';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { API_URL } from '@/lib/api';
@@ -63,6 +75,12 @@ const statusLabels: Record<AssignmentStatus, string> = {
   quality_check: 'Quality check',
 };
 
+const statusColors: Record<AssignmentStatus, string> = {
+  created: 'orange',
+  assigned: 'garageBlue',
+  quality_check: 'green',
+};
+
 export default function AdminDashboardPage() {
   const [assignments, setAssignments] = useState(initialAssignments);
   const [selectedId, setSelectedId] = useState(initialAssignments[0].id);
@@ -119,40 +137,42 @@ export default function AdminDashboardPage() {
   return (
     <ProtectedRoute>
       <main className="dashboard job-workspace">
-        <section className="workspace-header" aria-labelledby="admin-title">
-          <div>
-            <p className="eyebrow">Admin</p>
-            <h1 id="admin-title">Work order assignment</h1>
-            <p>Review new work, balance mechanic load, and move job cards into active service.</p>
-          </div>
-          <section className="assignment-metrics" aria-label="Plan status">
-            <div>
-              Open<strong>{metrics.open}</strong>
-            </div>
-            <div>
-              Unassigned<strong>{metrics.unassigned}</strong>
-            </div>
-            <div>
-              QC<strong>{metrics.quality}</strong>
-            </div>
-          </section>
-        </section>
+        <Group className="workspace-header" align="flex-end" justify="space-between" aria-labelledby="admin-title">
+          <Stack gap={4}>
+            <Text className="eyebrow">Admin</Text>
+            <Title id="admin-title" order={1}>Work order assignment</Title>
+            <Text c="dimmed">Review new work, balance mechanic load, and move job cards into active service.</Text>
+          </Stack>
+          <SimpleGrid className="assignment-metrics" cols={3} spacing={0} aria-label="Plan status">
+            <Stack gap={4}>
+              <Text size="xs" fw={800} c="dimmed" tt="uppercase">Open</Text>
+              <Text fw={800} fz="xl">{metrics.open}</Text>
+            </Stack>
+            <Stack gap={4}>
+              <Text size="xs" fw={800} c="dimmed" tt="uppercase">Unassigned</Text>
+              <Text fw={800} fz="xl">{metrics.unassigned}</Text>
+            </Stack>
+            <Stack gap={4}>
+              <Text size="xs" fw={800} c="dimmed" tt="uppercase">QC</Text>
+              <Text fw={800} fz="xl">{metrics.quality}</Text>
+            </Stack>
+          </SimpleGrid>
+        </Group>
 
         <section className="job-layout" aria-label="Work order assignments">
-          <div className="job-list">
+          <Paper className="job-list">
             {assignments.map((assignment) => {
               const mechanic = mechanics.find((item) => item.id === assignment.mechanicId);
               return (
-                <button
+                <UnstyledButton
                   className={`job-card ${assignment.id === selected.id ? 'is-selected' : ''}`}
-                  type="button"
                   key={assignment.id}
                   onClick={() => {
                     setSelectedId(assignment.id);
                     setSelectedMechanic(assignment.mechanicId ?? mechanics[0].id);
                   }}
                 >
-                  <span className={`status-badge status-${assignment.status}`}>{statusLabels[assignment.status]}</span>
+                  <Badge color={statusColors[assignment.status]}>{statusLabels[assignment.status]}</Badge>
                   <span>
                     <strong className="mono-value">{assignment.plate}</strong>
                     <small>{assignment.vehicle}</small>
@@ -165,20 +185,20 @@ export default function AdminDashboardPage() {
                     {mechanic?.name ?? 'No mechanic'}
                     <small>{assignment.createdAt}</small>
                   </span>
-                </button>
+                </UnstyledButton>
               );
             })}
-          </div>
+          </Paper>
 
-          <aside className="job-detail" aria-label="Assignment detail">
-            <div className="detail-heading">
-              <div>
-                <p className="eyebrow">{selected.id}</p>
-                <h2>{selected.plate}</h2>
-                <p>{selected.vehicle}</p>
-              </div>
-              <span className={`status-badge status-${selected.status}`}>{statusLabels[selected.status]}</span>
-            </div>
+          <Paper component="aside" className="job-detail" aria-label="Assignment detail">
+            <Group className="detail-heading" align="flex-start" justify="space-between">
+              <Stack gap={2}>
+                <Text className="eyebrow">{selected.id}</Text>
+                <Title order={2}>{selected.plate}</Title>
+                <Text c="dimmed">{selected.vehicle}</Text>
+              </Stack>
+              <Badge color={statusColors[selected.status]}>{statusLabels[selected.status]}</Badge>
+            </Group>
 
             <dl className="detail-list compact-detail">
               <div>
@@ -195,23 +215,22 @@ export default function AdminDashboardPage() {
               </div>
             </dl>
 
-            <p className="job-note">{selected.concern}</p>
+            <Text className="job-note">{selected.concern}</Text>
 
-            <label className="field">
-              <span>Assign mechanic</span>
-              <select value={selectedMechanic} onChange={(event) => setSelectedMechanic(event.target.value)}>
-                {mechanics.map((mechanic) => (
-                  <option value={mechanic.id} key={mechanic.id}>
-                    {mechanic.name} ({mechanic.load} active)
-                  </option>
-                ))}
-              </select>
-            </label>
+            <Select
+              label="Assign mechanic"
+              value={selectedMechanic}
+              onChange={(value) => setSelectedMechanic(value ?? mechanics[0].id)}
+              data={mechanics.map((mechanic) => ({
+                value: mechanic.id,
+                label: `${mechanic.name} (${mechanic.load} active)`,
+              }))}
+            />
 
-            <button className="button" type="button" onClick={assignMechanic}>
+            <Button type="button" onClick={assignMechanic}>
               Assign job card
-            </button>
-          </aside>
+            </Button>
+          </Paper>
         </section>
       </main>
     </ProtectedRoute>

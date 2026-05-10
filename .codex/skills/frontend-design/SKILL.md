@@ -1,6 +1,6 @@
 ---
 name: frontend-design
-description: Build or refine GarageOS web UI for a role-based garage management system. Use for Next.js/React screens, dashboards, forms, portals, operational workflows, landing pages, motion, responsive polish, accessibility, and visual quality. Prefer calm, dense product UI for garage operations over generic SaaS or decorative marketing layouts.
+description: Build or refine GarageOS web UI for a role-based garage management system. Use for Next.js/React screens, dashboards, forms, portals, operational workflows, landing pages, motion, responsive polish, accessibility, and visual quality. Prefer Mantine components first for app UI, with calm, dense product surfaces for garage operations over generic SaaS or decorative marketing layouts.
 ---
 
 # Frontend Design
@@ -21,14 +21,27 @@ Write these three lines before any substantial visual work:
 
 ## Project Defaults
 
-- Stack: Next.js 14 App Router, React 18, TypeScript, plain CSS unless the repo adds another styling system.
+- Stack: Next.js 14 App Router, React 18, TypeScript, Mantine 8 for app UI, and plain CSS modules/global CSS only for GarageOS-specific layout polish.
 - Existing path: `apps/web/src/app` with shared CSS in `apps/web/src/app/globals.css`.
 - Brand tokens from `tasks/prd.md`: primary `#3857A3`, accent `#EE1E24`, neutrals, success `#16A34A`, warning `#F59E0B`.
 - Typography: Inter/system for UI, JetBrains Mono only for IDs, plates, timestamps, invoice numbers, metrics, or technical values.
 - Radius: 6-8px for routine controls and panels. Avoid pill-heavy interfaces unless the element is a status badge or segmented control.
-- Icons: use an installed icon library when present; otherwise keep controls textual and clear instead of adding custom decorative SVGs.
+- Component priority: use Mantine first for buttons, inputs, selects, tables, tabs, segmented controls, badges, modals, drawers, notifications, date/time inputs, dropzones, overlays, and layout primitives. Add custom React/CSS only when the workflow needs a GarageOS-specific composition that Mantine does not provide directly.
+- Mantine packages: prefer `@mantine/core`, `@mantine/hooks`, `@mantine/form`, `@mantine/dates`, `@mantine/notifications`, `@mantine/modals`, and `@mantine/dropzone` before adding new UI dependencies.
+- Icons: use an installed icon library when present; otherwise keep controls textual and clear instead of adding custom decorative SVGs. Do not add an icon library solely for ornament.
 - Motion: plain CSS transitions by default. Add Framer Motion only if the project already has it or the user explicitly wants it.
 - Loading indicators: use the GarageOS global analyzer loader only. Do not add generic spinners, bouncing dots, pulse blobs, or framework-default loaders. See `references/implementation-patterns.md`.
+
+## Mantine Implementation Rule
+
+For dashboards and operational screens, Mantine is the default UI framework. When building or refactoring UI:
+
+- Start with Mantine primitives (`AppShell`, `Container`, `Grid`, `Stack`, `Group`, `Paper`, `Table`, `Tabs`, `Button`, `ActionIcon`, `TextInput`, `NumberInput`, `Select`, `Textarea`, `Badge`, `Modal`, `Drawer`, `Menu`, `Tooltip`, `SegmentedControl`, `ScrollArea`, `Notification`, `Dropzone`) before custom elements.
+- Use `MantineProvider` theme tokens for GarageOS brand color, radius, spacing, headings, focus rings, and component defaults.
+- Keep operational density: compact sizes, predictable alignment, sticky/detail rails, readable tables, and restrained borders.
+- Avoid Mantine demos copied verbatim. Adapt components to GarageOS workflows and copy.
+- Prefer Mantine Forms for complex forms and Zod-compatible validation paths; simple `FormData` forms are acceptable only for prototypes or very small surfaces.
+- Keep custom CSS focused on layout composition, selected-row affordances, responsive grids, and GarageOS-specific states.
 
 ## Product UI Workflow
 

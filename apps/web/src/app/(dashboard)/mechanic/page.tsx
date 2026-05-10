@@ -1,6 +1,18 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import {
+  Badge,
+  Button,
+  Group,
+  Paper,
+  SegmentedControl,
+  Stack,
+  Tabs,
+  Text,
+  Title,
+  UnstyledButton,
+} from '@mantine/core';
 import { io } from 'socket.io-client';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { API_URL } from '@/lib/api';
@@ -81,6 +93,13 @@ const statusLabels: Record<JobStatus, string> = {
   completed: 'Completed',
 };
 
+const statusColors: Record<JobStatus, string> = {
+  assigned: 'garageBlue',
+  in_progress: 'garageBlue',
+  awaiting_parts: 'orange',
+  completed: 'green',
+};
+
 const nextStatus: Partial<Record<JobStatus, { label: string; status: JobStatus }>> = {
   assigned: { label: 'Start work', status: 'in_progress' },
   in_progress: { label: 'Mark complete', status: 'completed' },
@@ -130,39 +149,38 @@ export default function MechanicPage() {
   return (
     <ProtectedRoute>
       <main className="dashboard job-workspace">
-        <section className="workspace-header" aria-labelledby="mechanic-title">
-          <div>
-            <p className="eyebrow">Mechanic</p>
-            <h1 id="mechanic-title">Job cards</h1>
-            <p>Review assigned work, record findings, track labour, and request parts.</p>
-          </div>
-          <div className="workspace-actions" aria-label="Job filters">
-            {(['all', 'assigned', 'in_progress', 'awaiting_parts', 'completed'] as const).map((status) => (
-              <button
-                className={`segment-button ${statusFilter === status ? 'is-active' : ''}`}
-                type="button"
-                key={status}
-                onClick={() => setStatusFilter(status)}
-              >
-                {status === 'all' ? 'All' : statusLabels[status]}
-              </button>
-            ))}
-          </div>
-        </section>
+        <Group className="workspace-header" align="flex-end" justify="space-between" aria-labelledby="mechanic-title">
+          <Stack gap={4}>
+            <Text className="eyebrow">Mechanic</Text>
+            <Title id="mechanic-title" order={1}>Job cards</Title>
+            <Text c="dimmed">Review assigned work, record findings, track labour, and request parts.</Text>
+          </Stack>
+          <SegmentedControl
+            aria-label="Job filters"
+            value={statusFilter}
+            onChange={(value) => setStatusFilter(value as JobStatus | 'all')}
+            data={[
+              { value: 'all', label: 'All' },
+              { value: 'assigned', label: 'Assigned' },
+              { value: 'in_progress', label: 'In progress' },
+              { value: 'awaiting_parts', label: 'Awaiting parts' },
+              { value: 'completed', label: 'Completed' },
+            ]}
+          />
+        </Group>
 
         <section className="job-layout" aria-label="Mechanic job cards">
-          <div className="job-list">
+          <Paper className="job-list">
             {filteredJobs.map((job) => (
-              <button
+              <UnstyledButton
                 className={`job-card ${job.id === selectedJob.id ? 'is-selected' : ''}`}
-                type="button"
                 key={job.id}
                 onClick={() => {
                   setSelectedJobId(job.id);
                   setTab('inspection');
                 }}
               >
-                <span className={`status-badge status-${job.status}`}>{statusLabels[job.status]}</span>
+                <Badge color={statusColors[job.status]}>{statusLabels[job.status]}</Badge>
                 <span>
                   <strong className="mono-value">{job.plate}</strong>
                   <small>{job.vehicle}</small>
@@ -175,26 +193,26 @@ export default function MechanicPage() {
                   {job.bay}
                   <small>{job.promisedAt}</small>
                 </span>
-              </button>
+              </UnstyledButton>
             ))}
-          </div>
+          </Paper>
 
-          <aside className="job-detail" aria-label="Selected job card">
-            <div className="detail-heading">
-              <div>
-                <p className="eyebrow">{selectedJob.id}</p>
-                <h2>{selectedJob.plate}</h2>
-                <p>{selectedJob.vehicle}</p>
-              </div>
-              <div className="detail-actions">
-                <span className={`status-badge status-${selectedJob.status}`}>{statusLabels[selectedJob.status]}</span>
+          <Paper component="aside" className="job-detail" aria-label="Selected job card">
+            <Group className="detail-heading" align="flex-start" justify="space-between">
+              <Stack gap={2}>
+                <Text className="eyebrow">{selectedJob.id}</Text>
+                <Title order={2}>{selectedJob.plate}</Title>
+                <Text c="dimmed">{selectedJob.vehicle}</Text>
+              </Stack>
+              <Stack className="detail-actions" gap="xs" align="flex-end">
+                <Badge color={statusColors[selectedJob.status]}>{statusLabels[selectedJob.status]}</Badge>
                 {selectedAction ? (
-                  <button className="button compact-button" type="button" onClick={advanceSelectedJob}>
+                  <Button size="xs" type="button" onClick={advanceSelectedJob}>
                     {selectedAction.label}
-                  </button>
+                  </Button>
                 ) : null}
-              </div>
-            </div>
+              </Stack>
+            </Group>
 
             <dl className="detail-list compact-detail">
               <div>
@@ -211,36 +229,27 @@ export default function MechanicPage() {
               </div>
             </dl>
 
-            <p className="job-note">{selectedJob.concern}</p>
+            <Text className="job-note">{selectedJob.concern}</Text>
 
-            <div className="tab-list" role="tablist" aria-label="Job card detail">
-              {(['inspection', 'labour', 'parts'] as const).map((item) => (
-                <button
-                  className={`tab-button ${tab === item ? 'is-active' : ''}`}
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === item}
-                  key={item}
-                  onClick={() => setTab(item)}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
+            <Tabs value={tab} onChange={(value) => setTab((value ?? 'inspection') as JobTab)}>
+              <Tabs.List aria-label="Job card detail">
+                <Tabs.Tab value="inspection">inspection</Tabs.Tab>
+                <Tabs.Tab value="labour">labour</Tabs.Tab>
+                <Tabs.Tab value="parts">parts</Tabs.Tab>
+              </Tabs.List>
 
-            <div className="tab-panel">
-              {tab === 'inspection' ? (
+              <Tabs.Panel value="inspection" pt="sm">
                 <div className="stack-list">
                   {selectedJob.findings.map((finding) => (
                     <div className="stack-row" key={finding}>
                       <span>{finding}</span>
                     </div>
                   ))}
-                  <button className="button" type="button">Record finding</button>
+                  <Button type="button">Record finding</Button>
                 </div>
-              ) : null}
+              </Tabs.Panel>
 
-              {tab === 'labour' ? (
+              <Tabs.Panel value="labour" pt="sm">
                 <div className="stack-list">
                   {selectedJob.labour.length ? (
                     selectedJob.labour.map((entry) => (
@@ -252,11 +261,11 @@ export default function MechanicPage() {
                   ) : (
                     <div className="empty-state">No labour logged yet.</div>
                   )}
-                  <button className="button" type="button">Start labour timer</button>
+                  <Button type="button">Start labour timer</Button>
                 </div>
-              ) : null}
+              </Tabs.Panel>
 
-              {tab === 'parts' ? (
+              <Tabs.Panel value="parts" pt="sm">
                 <div className="stack-list">
                   {selectedJob.parts.map((part) => (
                     <div className="stack-row split-row" key={part.item}>
@@ -264,11 +273,11 @@ export default function MechanicPage() {
                       <strong>{part.status}</strong>
                     </div>
                   ))}
-                  <button className="button" type="button">Request part</button>
+                  <Button type="button">Request part</Button>
                 </div>
-              ) : null}
-            </div>
-          </aside>
+              </Tabs.Panel>
+            </Tabs>
+          </Paper>
         </section>
       </main>
     </ProtectedRoute>

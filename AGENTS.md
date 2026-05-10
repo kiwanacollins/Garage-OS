@@ -67,6 +67,9 @@ multiple competing accent colors
 ornamental icons that do not improve scanning
 If a panel can become plain layout without losing meaning, remove the card treatment.
 
+UI Framework Rule
+For GarageOS app UI, use Mantine as the first-choice UI framework. Prefer Mantine components for dashboards, forms, tables, tabs, segmented controls, badges, modals/drawers, notifications, date inputs, dropzones, and layout primitives before writing custom controls. Map GarageOS brand tokens into the Mantine theme and keep custom CSS limited to workflow-specific composition, dense layout, selected-row affordances, and responsive polish. Do not introduce another UI framework unless the user explicitly requests it or Mantine cannot reasonably handle the requirement.
+
 Imagery
 Imagery must do narrative work.
 

@@ -1,6 +1,20 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
+import {
+  Badge,
+  Button,
+  Group,
+  NumberInput,
+  Paper,
+  Select,
+  Stack,
+  Text,
+  TextInput,
+  Textarea,
+  Title,
+  UnstyledButton,
+} from '@mantine/core';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 type Vehicle = {
@@ -347,33 +361,33 @@ export default function FrontDeskPage() {
   return (
     <ProtectedRoute>
       <main className="dashboard register-workspace">
-        <section className="workspace-header" aria-labelledby="register-title">
-          <div>
-            <p className="eyebrow">Front desk</p>
-            <h1 id="register-title">Vehicle register and customers</h1>
-            <p>Find an owner, verify linked vehicles, and create a clean intake record.</p>
-          </div>
-          <div className="workspace-actions">
-            <button className="button secondary-button" type="button" onClick={() => setCustomerPanel('edit')}>
+        <Group className="workspace-header" align="flex-end" justify="space-between" aria-labelledby="register-title">
+          <Stack gap={4}>
+            <Text className="eyebrow">Front desk</Text>
+            <Title id="register-title" order={1}>Vehicle register and customers</Title>
+            <Text c="dimmed">Find an owner, verify linked vehicles, and create a clean intake record.</Text>
+          </Stack>
+          <Group className="workspace-actions">
+            <Button variant="default" type="button" onClick={() => setCustomerPanel('edit')}>
               Edit customer
-            </button>
-            <button className="button" type="button" onClick={() => setCustomerPanel('new')}>
+            </Button>
+            <Button type="button" onClick={() => setCustomerPanel('new')}>
               Add customer
-            </button>
-          </div>
-        </section>
+            </Button>
+          </Group>
+        </Group>
 
         <section className="register-layout" aria-label="Customer and vehicle register">
-          <div className="register-main">
+          <Paper className="register-main">
             <div className="register-toolbar">
-              <label className="search-field">
-                <span>Search register</span>
-                <input
+              <div className="search-field">
+                <TextInput
+                  label="Search register"
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Name, phone, email, or plate"
                 />
-              </label>
+              </div>
               <div className="register-count" aria-live="polite">
                 {filteredCustomers.length} customers
               </div>
@@ -413,18 +427,18 @@ export default function FrontDeskPage() {
                 );
               })}
             </div>
-          </div>
+          </Paper>
 
-          <aside className="register-detail" aria-label="Selected customer">
+          <Paper component="aside" className="register-detail" aria-label="Selected customer">
             {selectedCustomer ? (
               <>
-                <div className="detail-heading">
-                  <div>
-                    <p className="eyebrow">Selected record</p>
-                    <h2>{selectedCustomer.name}</h2>
-                  </div>
-                  <span className="status-badge">{selectedCustomer.preferredContact}</span>
-                </div>
+                <Group className="detail-heading" align="flex-start" justify="space-between">
+                  <Stack gap={2}>
+                    <Text className="eyebrow">Selected record</Text>
+                    <Title order={2}>{selectedCustomer.name}</Title>
+                  </Stack>
+                  <Badge>{selectedCustomer.preferredContact}</Badge>
+                </Group>
 
                 <dl className="detail-list">
                   <div>
@@ -443,16 +457,15 @@ export default function FrontDeskPage() {
 
                 <div className="linked-heading">
                   <h3>Linked vehicles</h3>
-                  <button className="text-action" type="button" onClick={() => setVehiclePanel(true)}>
+                  <Button variant="subtle" size="compact-sm" type="button" onClick={() => setVehiclePanel(true)}>
                     Add vehicle
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="vehicle-list">
                   {selectedVehicles.map((vehicle) => (
-                    <button
+                    <UnstyledButton
                       className={`vehicle-item vehicle-button ${vehicle.id === selectedVehicle?.id ? 'is-selected' : ''}`}
-                      type="button"
                       key={vehicle.id}
                       onClick={() => setSelectedVehicleId(vehicle.id)}
                     >
@@ -466,55 +479,43 @@ export default function FrontDeskPage() {
                         <span>{vehicle.colour}</span>
                         <span>{vehicle.odometerReading.toLocaleString()} km</span>
                       </div>
-                      <span className={`status-badge ${vehicle.status === 'Awaiting parts' ? 'warning' : ''}`}>
+                      <Badge color={vehicle.status === 'Awaiting parts' ? 'orange' : vehicle.status === 'In service' ? 'garageBlue' : 'green'}>
                         {vehicle.status}
-                      </span>
-                    </button>
+                      </Badge>
+                    </UnstyledButton>
                   ))}
                 </div>
               </>
             ) : (
               <p>No customer selected.</p>
             )}
-          </aside>
+          </Paper>
         </section>
 
         <section className="operations-grid" aria-label="Front desk operations">
-          <section className="operation-panel" aria-label="Check-in">
-            <div className="operation-heading">
-              <div>
-                <p className="eyebrow">Check-in</p>
-                <h2>{selectedVehicle ? selectedVehicle.registrationPlate : 'No vehicle'}</h2>
-              </div>
-              <span className="status-badge">{selectedWorkOrder?.status ?? 'Ready'}</span>
-            </div>
+          <Paper className="operation-panel" aria-label="Check-in">
+            <Group className="operation-heading" align="flex-start" justify="space-between">
+              <Stack gap={2}>
+                <Text className="eyebrow">Check-in</Text>
+                <Title order={2}>{selectedVehicle ? selectedVehicle.registrationPlate : 'No vehicle'}</Title>
+              </Stack>
+              <Badge>{selectedWorkOrder?.status ?? 'Ready'}</Badge>
+            </Group>
             <form className="operation-form" onSubmit={checkInVehicle}>
-              <label className="field">
-                <span>Odometer</span>
-                <input
-                  name="odometerReading"
-                  type="number"
-                  min="0"
-                  required
-                  defaultValue={selectedVehicle?.odometerReading}
-                />
-              </label>
-              <label className="field wide-field">
-                <span>Customer notes</span>
-                <input name="notes" placeholder="Issue, symptoms, arrival condition" required />
-              </label>
+              <NumberInput name="odometerReading" label="Odometer" min={0} required defaultValue={selectedVehicle?.odometerReading} />
+              <Textarea className="wide-field" name="notes" label="Customer notes" placeholder="Issue, symptoms, arrival condition" required autosize minRows={1} />
               <div className="operation-actions">
-                <button className="button" type="submit">
+                <Button type="submit">
                   Check in vehicle
-                </button>
-                <button
-                  className="button secondary-button"
+                </Button>
+                <Button
+                  variant="default"
                   type="button"
                   onClick={checkOutVehicle}
                   disabled={!selectedWorkOrder || selectedWorkOrder.status === 'collected'}
                 >
                   Confirm collection
-                </button>
+                </Button>
               </div>
             </form>
             <div className="mini-list">
@@ -529,33 +530,27 @@ export default function FrontDeskPage() {
                   </div>
                 ))}
             </div>
-          </section>
+          </Paper>
 
-          <section className="operation-panel" aria-label="Appointments">
-            <div className="operation-heading">
-              <div>
-                <p className="eyebrow">Appointments</p>
-                <h2>Daily booking</h2>
-              </div>
-              <span className="register-count">{appointments.length} booked</span>
-            </div>
+          <Paper className="operation-panel" aria-label="Appointments">
+            <Group className="operation-heading" align="flex-start" justify="space-between">
+              <Stack gap={2}>
+                <Text className="eyebrow">Appointments</Text>
+                <Title order={2}>Daily booking</Title>
+              </Stack>
+              <Text className="register-count">{appointments.length} booked</Text>
+            </Group>
             <form className="operation-form" onSubmit={bookAppointment}>
-              <label className="field">
-                <span>Slot</span>
-                <select name="scheduledAt" defaultValue="Tomorrow, 10:00">
-                  <option>Tomorrow, 08:30</option>
-                  <option>Tomorrow, 10:00</option>
-                  <option>Tomorrow, 11:30</option>
-                  <option>Tomorrow, 14:00</option>
-                </select>
-              </label>
-              <label className="field wide-field">
-                <span>Issue</span>
-                <input name="issue" placeholder="Service reason" required />
-              </label>
-              <button className="button" type="submit">
+              <Select
+                name="scheduledAt"
+                label="Slot"
+                defaultValue="Tomorrow, 10:00"
+                data={['Tomorrow, 08:30', 'Tomorrow, 10:00', 'Tomorrow, 11:30', 'Tomorrow, 14:00']}
+              />
+              <TextInput className="wide-field" name="issue" label="Issue" placeholder="Service reason" required />
+              <Button type="submit">
                 Book appointment
-              </button>
+              </Button>
             </form>
             <div className="mini-list">
               {appointments.slice(0, 3).map((appointment) => {
@@ -569,72 +564,51 @@ export default function FrontDeskPage() {
                 );
               })}
             </div>
-          </section>
+          </Paper>
 
-          <section className="operation-panel" aria-label="Invoice">
-            <div className="operation-heading">
-              <div>
-                <p className="eyebrow">Invoice</p>
-                <h2>{selectedInvoice?.id ?? 'Preview'}</h2>
-              </div>
-              <span className="status-badge">{selectedInvoice?.status ?? 'No invoice'}</span>
-            </div>
+          <Paper className="operation-panel" aria-label="Invoice">
+            <Group className="operation-heading" align="flex-start" justify="space-between">
+              <Stack gap={2}>
+                <Text className="eyebrow">Invoice</Text>
+                <Title order={2}>{selectedInvoice?.id ?? 'Preview'}</Title>
+              </Stack>
+              <Badge>{selectedInvoice?.status ?? 'No invoice'}</Badge>
+            </Group>
             <form className="operation-form" onSubmit={generateInvoice}>
-              <label className="field">
-                <span>Labour</span>
-                <input name="labourTotal" type="number" min="0" required defaultValue="150000" />
-              </label>
-              <label className="field">
-                <span>Parts</span>
-                <input name="partsTotal" type="number" min="0" required defaultValue="85000" />
-              </label>
-              <label className="field">
-                <span>Tax</span>
-                <input name="tax" type="number" min="0" required defaultValue="42300" />
-              </label>
-              <button className="button" type="submit" disabled={!selectedWorkOrder}>
+              <NumberInput name="labourTotal" label="Labour" min={0} required defaultValue={150000} />
+              <NumberInput name="partsTotal" label="Parts" min={0} required defaultValue={85000} />
+              <NumberInput name="tax" label="Tax" min={0} required defaultValue={42300} />
+              <Button type="submit" disabled={!selectedWorkOrder}>
                 Generate invoice
-              </button>
+              </Button>
             </form>
             <div className="invoice-total">
               Grand total
               <strong>UGX {(selectedInvoice?.grandTotal ?? 277300).toLocaleString()}</strong>
             </div>
-          </section>
+          </Paper>
 
-          <section className="operation-panel" aria-label="Payment">
-            <div className="operation-heading">
-              <div>
-                <p className="eyebrow">Payment</p>
-                <h2>Receipt</h2>
-              </div>
-              <span className="status-badge">{paymentStatus}</span>
-            </div>
+          <Paper className="operation-panel" aria-label="Payment">
+            <Group className="operation-heading" align="flex-start" justify="space-between">
+              <Stack gap={2}>
+                <Text className="eyebrow">Payment</Text>
+                <Title order={2}>Receipt</Title>
+              </Stack>
+              <Badge>{paymentStatus}</Badge>
+            </Group>
             <form className="operation-form" onSubmit={recordPayment}>
-              <label className="field">
-                <span>Method</span>
-                <select name="method" defaultValue="Mobile money">
-                  <option>Cash</option>
-                  <option>Mobile money</option>
-                  <option>Card</option>
-                  <option>Bank transfer</option>
-                </select>
-              </label>
-              <label className="field">
-                <span>Amount</span>
-                <input
-                  name="amount"
-                  type="number"
-                  min="1"
-                  required
-                  defaultValue={selectedInvoice?.grandTotal ?? 277300}
-                />
-              </label>
-              <button className="button" type="submit" disabled={!selectedInvoice}>
+              <Select
+                name="method"
+                label="Method"
+                defaultValue="Mobile money"
+                data={['Cash', 'Mobile money', 'Card', 'Bank transfer']}
+              />
+              <NumberInput name="amount" label="Amount" min={1} required defaultValue={selectedInvoice?.grandTotal ?? 277300} />
+              <Button type="submit" disabled={!selectedInvoice}>
                 Record payment
-              </button>
+              </Button>
             </form>
-          </section>
+          </Paper>
         </section>
 
         {customerPanel !== 'closed' ? (

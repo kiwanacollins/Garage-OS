@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Button, PasswordInput, Stack, Text, TextInput } from '@mantine/core';
 import { useAuth } from './AuthProvider';
 
 type AuthFormProps = {
@@ -40,31 +41,27 @@ export function AuthForm({ mode }: AuthFormProps) {
   }
 
   return (
-    <form className="form" onSubmit={submit}>
+    <form onSubmit={submit}>
+      <Stack gap="sm">
       {mode === 'register' ? (
-        <label className="field">
-          <span>Name</span>
-          <input name="name" autoComplete="name" required minLength={2} />
-        </label>
+        <TextInput name="name" label="Name" autoComplete="name" required minLength={2} />
       ) : null}
-      <label className="field">
-        <span>Email</span>
-        <input name="email" type="email" autoComplete="email" required />
-      </label>
+      <TextInput name="email" label="Email" type="email" autoComplete="email" required />
       {mode === 'register' ? (
-        <label className="field">
-          <span>Phone</span>
-          <input name="phone" type="tel" autoComplete="tel" />
-        </label>
+        <TextInput name="phone" label="Phone" type="tel" autoComplete="tel" />
       ) : null}
-      <label className="field">
-        <span>Password</span>
-        <input name="password" type="password" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} required minLength={8} />
-      </label>
-      <button className="button" type="submit">
+      <PasswordInput
+        name="password"
+        label="Password"
+        autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+        required
+        minLength={8}
+      />
+      <Button type="submit" fullWidth>
         {mode === 'login' ? 'Sign in' : 'Create account'}
-      </button>
-      {status ? <p role="status">{status}</p> : null}
+      </Button>
+      {status ? <Text c="dimmed" role="status">{status}</Text> : null}
+      </Stack>
     </form>
   );
 }

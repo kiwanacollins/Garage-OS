@@ -53,9 +53,10 @@ test('admin can assign an unassigned work order', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Work order assignment' })).toBeVisible();
   await expect(page.getByText('No mechanic')).toBeVisible();
 
-  await page.getByLabel('Assign mechanic').selectOption('mechanic-2');
+  await page.getByRole('textbox', { name: 'Assign mechanic' }).click();
+  await page.getByRole('option', { name: 'Sarah Auma (2 active)' }).click();
   await page.getByRole('button', { name: 'Assign job card' }).click();
 
-  await expect(page.getByText('Sarah Auma').first()).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Assign mechanic' })).toHaveValue('Sarah Auma (2 active)');
   await expect(page.getByText('Assigned').first()).toBeVisible();
 });
