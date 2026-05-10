@@ -181,18 +181,22 @@
   - [ ] 7.3 Implement `GET /api/v1/reports/jobs` (completion stats, avg turnaround, by status) — make tests pass
   - [ ] 7.4 Implement `GET /api/v1/reports/staff-performance` (per-mechanic stats) — make tests pass
   - [ ] 7.5 Implement Redis caching for report queries (< 2s dashboard load target)
-  - [ ] 7.6 🔴 Write tests for service catalogue CRUD — create service with price, update price, delete, category filter works
-  - [ ] 7.7 Implement service catalogue CRUD (`POST /api/v1/services`, `GET`, `PATCH`, `DELETE`) — make tests pass
-  - [ ] 7.8 🔴 Write tests for staff shift/attendance endpoints — update shifts, log attendance, GET returns records
-  - [ ] 7.9 Implement shift management (`PATCH /api/v1/users/:id/shifts`) and attendance tracking — make tests pass
-  - [ ] 7.10 Implement PDF/Excel report export via BullMQ background job
-  - [ ] 7.11 🟢 Build admin dashboard page — KPI cards, trend charts, date-range picker
-  - [ ] 7.12 🟢 Build revenue chart component — line/bar chart with daily/weekly/monthly toggle
-  - [ ] 7.13 🟢 Build mechanic performance table component — sortable by jobs, avg time, utilisation
-  - [ ] 7.14 🟢 Build reports page UI — select type, date range, format (PDF/Excel), download with progress
-  - [ ] 7.15 🟢 Build staff management UI — staff list, add/edit modal, role dropdown, shift calendar, attendance
-  - [ ] 7.16 🟢 Build service catalogue UI — table with add/edit/delete, category filters, price editing
-  - [ ] 7.17 🟢 Write Playwright E2E test for dashboard load and report export
+  - [ ] 7.6 🔴 Write tests for admin dashboard KPI endpoint — returns revenue today/month, outstanding invoices, jobs by status, average turnaround time, mechanic utilisation, parts awaiting approval, appointments today, and collection-ready vehicles
+  - [ ] 7.7 Implement `GET /api/v1/reports/dashboard-kpis` with date-range filtering and role-safe aggregation — make tests pass
+  - [ ] 7.8 🔴 Write tests for expense CRUD and tax summary endpoints — create expense, list by category/date, revenue less expenses, VAT/tax totals, export-ready totals
+  - [ ] 7.9 Implement expense tracking and tax reporting endpoints (`/api/v1/expenses`, `/api/v1/reports/tax-summary`) — make tests pass
+  - [ ] 7.10 🔴 Write tests for service catalogue CRUD — create service with price, update price, delete, category filter works
+  - [ ] 7.11 Implement service catalogue CRUD (`POST /api/v1/services`, `GET`, `PATCH`, `DELETE`) — make tests pass
+  - [ ] 7.12 🔴 Write tests for staff shift/attendance endpoints — update shifts, log attendance, GET returns records
+  - [ ] 7.13 Implement shift management (`PATCH /api/v1/users/:id/shifts`) and attendance tracking — make tests pass
+  - [ ] 7.14 Implement PDF/Excel report export via BullMQ background job
+  - [ ] 7.15 🟢 Build admin dashboard page — KPI cards for revenue, outstanding invoices, jobs by status, average turnaround, mechanic utilisation, parts awaiting approval, appointments today, and collection-ready vehicles; include trend charts and date-range picker
+  - [ ] 7.16 🟢 Build revenue and expense chart component — line/bar chart with daily/weekly/monthly toggle and net revenue display
+  - [ ] 7.17 🟢 Build mechanic performance table component — sortable by jobs, avg time, utilisation
+  - [ ] 7.18 🟢 Build reports page UI — select type, date range, format (PDF/Excel), download with progress, tax summary option
+  - [ ] 7.19 🟢 Build staff management UI — staff list, add/edit modal, role dropdown, shift calendar, attendance
+  - [ ] 7.20 🟢 Build service catalogue UI — table with add/edit/delete, category filters, price editing
+  - [ ] 7.21 🟢 Write Playwright E2E test for dashboard load, KPI filtering, and report export
 
 - [ ] 8.0 Notification System and External Integrations
   - [ ] 8.1 🔴 Write tests for notification service — in_app creates DB record + emits socket event, sms/email/whatsapp jobs are enqueued correctly
@@ -207,24 +211,33 @@
   - [ ] 8.10 Create notification triggers — enqueue on: status change, appointment reminder, job assignment, invoice sent — make tests pass
   - [ ] 8.11 Implement customer notification preferences via `CustomerProfile.preferred_contact`
   - [ ] 8.12 Implement retry with exponential backoff for failed deliveries
-  - [ ] 8.13 🟢 Build notification bell/dropdown UI — unread badge, notification list, mark-as-read
-  - [ ] 8.14 🟢 Build front desk manual notification UI — select customer, compose, choose channel, send
+  - [ ] 8.13 🔴 Write tests for manual notification API — front desk can send SMS/WhatsApp/email to a selected customer, invalid channel returns 400, missing customer returns 404, non-front-desk/non-admin users get 403, and a notification job is enqueued with audit metadata
+  - [ ] 8.14 Implement `POST /api/v1/notifications/manual-send` — validate customer, channel, message, enqueue delivery job, create in-app/audit record, and return queued status
+  - [ ] 8.15 🟢 Build notification bell/dropdown UI — unread badge, notification list, mark-as-read
+  - [ ] 8.16 🟢 Build front desk manual notification UI — select customer, compose, choose channel, send, display queued/sent/failed state
 
 - [ ] 9.0 Customer Self-Service Portal
-  - [ ] 9.1 🔴 Write tests for customer data scoping — customer can only access own vehicles/orders/invoices, accessing another customer's data returns 403
-  - [ ] 9.2 Implement ownership check middleware for all customer-facing endpoints — make tests pass
-  - [ ] 9.3 🔴 Write tests for feedback routes — POST creates rating + comment, GET by work order returns feedback
-  - [ ] 9.4 Implement `POST /api/v1/feedback` and `GET /api/v1/feedback/by-work-order/:id` — make tests pass
-  - [ ] 9.5 🟢 Build customer registration page — sign-up form with Zod validation
-  - [ ] 9.6 🟢 Build customer profile page — view/edit details, change password
-  - [ ] 9.7 🟢 Build customer vehicle management page — list, add, edit, remove vehicles
-  - [ ] 9.8 🟢 Build customer appointment booking page — date picker, slot grid, vehicle selector, issue description, confirmation
-  - [ ] 9.9 🟢 Build customer service status tracking page — active work orders with real-time status via Socket.io
-  - [ ] 9.10 🟢 Build customer service history page — past services per vehicle with expandable details
-  - [ ] 9.11 🟢 Build customer invoice and payment page — list invoices, download PDF, pay online
-  - [ ] 9.12 Integrate payment gateway (mobile money / card) — webhook handler, update invoice status to `paid`
-  - [ ] 9.13 🟢 Build customer feedback UI — star rating (1-5), comment, submit after completion
-  - [ ] 9.14 🟢 Write Playwright E2E test for full customer flow (register → add vehicle → book → track → pay → rate)
+  - [ ] 9.1 🔴 Write customer ownership tests for vehicles — customer can list/read/update only their own vehicles; another customer's vehicle returns 403; unauthenticated request returns 401
+  - [ ] 9.2 🔴 Write customer ownership tests for work orders and service history — customer can view only work orders for their own vehicles; another customer's work order/history returns 403
+  - [ ] 9.3 🔴 Write customer ownership tests for invoices and payments — customer can view/pay only invoices linked to their own work orders; another customer's invoice/payment returns 403
+  - [ ] 9.4 🔴 Write customer ownership tests for appointments and feedback — customer can manage only their own appointments and can rate only their own completed work orders
+  - [ ] 9.5 Implement ownership check middleware/helpers for all customer-facing endpoints — make scoped vehicle, work order, invoice, payment, appointment, and feedback tests pass
+  - [ ] 9.6 🔴 Write tests for feedback routes — POST creates rating + comment, GET by work order returns feedback
+  - [ ] 9.7 Implement `POST /api/v1/feedback` and `GET /api/v1/feedback/by-work-order/:id` — make tests pass
+  - [ ] 9.8 🟢 Build customer registration page — sign-up form with Zod validation
+  - [ ] 9.9 🟢 Build customer profile page — view/edit details, change password
+  - [ ] 9.10 🟢 Build customer vehicle management page — list, add, edit, remove vehicles
+  - [ ] 9.11 🟢 Build customer appointment booking page — date picker, slot grid, vehicle selector, issue description, confirmation
+  - [ ] 9.12 🟢 Build customer service status tracking page — active work orders with real-time status via Socket.io
+  - [ ] 9.13 🟢 Build customer service history page — past services per vehicle with expandable details
+  - [ ] 9.14 🟢 Build customer invoice and payment page — list invoices, download PDF, pay online
+  - [ ] 9.15 🔴 Write Pesapal payment initiation tests — customer initiates payment for own unpaid invoice, amount matches invoice balance, duplicate active payment requests are handled, wrong invoice owner returns 403
+  - [ ] 9.16 Implement Pesapal payment initiation endpoint — create order tracking ID, submit order request to Pesapal, persist pending transaction, return redirect/payment URL
+  - [ ] 9.17 🔴 Write Pesapal IPN/webhook tests — verifies notification signature/source, fetches transaction status from Pesapal, marks invoice paid only on completed payment, handles failed/cancelled/pending statuses idempotently
+  - [ ] 9.18 Implement Pesapal IPN/webhook and reconciliation job — update payment/invoice status, store transaction reference, retry status checks for pending payments
+  - [ ] 9.19 🟢 Build Pesapal checkout UI — start payment, redirect/return handling, pending/success/failed states, receipt display
+  - [ ] 9.20 🟢 Build customer feedback UI — star rating (1-5), comment, submit after completion
+  - [ ] 9.21 🟢 Write Playwright E2E test for full customer flow (register → add vehicle → book → track → pay with mocked Pesapal → rate)
 
 - [ ] 10.0 Audit Trail, System Settings, and Cross-Cutting Concerns
   - [ ] 10.1 🔴 Write tests for audit middleware — POST/PATCH/DELETE requests create AuditLog entry with user, entity, action, changes
@@ -233,14 +246,20 @@
   - [ ] 10.4 Implement `GET /api/v1/audit-logs` (admin only) — make tests pass
   - [ ] 10.5 🔴 Write tests for system settings — GET returns config, PATCH updates config, non-admin gets 403
   - [ ] 10.6 Implement settings endpoints (`GET /api/v1/settings`, `PATCH /api/v1/settings`) — make tests pass
-  - [ ] 10.7 🔴 Write tests for supplier CRUD — create, list, update, delete, linked purchase orders
-  - [ ] 10.8 Implement supplier CRUD (`POST`, `GET`, `PATCH`, `DELETE`) — make tests pass
-  - [ ] 10.9 🔴 Write tests for purchase order routes — create from parts request, status transitions (ordered → shipped → received)
-  - [ ] 10.10 Implement purchase order CRUD and status transitions — make tests pass
-  - [ ] 10.11 🟢 Build admin audit log viewer UI — searchable table, filters, expandable change diff
-  - [ ] 10.12 🟢 Build admin system settings page — garage details, logo upload, tax config, notification prefs
-  - [ ] 10.13 🟢 Build supplier directory UI — table with CRUD, linked purchase orders
-  - [ ] 10.14 🟢 Build purchase order management UI — create from approved parts request, track status
-  - [ ] 10.15 Implement global error handling and standardised API error responses
-  - [ ] 10.16 Implement PWA service worker for offline job card caching
-  - [ ] 10.17 🟢 Final Playwright E2E regression suite covering critical flows across all four roles
+  - [ ] 10.7 🔴 Write multipart/S3 upload adapter tests — accepts JPEG/PNG up to configured size, rejects invalid MIME/oversized files, stores via S3/MinIO adapter, returns public/object URLs, deletes temp files, and handles storage failure with 502
+  - [ ] 10.8 Implement shared upload adapter and multipart parsing for check-in condition photos and inspection photos — make upload tests pass
+  - [ ] 10.9 🔴 Write tests for supplier CRUD — create, list, update, delete, linked purchase orders
+  - [ ] 10.10 Implement supplier CRUD (`POST`, `GET`, `PATCH`, `DELETE`) — make tests pass
+  - [ ] 10.11 🔴 Write tests for purchase order routes — create from approved parts request, status transitions (ordered → shipped → received)
+  - [ ] 10.12 Implement purchase order CRUD and status transitions — make tests pass
+  - [ ] 10.13 🟢 Build admin audit log viewer UI — searchable table, filters, expandable change diff
+  - [ ] 10.14 🟢 Build admin system settings page — garage details, logo upload, tax config, notification prefs
+  - [ ] 10.15 🟢 Build supplier directory UI — table with CRUD, linked purchase orders
+  - [ ] 10.16 🟢 Build purchase order management UI — create from approved parts request, track status
+  - [ ] 10.17 Implement global error handling and standardised API error responses
+  - [ ] 10.18 🔴 Write PWA service worker tests — mechanic job card route, current assigned job data, inspection draft, labour timer state, and queued parts requests are available offline after first load
+  - [ ] 10.19 Implement PWA app manifest and service worker precache for shell routes (`/mechanic`, shared assets) plus runtime cache for current mechanic job-card API responses
+  - [ ] 10.20 Implement offline draft persistence for inspection notes, labour timer state, and parts requests using IndexedDB/local storage with clear sync status
+  - [ ] 10.21 Implement background/online sync for queued mechanic changes — retries when connection returns, prevents duplicate submissions, and surfaces sync failures in the mechanic UI
+  - [ ] 10.22 🟢 Write Playwright offline E2E test — load mechanic job card online, go offline, view cached job, create draft finding/parts request, return online, verify sync completes
+  - [ ] 10.23 🟢 Final Playwright E2E regression suite covering critical flows across all four roles
