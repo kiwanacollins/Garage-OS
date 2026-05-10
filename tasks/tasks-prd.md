@@ -120,21 +120,21 @@
   - [x] 3.7 🟢 Build vehicle register UI — add vehicle form (make, model, year, colour, reg plate), vehicle detail card
   - [x] 3.8 🟢 Write Playwright E2E test for adding a customer and registering a vehicle
 
-- [ ] 4.0 Work Order Lifecycle and Job Card System
-  - [ ] 4.1 Define Zod schemas for work order creation, status updates, assignment in `packages/validation`
-  - [ ] 4.2 Define work order status enum: `created`, `assigned`, `in_progress`, `awaiting_parts`, `completed`, `quality_check`, `invoiced`, `paid`, `collected`
-  - [ ] 4.3 🔴 Write tests for state machine — valid transitions pass (created→assigned, assigned→in_progress, etc.), invalid transitions return 400
-  - [ ] 4.4 🔴 Write tests for work order CRUD — create returns 201, GET filters by status/mechanic/date, mechanic only sees own orders
-  - [ ] 4.5 Implement `POST /api/v1/work-orders` — make creation tests pass
-  - [ ] 4.6 Implement `GET /api/v1/work-orders` with filters and role scoping — make list tests pass
-  - [ ] 4.7 Implement `GET /api/v1/work-orders/:id` with nested inspection, labour, parts — make detail tests pass
-  - [ ] 4.8 Implement `PATCH /api/v1/work-orders/:id/status` with state machine validation — make transition tests from 4.3 pass
-  - [ ] 4.9 Implement `PATCH /api/v1/work-orders/:id/assign` — admin assigns mechanic, status → `assigned`
-  - [ ] 4.10 🟢 Build mechanic job card list view — cards with vehicle info, status badge, customer notes, action buttons
-  - [ ] 4.11 🟢 Build mechanic job card detail view — full work order info with tabs for inspection, labour, parts
-  - [ ] 4.12 🟢 Build admin work order assignment UI — unassigned orders list, mechanic dropdown, assign button
-  - [ ] 4.13 Set up Socket.io for real-time status updates — emit on status change, listen on dashboards
-  - [ ] 4.14 🟢 Write Playwright E2E test for full work order lifecycle (create → assign → in progress → complete)
+- [x] 4.0 Work Order Lifecycle and Job Card System
+  - [x] 4.1 Define Zod schemas for work order creation, status updates, assignment in `packages/validation`
+  - [x] 4.2 Define work order status enum: `created`, `assigned`, `in_progress`, `awaiting_parts`, `completed`, `quality_check`, `invoiced`, `paid`, `collected`
+  - [x] 4.3 🔴 Write tests for state machine — valid transitions pass (created→assigned, assigned→in_progress, etc.), invalid transitions return 400
+  - [x] 4.4 🔴 Write tests for work order CRUD — create returns 201, GET filters by status/mechanic/date, mechanic only sees own orders
+  - [x] 4.5 Implement `POST /api/v1/work-orders` — make creation tests pass
+  - [x] 4.6 Implement `GET /api/v1/work-orders` with filters and role scoping — make list tests pass
+  - [x] 4.7 Implement `GET /api/v1/work-orders/:id` with nested inspection, labour, parts — make detail tests pass
+  - [x] 4.8 Implement `PATCH /api/v1/work-orders/:id/status` with state machine validation — make transition tests from 4.3 pass
+  - [x] 4.9 Implement `PATCH /api/v1/work-orders/:id/assign` — admin assigns mechanic, status → `assigned`
+  - [x] 4.10 🟢 Build mechanic job card list view — cards with vehicle info, status badge, customer notes, action buttons
+  - [x] 4.11 🟢 Build mechanic job card detail view — full work order info with tabs for inspection, labour, parts
+  - [x] 4.12 🟢 Build admin work order assignment UI — unassigned orders list, mechanic dropdown, assign button
+  - [x] 4.13 Set up Socket.io for real-time status updates — emit on status change, listen on dashboards
+  - [x] 4.14 🟢 Write Playwright E2E test for full work order lifecycle (create → assign → in progress → complete)
 
 - [ ] 5.0 Front Desk Operations (Check-in/out, Appointments, Invoicing, Payments)
   - [ ] 5.1 🔴 Write tests for check-in endpoint — accepts odometer + photos, creates work order, returns 201

@@ -4,10 +4,12 @@ import rateLimit from '@fastify/rate-limit';
 import sensible from '@fastify/sensible';
 import nodemailer from 'nodemailer';
 import { authPlugin } from './plugins/auth.js';
+import { realtimePlugin } from './plugins/realtime.js';
 import { authRoutes } from './routes/auth.js';
 import { customerRoutes } from './routes/customers.js';
 import { userRoutes } from './routes/users.js';
 import { vehicleRoutes } from './routes/vehicles.js';
+import { workOrderRoutes } from './routes/work-orders.js';
 import type { AppMailer, AppPrisma } from './types.js';
 import './types.js';
 
@@ -73,6 +75,7 @@ export async function buildApp(dependencies: AppDependencies = {}) {
     refreshTokenSecret:
       dependencies.refreshTokenSecret ?? process.env.JWT_REFRESH_SECRET ?? 'dev-refresh-token-secret',
   });
+  await app.register(realtimePlugin);
 
   // ── Health Check ─────────────────────────────────────────────────────────
   app.get('/api/v1/health', async () => {
@@ -85,6 +88,7 @@ export async function buildApp(dependencies: AppDependencies = {}) {
     await secureApp.register(customerRoutes, { prefix: '/api/v1' });
     await secureApp.register(userRoutes, { prefix: '/api/v1' });
     await secureApp.register(vehicleRoutes, { prefix: '/api/v1' });
+    await secureApp.register(workOrderRoutes, { prefix: '/api/v1' });
   });
 
   return app;

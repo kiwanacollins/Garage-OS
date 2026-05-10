@@ -155,6 +155,15 @@ p {
   font-size: 1.8rem;
 }
 
+.job-workspace {
+  display: grid;
+  gap: 22px;
+  background:
+    linear-gradient(90deg, rgb(56 87 163 / 5%) 0 1px, transparent 1px 100%),
+    var(--bg);
+  background-size: 28px 28px;
+}
+
 .register-workspace {
   display: grid;
   gap: 22px;
@@ -162,6 +171,224 @@ p {
     linear-gradient(90deg, rgb(56 87 163 / 5%) 0 1px, transparent 1px 100%),
     var(--bg);
   background-size: 28px 28px;
+}
+
+.segment-button {
+  min-height: 40px;
+  padding: 0 12px;
+  color: var(--muted);
+  font-weight: 800;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.segment-button:hover,
+.segment-button.is-active {
+  color: #fff;
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+.job-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(330px, 430px);
+  gap: 18px;
+  align-items: flex-start;
+  max-width: 1320px;
+  width: 100%;
+}
+
+.job-list,
+.job-detail,
+.assignment-metrics {
+  background: rgb(255 255 255 / 92%);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 18px 50px rgb(23 32 42 / 6%);
+}
+
+.job-list {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.job-card {
+  display: grid;
+  grid-template-columns: 132px minmax(180px, 0.9fr) minmax(260px, 1.5fr) minmax(150px, 0.8fr);
+  gap: 16px;
+  align-items: center;
+  width: 100%;
+  min-height: 88px;
+  padding: 14px 16px;
+  color: var(--ink);
+  text-align: left;
+  background: #fff;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.job-card:hover,
+.job-card.is-selected {
+  background: var(--soft-blue);
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+
+.job-card:hover {
+  transform: translateX(2px);
+}
+
+.job-card span {
+  min-width: 0;
+}
+
+.job-card strong {
+  display: block;
+}
+
+.job-card small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.job-detail {
+  position: sticky;
+  top: 24px;
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+  animation: panel-in 180ms ease-out;
+}
+
+.job-detail .detail-heading p:not(.eyebrow) {
+  margin: 4px 0 0;
+}
+
+.compact-detail {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.job-note {
+  margin: 0;
+  padding: 14px 0;
+  color: var(--ink);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.tab-list {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.tab-button {
+  flex: 1;
+  min-height: 38px;
+  color: var(--muted);
+  font-weight: 800;
+  text-transform: capitalize;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.tab-button.is-active {
+  color: var(--accent-strong);
+  background: #fff;
+  box-shadow: 0 4px 16px rgb(23 32 42 / 8%);
+}
+
+.tab-panel,
+.stack-list {
+  display: grid;
+  gap: 10px;
+}
+
+.stack-row {
+  min-height: 42px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.split-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.empty-state {
+  display: grid;
+  place-items: center;
+  min-height: 88px;
+  color: var(--muted);
+  background: #f8fafc;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+}
+
+.assignment-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(82px, 1fr));
+  min-width: 300px;
+  overflow: hidden;
+}
+
+.assignment-metrics div {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  border-left: 1px solid var(--line);
+}
+
+.assignment-metrics div:first-child {
+  border-left: 0;
+}
+
+.assignment-metrics strong {
+  color: var(--ink);
+  font-size: 1.6rem;
+}
+
+.status-assigned,
+.status-in_progress {
+  color: var(--accent-strong);
+  background: var(--soft-blue);
+  border-color: #c5d3ec;
+}
+
+.status-awaiting_parts,
+.status-created {
+  color: #7c4a03;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.status-completed,
+.status-quality_check {
+  color: #166534;
+  background: #ecfdf3;
+  border-color: #bbf7d0;
 }
 
 .workspace-header {
@@ -349,6 +576,18 @@ p {
   gap: 12px;
 }
 
+.detail-actions {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+}
+
+.compact-button {
+  min-height: 36px;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
 .detail-heading h2,
 .entry-form h2,
 .linked-heading h3 {
@@ -477,12 +716,28 @@ p {
     grid-template-columns: 1fr;
   }
 
+  .job-layout {
+    grid-template-columns: 1fr;
+  }
+
   .register-detail {
+    position: static;
+  }
+
+  .job-detail {
     position: static;
   }
 
   .register-main {
     overflow-x: auto;
+  }
+
+  .job-list {
+    overflow-x: auto;
+  }
+
+  .job-card {
+    min-width: 860px;
   }
 
   .entry-form {

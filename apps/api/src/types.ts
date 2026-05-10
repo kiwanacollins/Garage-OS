@@ -29,6 +29,12 @@ export type AppPrisma = {
     update(args: Record<string, unknown>): Promise<any>;
     delete(args: Record<string, unknown>): Promise<any>;
   };
+  workOrder: {
+    findUnique(args: Record<string, unknown>): Promise<any>;
+    findMany(args?: Record<string, unknown>): Promise<any[]>;
+    create(args: Record<string, unknown>): Promise<any>;
+    update(args: Record<string, unknown>): Promise<any>;
+  };
 };
 
 export type AppMailer = {
@@ -38,6 +44,14 @@ export type AppMailer = {
     subject: string;
     text: string;
   }): Promise<unknown>;
+};
+
+export type AppRealtime = {
+  emitWorkOrderStatus(payload: {
+    workOrderId: string;
+    status: string;
+    assignedMechanicId?: string | null;
+  }): void;
 };
 
 export type AppDeps = {
@@ -50,6 +64,7 @@ export type AppDeps = {
 declare module 'fastify' {
   interface FastifyInstance {
     deps: AppDeps;
+    realtime: AppRealtime;
   }
 
   interface FastifyRequest {

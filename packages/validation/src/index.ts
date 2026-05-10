@@ -85,6 +85,28 @@ export const createWorkOrderSchema = z.object({
   customerNotes: z.string().max(2000).optional(),
 });
 
+export const workOrderSearchSchema = z.object({
+  status: z
+    .enum([
+      'created',
+      'assigned',
+      'in_progress',
+      'awaiting_parts',
+      'completed',
+      'quality_check',
+      'invoiced',
+      'paid',
+      'collected',
+    ])
+    .optional(),
+  mechanicId: z.string().uuid().optional(),
+  vehicleId: z.string().uuid().optional(),
+  dateFrom: z.string().datetime().optional(),
+  dateTo: z.string().datetime().optional(),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).optional().default(25),
+});
+
 export const updateWorkOrderStatusSchema = z.object({
   status: z.enum([
     'created',
@@ -140,6 +162,7 @@ export type UpdateMeInput = z.infer<typeof updateMeSchema>;
 export type CreateVehicleInput = z.infer<typeof createVehicleSchema>;
 export type UpdateVehicleInput = z.infer<typeof updateVehicleSchema>;
 export type CreateWorkOrderInput = z.infer<typeof createWorkOrderSchema>;
+export type WorkOrderSearchInput = z.infer<typeof workOrderSearchSchema>;
 export type CreateCustomerInput = z.infer<typeof createCustomerSchema>;
 export type UpdateCustomerInput = z.infer<typeof updateCustomerSchema>;
 export type CustomerSearchInput = z.infer<typeof customerSearchSchema>;
