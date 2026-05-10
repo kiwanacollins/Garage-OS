@@ -48,6 +48,36 @@ test('mechanic can move an assigned job into progress and complete it', async ({
   await expect(page.getByText('Completed').first()).toBeVisible();
 });
 
+test('mechanic can inspect, log labour, request parts, and submit completion', async ({ page }) => {
+  await page.goto('/mechanic');
+  await page.getByText('UBK 442M').click();
+
+  await page.getByLabel('Finding').fill('Rear sway bar link has play');
+  await page.getByLabel('Recommendation').fill('Replace rear sway bar links during service');
+  await page.getByRole('button', { name: 'Record finding' }).click();
+  await expect(page.getByText('Rear sway bar link has play')).toBeVisible();
+
+  await page.getByRole('tab', { name: 'labour' }).click();
+  await page.getByLabel('Labour task').fill('Oil service and suspension inspection');
+  await page.getByLabel('Hours').fill('1.2');
+  await page.getByRole('button', { name: 'Add labour entry' }).click();
+  await expect(page.getByText('Oil service and suspension inspection')).toBeVisible();
+
+  await page.getByRole('tab', { name: 'parts' }).click();
+  await page.getByLabel('Part name').fill('Rear sway bar link');
+  await page.getByLabel('Quantity').fill('2');
+  await page.getByLabel('Urgency note').fill('Noise confirmed during inspection');
+  await page.getByRole('button', { name: 'Request part' }).click();
+  await expect(page.getByText('Rear sway bar link x2')).toBeVisible();
+  await expect(page.getByText('Awaiting parts').first()).toBeVisible();
+
+  await page.getByRole('tab', { name: 'complete' }).click();
+  await page.getByLabel('Final notes').fill('Service complete after inspection and parts request.');
+  await page.getByRole('button', { name: 'Submit for quality check' }).click();
+  await expect(page.getByText('Completed').first()).toBeVisible();
+  await expect(page.getByText('Service complete after inspection and parts request.')).toBeVisible();
+});
+
 test('admin can assign an unassigned work order', async ({ page }) => {
   await page.goto('/admin');
   await expect(page.getByRole('heading', { name: 'Work order assignment' })).toBeVisible();
@@ -59,4 +89,15 @@ test('admin can assign an unassigned work order', async ({ page }) => {
 
   await expect(page.getByRole('textbox', { name: 'Assign mechanic' })).toHaveValue('Sarah Auma (2 active)');
   await expect(page.getByText('Assigned').first()).toBeVisible();
+});
+
+test('admin can approve a pending parts request', async ({ page }) => {
+  await page.goto('/admin');
+  await expect(page.getByRole('heading', { name: 'Parts approval' })).toBeVisible();
+
+  await page.getByLabel('Approval note').fill('Customer approved this item by phone.');
+  await page.getByRole('button', { name: 'Approve' }).first().click();
+
+  await expect(page.getByText('approved').first()).toBeVisible();
+  await expect(page.getByText('Admin: Customer approved this item by phone.')).toBeVisible();
 });

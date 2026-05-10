@@ -174,6 +174,51 @@ export const createPaymentSchema = z.object({
   transactionRef: z.string().max(100).optional(),
 });
 
+// ─── Mechanic Operation Schemas ───────────────────────────────────────────────
+
+export const createInspectionSchema = z.object({
+  workOrderId: z.string().min(1),
+  findings: z.string().max(4000).optional(),
+  recommendations: z.string().max(4000).optional(),
+  photos: z.array(z.string().url()).optional().default([]),
+});
+
+export const updateInspectionSchema = z
+  .object({
+    findings: z.string().max(4000).optional(),
+    recommendations: z.string().max(4000).optional(),
+    photos: z.array(z.string().url()).optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, 'At least one field is required');
+
+export const createLabourLogSchema = z.object({
+  workOrderId: z.string().min(1),
+  description: z.string().max(1000).optional(),
+  startTime: z.string().datetime().optional(),
+});
+
+export const updateLabourLogSchema = z
+  .object({
+    description: z.string().max(1000).optional(),
+    endTime: z.string().datetime().optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, 'At least one field is required');
+
+export const createPartsRequestSchema = z.object({
+  workOrderId: z.string().min(1),
+  partName: z.string().min(1).max(200),
+  quantity: z.number().int().min(1).optional().default(1),
+});
+
+export const updatePartsRequestStatusSchema = z.object({
+  status: z.enum(['approved', 'rejected', 'fulfilled']),
+});
+
+export const completeWorkOrderSchema = z.object({
+  mechanicNotes: z.string().max(4000).optional(),
+  recommendations: z.string().max(4000).optional(),
+});
+
 // ─── Customer Schemas ──────────────────────────────────────────────────────────
 
 export const createCustomerSchema = z.object({
@@ -217,6 +262,9 @@ export type CheckOutInput = z.infer<typeof checkOutSchema>;
 export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
 export type CreatePaymentInput = z.infer<typeof createPaymentSchema>;
+export type CreateInspectionInput = z.infer<typeof createInspectionSchema>;
+export type CreateLabourLogInput = z.infer<typeof createLabourLogSchema>;
+export type CreatePartsRequestInput = z.infer<typeof createPartsRequestSchema>;
 export type CreateCustomerInput = z.infer<typeof createCustomerSchema>;
 export type UpdateCustomerInput = z.infer<typeof updateCustomerSchema>;
 export type CustomerSearchInput = z.infer<typeof customerSearchSchema>;

@@ -327,6 +327,16 @@ p {
   border-bottom: 1px solid var(--line);
 }
 
+.stack-row small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.muted-row {
+  color: var(--muted);
+}
+
 .split-row {
   display: flex;
   justify-content: space-between;
@@ -341,6 +351,63 @@ p {
   background: #f8fafc;
   border: 1px dashed var(--line);
   border-radius: 8px;
+}
+
+.inspection-photo {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.mini-metric {
+  padding: 10px;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.approval-board {
+  display: grid;
+  gap: 16px;
+  max-width: 1320px;
+  width: 100%;
+  padding: 18px;
+  background: rgb(255 255 255 / 92%);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 18px 50px rgb(23 32 42 / 6%);
+}
+
+.approval-list {
+  display: grid;
+  border-top: 1px solid var(--line);
+}
+
+.approval-row {
+  display: grid;
+  grid-template-columns: 100px minmax(190px, 0.9fr) minmax(260px, 1.3fr) auto;
+  gap: 14px;
+  align-items: center;
+  min-height: 74px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.approval-row span {
+  min-width: 0;
+}
+
+.approval-row strong,
+.approval-row small {
+  display: block;
+}
+
+.approval-row small {
+  margin-top: 4px;
+  color: var(--muted);
 }
 
 .assignment-metrics {
@@ -841,6 +908,14 @@ p {
 
   .job-card {
     min-width: 860px;
+  }
+
+  .approval-list {
+    overflow-x: auto;
+  }
+
+  .approval-row {
+    min-width: 880px;
   }
 
   .entry-form {

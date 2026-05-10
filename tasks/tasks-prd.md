@@ -156,24 +156,24 @@
   - [x] 5.17 🟢 Build payment processing UI — select method, enter amount, record transaction, issue receipt
   - [x] 5.18 🟢 Write Playwright E2E test for check-in → invoice → payment flow
 
-- [ ] 6.0 Mechanic Operations (Inspections, Labour Logging, Parts Requests)
-  - [ ] 6.1 Define Zod schemas for inspection, labour log, parts request in `packages/validation`
-  - [ ] 6.2 🔴 Write tests for inspection routes — create with findings + photos, update findings, photo upload returns URLs
-  - [ ] 6.3 Implement `POST /api/v1/inspections` and `PATCH /:id` — make tests pass
-  - [ ] 6.4 Implement inspection photo upload — accept multipart, upload to S3, return URLs — make tests pass
-  - [ ] 6.5 🔴 Write tests for labour log routes — start timer creates entry, stop timer updates end_time, GET returns logs by work order
-  - [ ] 6.6 Implement labour log CRUD (`POST`, `PATCH /:id`, `GET` by work order) — make tests pass
-  - [ ] 6.7 🔴 Write tests for parts request routes — create sets status `pending`, approve → `approved`, reject → `rejected`, fulfil → `fulfilled`
-  - [ ] 6.8 Implement parts request CRUD (`POST`, `PATCH /:id` approve/reject, `PATCH /:id/fulfil`) — make tests pass
-  - [ ] 6.9 🔴 Write tests for job completion — status → `completed`, final notes saved, quality check flag set
-  - [ ] 6.10 Implement `POST /api/v1/work-orders/:id/complete` — make tests pass
-  - [ ] 6.11 Implement `GET /api/v1/vehicles/:id/history` — full service history for mechanic context
-  - [ ] 6.12 🟢 Build mechanic inspection form UI — findings/recommendations text areas, photo upload with camera, preview gallery
-  - [ ] 6.13 🟢 Build mechanic labour logging UI — start/stop timer, manual entry, running total per work order
-  - [ ] 6.14 🟢 Build mechanic parts request form UI — part name, quantity, urgency note, submit
-  - [ ] 6.15 🟢 Build admin parts approval UI — pending requests list, approve/reject buttons, notes field
-  - [ ] 6.16 🟢 Build mechanic job completion UI — final notes textarea, recommendations, submit for quality check
-  - [ ] 6.17 🟢 Write Playwright E2E test for mechanic workflow (inspect → log labour → request parts → complete)
+- [x] 6.0 Mechanic Operations (Inspections, Labour Logging, Parts Requests)
+  - [x] 6.1 Define Zod schemas for inspection, labour log, parts request in `packages/validation`
+  - [x] 6.2 🔴 Write tests for inspection routes — create with findings + photos, update findings, photo upload returns URLs
+  - [x] 6.3 Implement `POST /api/v1/inspections` and `PATCH /:id` — make tests pass
+  - [x] 6.4 Implement inspection photo upload — accept multipart, upload to S3, return URLs — make tests pass
+  - [x] 6.5 🔴 Write tests for labour log routes — start timer creates entry, stop timer updates end_time, GET returns logs by work order
+  - [x] 6.6 Implement labour log CRUD (`POST`, `PATCH /:id`, `GET` by work order) — make tests pass
+  - [x] 6.7 🔴 Write tests for parts request routes — create sets status `pending`, approve → `approved`, reject → `rejected`, fulfil → `fulfilled`
+  - [x] 6.8 Implement parts request CRUD (`POST`, `PATCH /:id` approve/reject, `PATCH /:id/fulfil`) — make tests pass
+  - [x] 6.9 🔴 Write tests for job completion — status → `completed`, final notes saved, quality check flag set
+  - [x] 6.10 Implement `POST /api/v1/work-orders/:id/complete` — make tests pass
+  - [x] 6.11 Implement `GET /api/v1/vehicles/:id/history` — full service history for mechanic context
+  - [x] 6.12 🟢 Build mechanic inspection form UI — findings/recommendations text areas, photo upload with camera, preview gallery
+  - [x] 6.13 🟢 Build mechanic labour logging UI — start/stop timer, manual entry, running total per work order
+  - [x] 6.14 🟢 Build mechanic parts request form UI — part name, quantity, urgency note, submit
+  - [x] 6.15 🟢 Build admin parts approval UI — pending requests list, approve/reject buttons, notes field
+  - [x] 6.16 🟢 Build mechanic job completion UI — final notes textarea, recommendations, submit for quality check
+  - [x] 6.17 🟢 Write Playwright E2E test for mechanic workflow (inspect → log labour → request parts → complete)
 
 - [ ] 7.0 Admin Dashboard, Analytics, Reports, and Staff Management
   - [ ] 7.1 🔴 Write tests for report endpoints — revenue returns correct totals for date range, jobs returns completion stats, staff-performance returns per-mechanic data

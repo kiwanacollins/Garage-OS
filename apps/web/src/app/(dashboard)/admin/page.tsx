@@ -10,11 +10,12 @@ import {
   SimpleGrid,
   Stack,
   Text,
+  Textarea,
   Title,
   UnstyledButton,
 } from '@mantine/core';
 import { io } from 'socket.io-client';
-import { JobCardIcon, WorkOrderIcon } from '@/components/icons';
+import { CheckIcon, JobCardIcon, PartsIcon, WarningIcon, WorkOrderIcon } from '@/components/icons';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { API_URL } from '@/lib/api';
 
@@ -29,6 +30,17 @@ type Assignment = {
   concern: string;
   mechanicId: string | null;
   createdAt: string;
+};
+
+type PartsApproval = {
+  id: string;
+  workOrderId: string;
+  plate: string;
+  part: string;
+  quantity: number;
+  requestedBy: string;
+  note: string;
+  status: 'pending' | 'approved' | 'rejected';
 };
 
 const mechanics = [
@@ -70,6 +82,29 @@ const initialAssignments: Assignment[] = [
   },
 ];
 
+const initialPartsApprovals: PartsApproval[] = [
+  {
+    id: 'PR-301',
+    workOrderId: 'WO-1048',
+    plate: 'UAX 123A',
+    part: 'Lower arm bushing',
+    quantity: 1,
+    requestedBy: 'Moses Kato',
+    note: 'Bushing has visible cracks; customer approval required before release.',
+    status: 'pending',
+  },
+  {
+    id: 'PR-302',
+    workOrderId: 'WO-1052',
+    plate: 'UAZ 774Q',
+    part: 'Fan relay',
+    quantity: 1,
+    requestedBy: 'Sarah Auma',
+    note: 'Vehicle held in bay until relay is available.',
+    status: 'pending',
+  },
+];
+
 const statusLabels: Record<AssignmentStatus, string> = {
   created: 'Unassigned',
   assigned: 'Assigned',
@@ -84,6 +119,8 @@ const statusColors: Record<AssignmentStatus, string> = {
 
 export default function AdminDashboardPage() {
   const [assignments, setAssignments] = useState(initialAssignments);
+  const [partsApprovals, setPartsApprovals] = useState(initialPartsApprovals);
+  const [approvalNote, setApprovalNote] = useState('');
   const [selectedId, setSelectedId] = useState(initialAssignments[0].id);
   const [selectedMechanic, setSelectedMechanic] = useState(mechanics[0].id);
   const selected = assignments.find((assignment) => assignment.id === selectedId) ?? assignments[0];
@@ -133,6 +170,21 @@ export default function AdminDashboardPage() {
           : assignment,
       ),
     );
+  }
+
+  function resolvePartRequest(id: string, status: PartsApproval['status']) {
+    setPartsApprovals((items) =>
+      items.map((request) =>
+        request.id === id
+          ? {
+              ...request,
+              status,
+              note: approvalNote.trim() ? `${request.note} Admin: ${approvalNote.trim()}` : request.note,
+            }
+          : request,
+      ),
+    );
+    setApprovalNote('');
   }
 
   return (
@@ -236,6 +288,66 @@ export default function AdminDashboardPage() {
             </Button>
           </Paper>
         </section>
+
+        <Paper className="approval-board" component="section" aria-label="Parts approval queue">
+          <Group align="center" justify="space-between">
+            <Stack gap={2}>
+              <Group gap="xs">
+                <PartsIcon size={24} />
+                <Title order={2}>Parts approval</Title>
+              </Group>
+              <Text c="dimmed">Approve, reject, or hold requested parts before purchasing.</Text>
+            </Stack>
+            <Badge color="orange">{partsApprovals.filter((request) => request.status === 'pending').length} pending</Badge>
+          </Group>
+
+          <Textarea
+            label="Approval note"
+            placeholder="Supplier, budget, customer approval, or reason for rejection"
+            minRows={2}
+            value={approvalNote}
+            onChange={(event) => setApprovalNote(event.currentTarget.value)}
+          />
+
+          <div className="approval-list">
+            {partsApprovals.map((request) => (
+              <div className="approval-row" key={request.id}>
+                <Badge color={request.status === 'approved' ? 'green' : request.status === 'rejected' ? 'red' : 'orange'}>
+                  {request.status}
+                </Badge>
+                <span>
+                  <strong>{request.part} x{request.quantity}</strong>
+                  <small>{request.workOrderId} · {request.plate} · {request.requestedBy}</small>
+                </span>
+                <Text c="dimmed">{request.note}</Text>
+                <Group gap="xs" justify="flex-end">
+                  <Button
+                    type="button"
+                    size="xs"
+                    variant="light"
+                    color="green"
+                    leftSection={<CheckIcon size={16} />}
+                    disabled={request.status !== 'pending'}
+                    onClick={() => resolvePartRequest(request.id, 'approved')}
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    type="button"
+                    size="xs"
+                    variant="light"
+                    color="red"
+                    leftSection={<WarningIcon size={16} />}
+                    disabled={request.status !== 'pending'}
+                    onClick={() => resolvePartRequest(request.id, 'rejected')}
+                  >
+                    Reject
+                  </Button>
+                </Group>
+              </div>
+            ))}
+          </div>
+        </Paper>
       </main>
     </ProtectedRoute>
   );

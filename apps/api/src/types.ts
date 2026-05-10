@@ -50,6 +50,20 @@ export type AppPrisma = {
     findMany(args?: Record<string, unknown>): Promise<any[]>;
     create(args: Record<string, unknown>): Promise<any>;
   };
+  inspection: {
+    create(args: Record<string, unknown>): Promise<any>;
+    update(args: Record<string, unknown>): Promise<any>;
+  };
+  labourLog: {
+    findMany(args?: Record<string, unknown>): Promise<any[]>;
+    create(args: Record<string, unknown>): Promise<any>;
+    update(args: Record<string, unknown>): Promise<any>;
+  };
+  partsRequest: {
+    findMany(args?: Record<string, unknown>): Promise<any[]>;
+    create(args: Record<string, unknown>): Promise<any>;
+    update(args: Record<string, unknown>): Promise<any>;
+  };
 };
 
 export type AppMailer = {

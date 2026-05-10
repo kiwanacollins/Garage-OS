@@ -8,6 +8,7 @@ import { realtimePlugin } from './plugins/realtime.js';
 import { authRoutes } from './routes/auth.js';
 import { customerRoutes } from './routes/customers.js';
 import { frontDeskRoutes } from './routes/front-desk.js';
+import { mechanicRoutes } from './routes/mechanic-operations.js';
 import { userRoutes } from './routes/users.js';
 import { vehicleRoutes } from './routes/vehicles.js';
 import { workOrderRoutes } from './routes/work-orders.js';
@@ -88,6 +89,7 @@ export async function buildApp(dependencies: AppDependencies = {}) {
     await secureApp.register(authPlugin);
     await secureApp.register(customerRoutes, { prefix: '/api/v1' });
     await secureApp.register(frontDeskRoutes, { prefix: '/api/v1' });
+    await secureApp.register(mechanicRoutes, { prefix: '/api/v1' });
     await secureApp.register(userRoutes, { prefix: '/api/v1' });
     await secureApp.register(vehicleRoutes, { prefix: '/api/v1' });
     await secureApp.register(workOrderRoutes, { prefix: '/api/v1' });
