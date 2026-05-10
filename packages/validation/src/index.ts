@@ -113,7 +113,22 @@ export const createCustomerSchema = z.object({
   preferredContact: z.enum(['sms', 'email', 'whatsapp', 'phone']).optional(),
 });
 
-export const updateCustomerSchema = createCustomerSchema.partial();
+export const updateCustomerSchema = createCustomerSchema
+  .partial()
+  .refine((value) => Object.keys(value).length > 0, 'At least one field is required');
+
+export const customerSearchSchema = z.object({
+  q: z.string().optional(),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).optional().default(25),
+});
+
+export const vehicleSearchSchema = z.object({
+  q: z.string().optional(),
+  customerId: z.string().uuid().optional(),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).optional().default(25),
+});
 
 // ─── Type Inference Helpers ────────────────────────────────────────────────────
 
@@ -126,3 +141,6 @@ export type CreateVehicleInput = z.infer<typeof createVehicleSchema>;
 export type UpdateVehicleInput = z.infer<typeof updateVehicleSchema>;
 export type CreateWorkOrderInput = z.infer<typeof createWorkOrderSchema>;
 export type CreateCustomerInput = z.infer<typeof createCustomerSchema>;
+export type UpdateCustomerInput = z.infer<typeof updateCustomerSchema>;
+export type CustomerSearchInput = z.infer<typeof customerSearchSchema>;
+export type VehicleSearchInput = z.infer<typeof vehicleSearchSchema>;

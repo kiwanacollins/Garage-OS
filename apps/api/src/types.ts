@@ -10,33 +10,24 @@ export type UserRecord = {
 
 export type AppPrisma = {
   user: {
-    findUnique(args: { where: { id?: string; email?: string } }): Promise<UserRecord | null>;
-    findMany(args?: {
-      orderBy?: { createdAt?: 'asc' | 'desc'; name?: 'asc' | 'desc' };
-      select?: Record<string, boolean>;
-    }): Promise<UserRecord[]>;
-    create(args: {
-      data: {
-        name: string;
-        email: string;
-        phone?: string;
-        passwordHash: string;
-        role: string;
-        isActive: boolean;
-        customerProfile?: {
-          create: {
-            preferredContact: string;
-          };
-        };
-      };
-    }): Promise<UserRecord>;
-    update(args: {
-      where: { id: string };
-      data: Partial<
-        Pick<UserRecord, 'name' | 'email' | 'phone' | 'passwordHash' | 'role' | 'isActive'>
-      >;
-    }): Promise<UserRecord>;
-    delete(args: { where: { id: string } }): Promise<UserRecord>;
+    findUnique(args: Record<string, unknown>): Promise<any>;
+    findMany(args?: Record<string, unknown>): Promise<any[]>;
+    create(args: Record<string, unknown>): Promise<any>;
+    update(args: Record<string, unknown>): Promise<any>;
+    delete(args: Record<string, unknown>): Promise<any>;
+  };
+  customerProfile: {
+    findUnique(args: Record<string, unknown>): Promise<any>;
+    findMany(args?: Record<string, unknown>): Promise<any[]>;
+    update(args: Record<string, unknown>): Promise<any>;
+    delete(args: Record<string, unknown>): Promise<any>;
+  };
+  vehicle: {
+    findUnique(args: Record<string, unknown>): Promise<any>;
+    findMany(args?: Record<string, unknown>): Promise<any[]>;
+    create(args: Record<string, unknown>): Promise<any>;
+    update(args: Record<string, unknown>): Promise<any>;
+    delete(args: Record<string, unknown>): Promise<any>;
   };
 };
 

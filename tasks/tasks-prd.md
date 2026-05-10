@@ -110,15 +110,15 @@
   - [x] 2.17 🟢 Implement auth context/provider — token management, auto-refresh, protected route wrappers
   - [x] 2.18 🟢 Write Playwright E2E test for login and registration flows
 
-- [ ] 3.0 Vehicle Register and Customer Management
-  - [ ] 3.1 Define Zod schemas for customer and vehicle CRUD in `packages/validation`
-  - [ ] 3.2 🔴 Write tests for customer routes — create returns 201, search filters work, GET /:id returns profile with vehicles, RBAC enforced
-  - [ ] 3.3 Implement customer CRUD (`POST`, `GET` with search/pagination, `GET /:id`, `PATCH`, `DELETE`) — make tests from 3.2 pass
-  - [ ] 3.4 🔴 Write tests for vehicle routes — create linked to customer, GET returns vehicle, GET /:id/work-orders returns history, RBAC enforced
-  - [ ] 3.5 Implement vehicle CRUD (`POST`, `GET`, `GET /:id`, `PATCH`, `DELETE`, `GET /:id/work-orders`) — make tests from 3.4 pass
-  - [ ] 3.6 🟢 Build front desk customer management UI — customer list, search bar, add/edit modal, linked vehicles view
-  - [ ] 3.7 🟢 Build vehicle register UI — add vehicle form (make, model, year, colour, reg plate), vehicle detail card
-  - [ ] 3.8 🟢 Write Playwright E2E test for adding a customer and registering a vehicle
+- [x] 3.0 Vehicle Register and Customer Management
+  - [x] 3.1 Define Zod schemas for customer and vehicle CRUD in `packages/validation`
+  - [x] 3.2 🔴 Write tests for customer routes — create returns 201, search filters work, GET /:id returns profile with vehicles, RBAC enforced
+  - [x] 3.3 Implement customer CRUD (`POST`, `GET` with search/pagination, `GET /:id`, `PATCH`, `DELETE`) — make tests from 3.2 pass
+  - [x] 3.4 🔴 Write tests for vehicle routes — create linked to customer, GET returns vehicle, GET /:id/work-orders returns history, RBAC enforced
+  - [x] 3.5 Implement vehicle CRUD (`POST`, `GET`, `GET /:id`, `PATCH`, `DELETE`, `GET /:id/work-orders`) — make tests from 3.4 pass
+  - [x] 3.6 🟢 Build front desk customer management UI — customer list, search bar, add/edit modal, linked vehicles view
+  - [x] 3.7 🟢 Build vehicle register UI — add vehicle form (make, model, year, colour, reg plate), vehicle detail card
+  - [x] 3.8 🟢 Write Playwright E2E test for adding a customer and registering a vehicle
 
 - [ ] 4.0 Work Order Lifecycle and Job Card System
   - [ ] 4.1 Define Zod schemas for work order creation, status updates, assignment in `packages/validation`

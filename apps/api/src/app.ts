@@ -5,7 +5,9 @@ import sensible from '@fastify/sensible';
 import nodemailer from 'nodemailer';
 import { authPlugin } from './plugins/auth.js';
 import { authRoutes } from './routes/auth.js';
+import { customerRoutes } from './routes/customers.js';
 import { userRoutes } from './routes/users.js';
+import { vehicleRoutes } from './routes/vehicles.js';
 import type { AppMailer, AppPrisma } from './types.js';
 import './types.js';
 
@@ -80,7 +82,9 @@ export async function buildApp(dependencies: AppDependencies = {}) {
   await app.register(authRoutes, { prefix: '/api/v1/auth' });
   await app.register(async (secureApp) => {
     await secureApp.register(authPlugin);
+    await secureApp.register(customerRoutes, { prefix: '/api/v1' });
     await secureApp.register(userRoutes, { prefix: '/api/v1' });
+    await secureApp.register(vehicleRoutes, { prefix: '/api/v1' });
   });
 
   return app;
