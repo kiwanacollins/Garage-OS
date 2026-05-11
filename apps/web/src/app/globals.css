@@ -1315,6 +1315,10 @@ p {
 }
 
 .garage-signout {
+  height: 28px;
+  min-height: unset;
+  padding: 0 10px !important;
+  font-size: 0.8125rem;
   color: #6b7280;
 }
 
