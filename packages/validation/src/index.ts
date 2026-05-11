@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // ─── Re-exports from shared-types ──────────────────────────────────────────────
 
@@ -11,37 +11,40 @@ export {
   AppointmentStatus,
   PurchaseOrderStatus,
   NotificationChannel,
-} from '@garage-os/shared-types';
+} from "@garage-os/shared-types";
 
 // ─── Auth Schemas ──────────────────────────────────────────────────────────────
 
 export const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 export const registerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(100),
-  email: z.string().email('Invalid email address'),
+  name: z.string().min(2, "Name must be at least 2 characters").max(100),
+  email: z.string().email("Invalid email address"),
   phone: z.string().optional(),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  role: z.enum(['admin', 'mechanic', 'front_desk', 'customer']).optional().default('customer'),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  role: z
+    .enum(["admin", "mechanic", "front_desk", "customer"])
+    .optional()
+    .default("customer"),
 });
 
 export const refreshTokenSchema = z.object({
-  refreshToken: z.string().min(1, 'Refresh token is required'),
+  refreshToken: z.string().min(1, "Refresh token is required"),
 });
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string().email("Invalid email address"),
 });
 
 export const createUserSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(100),
-  email: z.string().email('Invalid email address'),
+  name: z.string().min(2, "Name must be at least 2 characters").max(100),
+  email: z.string().email("Invalid email address"),
   phone: z.string().optional(),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  role: z.enum(['admin', 'mechanic', 'front_desk', 'customer']),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  role: z.enum(["admin", "mechanic", "front_desk", "customer"]),
   isActive: z.boolean().optional().default(true),
 });
 
@@ -50,11 +53,14 @@ export const updateUserSchema = z
     name: z.string().min(2).max(100).optional(),
     email: z.string().email().optional(),
     phone: z.string().nullable().optional(),
-    role: z.enum(['admin', 'mechanic', 'front_desk', 'customer']).optional(),
+    role: z.enum(["admin", "mechanic", "front_desk", "customer"]).optional(),
     isActive: z.boolean().optional(),
     password: z.string().min(8).optional(),
   })
-  .refine((value) => Object.keys(value).length > 0, 'At least one field is required');
+  .refine(
+    (value) => Object.keys(value).length > 0,
+    "At least one field is required",
+  );
 
 export const updateMeSchema = z
   .object({
@@ -62,21 +68,33 @@ export const updateMeSchema = z
     phone: z.string().nullable().optional(),
     password: z.string().min(8).optional(),
   })
-  .refine((value) => Object.keys(value).length > 0, 'At least one field is required');
+  .refine(
+    (value) => Object.keys(value).length > 0,
+    "At least one field is required",
+  );
 
 // ─── Vehicle Schemas ───────────────────────────────────────────────────────────
 
 export const createVehicleSchema = z.object({
   customerId: z.string().uuid(),
-  make: z.string().min(1, 'Make is required').max(100),
-  model: z.string().min(1, 'Model is required').max(100),
-  year: z.number().int().min(1900).max(new Date().getFullYear() + 1),
+  make: z.string().min(1, "Make is required").max(100),
+  model: z.string().min(1, "Model is required").max(100),
+  year: z
+    .number()
+    .int()
+    .min(1900)
+    .max(new Date().getFullYear() + 1),
   colour: z.string().max(50).optional(),
-  registrationPlate: z.string().min(1, 'Registration plate is required').max(20),
+  registrationPlate: z
+    .string()
+    .min(1, "Registration plate is required")
+    .max(20),
   odometerReading: z.number().int().min(0).optional(),
 });
 
-export const updateVehicleSchema = createVehicleSchema.partial().omit({ customerId: true });
+export const updateVehicleSchema = createVehicleSchema
+  .partial()
+  .omit({ customerId: true });
 
 // ─── Work Order Schemas ────────────────────────────────────────────────────────
 
@@ -88,15 +106,15 @@ export const createWorkOrderSchema = z.object({
 export const workOrderSearchSchema = z.object({
   status: z
     .enum([
-      'created',
-      'assigned',
-      'in_progress',
-      'awaiting_parts',
-      'completed',
-      'quality_check',
-      'invoiced',
-      'paid',
-      'collected',
+      "created",
+      "assigned",
+      "in_progress",
+      "awaiting_parts",
+      "completed",
+      "quality_check",
+      "invoiced",
+      "paid",
+      "collected",
     ])
     .optional(),
   mechanicId: z.string().uuid().optional(),
@@ -109,15 +127,15 @@ export const workOrderSearchSchema = z.object({
 
 export const updateWorkOrderStatusSchema = z.object({
   status: z.enum([
-    'created',
-    'assigned',
-    'in_progress',
-    'awaiting_parts',
-    'completed',
-    'quality_check',
-    'invoiced',
-    'paid',
-    'collected',
+    "created",
+    "assigned",
+    "in_progress",
+    "awaiting_parts",
+    "completed",
+    "quality_check",
+    "invoiced",
+    "paid",
+    "collected",
   ]),
 });
 
@@ -148,9 +166,14 @@ export const updateAppointmentSchema = z
   .object({
     scheduledAt: z.string().datetime().optional(),
     issueDescription: z.string().max(2000).optional(),
-    status: z.enum(['scheduled', 'confirmed', 'cancelled', 'completed', 'no_show']).optional(),
+    status: z
+      .enum(["scheduled", "confirmed", "cancelled", "completed", "no_show"])
+      .optional(),
   })
-  .refine((value) => Object.keys(value).length > 0, 'At least one field is required');
+  .refine(
+    (value) => Object.keys(value).length > 0,
+    "At least one field is required",
+  );
 
 export const availableSlotsSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -164,14 +187,53 @@ export const createInvoiceSchema = z.object({
 });
 
 export const updateInvoiceStatusSchema = z.object({
-  status: z.enum(['draft', 'issued', 'paid', 'overdue', 'cancelled']),
+  status: z.enum(["draft", "issued", "paid", "overdue", "cancelled"]),
 });
 
 export const createPaymentSchema = z.object({
   invoiceId: z.string().min(1),
   amount: z.number().positive(),
-  method: z.enum(['cash', 'mobile_money', 'bank_transfer', 'card']),
+  method: z.enum(["cash", "mobile_money", "bank_transfer", "card"]),
   transactionRef: z.string().max(100).optional(),
+});
+
+export const pesapalInitiateSchema = z.object({
+  invoiceId: z.string().min(1),
+});
+
+export const pesapalIpnSchema = z
+  .object({
+    OrderTrackingId: z.string().min(1).optional(),
+    OrderMerchantReference: z.string().min(1).optional(),
+    OrderNotificationType: z.string().min(1).optional(),
+    orderTrackingId: z.string().min(1).optional(),
+    orderMerchantReference: z.string().min(1).optional(),
+    orderNotificationType: z.string().min(1).optional(),
+    mockStatus: z
+      .enum(["pending", "completed", "failed", "cancelled"])
+      .optional(),
+  })
+  .refine(
+    (value) =>
+      Boolean(
+        value.OrderTrackingId ??
+        value.orderTrackingId ??
+        value.OrderMerchantReference ??
+        value.orderMerchantReference,
+      ),
+    "Pesapal IPN requires an order tracking id or merchant reference",
+  );
+
+export const createFeedbackSchema = z.object({
+  workOrderId: z.string().min(1),
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().max(2000).optional(),
+});
+
+export const customerAppointmentSchema = z.object({
+  vehicleId: z.string().min(1),
+  scheduledAt: z.string().datetime(),
+  issueDescription: z.string().max(2000).optional(),
 });
 
 // ─── Notification Schemas ────────────────────────────────────────────────────
@@ -184,8 +246,8 @@ export const notificationSearchSchema = z.object({
 
 export const manualNotificationSchema = z.object({
   customerId: z.string().min(1),
-  channel: z.enum(['sms', 'email', 'whatsapp']),
-  title: z.string().min(1).max(200).optional().default('GarageOS update'),
+  channel: z.enum(["sms", "email", "whatsapp"]),
+  title: z.string().min(1).max(200).optional().default("GarageOS update"),
   message: z.string().min(1).max(1000),
 });
 
@@ -204,7 +266,10 @@ export const updateInspectionSchema = z
     recommendations: z.string().max(4000).optional(),
     photos: z.array(z.string().url()).optional(),
   })
-  .refine((value) => Object.keys(value).length > 0, 'At least one field is required');
+  .refine(
+    (value) => Object.keys(value).length > 0,
+    "At least one field is required",
+  );
 
 export const createLabourLogSchema = z.object({
   workOrderId: z.string().min(1),
@@ -217,7 +282,10 @@ export const updateLabourLogSchema = z
     description: z.string().max(1000).optional(),
     endTime: z.string().datetime().optional(),
   })
-  .refine((value) => Object.keys(value).length > 0, 'At least one field is required');
+  .refine(
+    (value) => Object.keys(value).length > 0,
+    "At least one field is required",
+  );
 
 export const createPartsRequestSchema = z.object({
   workOrderId: z.string().min(1),
@@ -226,7 +294,7 @@ export const createPartsRequestSchema = z.object({
 });
 
 export const updatePartsRequestStatusSchema = z.object({
-  status: z.enum(['approved', 'rejected', 'fulfilled']),
+  status: z.enum(["approved", "rejected", "fulfilled"]),
 });
 
 export const completeWorkOrderSchema = z.object({
@@ -248,10 +316,12 @@ export const createExpenseSchema = z.object({
   incurredAt: z.string().datetime().optional(),
 });
 
-export const updateExpenseSchema = createExpenseSchema.partial().refine(
-  (value) => Object.keys(value).length > 0,
-  'At least one field is required',
-);
+export const updateExpenseSchema = createExpenseSchema
+  .partial()
+  .refine(
+    (value) => Object.keys(value).length > 0,
+    "At least one field is required",
+  );
 
 export const expenseSearchSchema = reportDateRangeSchema.extend({
   category: z.string().max(100).optional(),
@@ -264,10 +334,12 @@ export const createServiceSchema = z.object({
   isActive: z.boolean().optional().default(true),
 });
 
-export const updateServiceSchema = createServiceSchema.partial().refine(
-  (value) => Object.keys(value).length > 0,
-  'At least one field is required',
-);
+export const updateServiceSchema = createServiceSchema
+  .partial()
+  .refine(
+    (value) => Object.keys(value).length > 0,
+    "At least one field is required",
+  );
 
 export const serviceSearchSchema = z.object({
   category: z.string().max(100).optional(),
@@ -280,13 +352,13 @@ export const updateStaffShiftSchema = z.object({
 
 export const createAttendanceSchema = z.object({
   userId: z.string().min(1),
-  status: z.enum(['present', 'absent', 'late']),
+  status: z.enum(["present", "absent", "late"]),
   loggedAt: z.string().datetime().optional(),
 });
 
 export const reportExportSchema = z.object({
-  type: z.enum(['revenue', 'jobs', 'staff-performance', 'tax-summary']),
-  format: z.enum(['pdf', 'excel']),
+  type: z.enum(["revenue", "jobs", "staff-performance", "tax-summary"]),
+  format: z.enum(["pdf", "excel"]),
   dateFrom: z.string().datetime().optional(),
   dateTo: z.string().datetime().optional(),
 });
@@ -298,12 +370,15 @@ export const createCustomerSchema = z.object({
   email: z.string().email(),
   phone: z.string().optional(),
   address: z.string().max(500).optional(),
-  preferredContact: z.enum(['sms', 'email', 'whatsapp', 'phone']).optional(),
+  preferredContact: z.enum(["sms", "email", "whatsapp", "phone"]).optional(),
 });
 
 export const updateCustomerSchema = createCustomerSchema
   .partial()
-  .refine((value) => Object.keys(value).length > 0, 'At least one field is required');
+  .refine(
+    (value) => Object.keys(value).length > 0,
+    "At least one field is required",
+  );
 
 export const customerSearchSchema = z.object({
   q: z.string().optional(),
@@ -334,6 +409,9 @@ export type CheckOutInput = z.infer<typeof checkOutSchema>;
 export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
 export type CreatePaymentInput = z.infer<typeof createPaymentSchema>;
+export type PesapalInitiateInput = z.infer<typeof pesapalInitiateSchema>;
+export type PesapalIpnInput = z.infer<typeof pesapalIpnSchema>;
+export type CreateFeedbackInput = z.infer<typeof createFeedbackSchema>;
 export type NotificationSearchInput = z.infer<typeof notificationSearchSchema>;
 export type ManualNotificationInput = z.infer<typeof manualNotificationSchema>;
 export type CreateInspectionInput = z.infer<typeof createInspectionSchema>;

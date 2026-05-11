@@ -36,6 +36,7 @@ export type AppPrisma = {
     update(args: Record<string, unknown>): Promise<any>;
   };
   appointment: {
+    findUnique(args: Record<string, unknown>): Promise<any>;
     findMany(args?: Record<string, unknown>): Promise<any[]>;
     create(args: Record<string, unknown>): Promise<any>;
     update(args: Record<string, unknown>): Promise<any>;
@@ -48,6 +49,17 @@ export type AppPrisma = {
     update(args: Record<string, unknown>): Promise<any>;
   };
   payment: {
+    findMany(args?: Record<string, unknown>): Promise<any[]>;
+    create(args: Record<string, unknown>): Promise<any>;
+  };
+  pesapalTransaction: {
+    findUnique(args: Record<string, unknown>): Promise<any>;
+    findMany(args?: Record<string, unknown>): Promise<any[]>;
+    create(args: Record<string, unknown>): Promise<any>;
+    update(args: Record<string, unknown>): Promise<any>;
+  };
+  feedback: {
+    findUnique(args: Record<string, unknown>): Promise<any>;
     findMany(args?: Record<string, unknown>): Promise<any[]>;
     create(args: Record<string, unknown>): Promise<any>;
   };
@@ -131,7 +143,7 @@ export type AppDeps = {
   };
 };
 
-declare module 'fastify' {
+declare module "fastify" {
   interface FastifyInstance {
     deps: AppDeps;
     realtime: AppRealtime;

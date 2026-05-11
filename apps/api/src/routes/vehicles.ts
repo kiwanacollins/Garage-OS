@@ -1,6 +1,9 @@
-import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
-import { createVehicleSchema, updateVehicleSchema, vehicleSearchSchema } from '@garage-os/validation';
-import { requireRoles } from '../middleware/rbac.js';
+import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
+import {
+  createVehicleSchema,
+  updateVehicleSchema,
+  vehicleSearchSchema,
+} from "@garage-os/validation";
 
 type VehicleWithCustomer = {
   id: string;
@@ -45,7 +48,7 @@ function publicVehicle(vehicle: VehicleWithCustomer) {
 }
 
 function canManageVehicles(request: FastifyRequest) {
-  return request.user?.role === 'admin' || request.user?.role === 'front_desk';
+  return request.user?.role === "admin" || request.user?.role === "front_desk";
 }
 
 async function authorizeVehicleAccess(
@@ -54,23 +57,27 @@ async function authorizeVehicleAccess(
   vehicle: VehicleWithCustomer | null,
 ) {
   if (!vehicle) {
-    reply.notFound('Vehicle was not found');
+    reply.notFound("Vehicle was not found");
     return false;
   }
 
   if (
     canManageVehicles(request) ||
-    request.user?.role === 'mechanic' ||
+    request.user?.role === "mechanic" ||
     vehicle.customer?.userId === request.user?.id
   ) {
     return true;
   }
 
-  reply.forbidden('You do not have access to this vehicle');
+  reply.forbidden("You do not have access to this vehicle");
   return false;
 }
 
-async function authorizeCustomerOwner(app: Parameters<FastifyPluginAsync>[0], request: FastifyRequest, customerId: string) {
+async function authorizeCustomerOwner(
+  app: Parameters<FastifyPluginAsync>[0],
+  request: FastifyRequest,
+  customerId: string,
+) {
   if (canManageVehicles(request)) {
     return true;
   }
@@ -80,19 +87,21 @@ async function authorizeCustomerOwner(app: Parameters<FastifyPluginAsync>[0], re
     include: { user: true },
   });
 
-  return request.user?.role === 'customer' && customer?.userId === request.user.id;
+  return (
+    request.user?.role === "customer" && customer?.userId === request.user.id
+  );
 }
 
 export const vehicleRoutes: FastifyPluginAsync = async (app) => {
-  app.get('/vehicles', async (request, reply) => {
+  app.get("/vehicles", async (request, reply) => {
     const parsed = vehicleSearchSchema.safeParse(request.query);
     if (!parsed.success) {
-      return reply.badRequest('Invalid vehicle search');
+      return reply.badRequest("Invalid vehicle search");
     }
 
     const { q, customerId, page, pageSize } = parsed.data;
     const customerScope =
-      request.user?.role === 'customer'
+      request.user?.role === "customer"
         ? {
             customer: { userId: request.user.id },
           }
@@ -106,16 +115,20 @@ export const vehicleRoutes: FastifyPluginAsync = async (app) => {
         ...(q
           ? {
               OR: [
-                { make: { contains: q, mode: 'insensitive' } },
-                { model: { contains: q, mode: 'insensitive' } },
-                { registrationPlate: { contains: q, mode: 'insensitive' } },
-                { customer: { user: { name: { contains: q, mode: 'insensitive' } } } },
+                { make: { contains: q, mode: "insensitive" } },
+                { model: { contains: q, mode: "insensitive" } },
+                { registrationPlate: { contains: q, mode: "insensitive" } },
+                {
+                  customer: {
+                    user: { name: { contains: q, mode: "insensitive" } },
+                  },
+                },
               ],
             }
           : {}),
       },
       include: { customer: { include: { user: true } } },
-      orderBy: { updatedAt: 'desc' },
+      orderBy: { updatedAt: "desc" },
       skip: (page - 1) * pageSize,
       take: pageSize,
     });
@@ -123,14 +136,14 @@ export const vehicleRoutes: FastifyPluginAsync = async (app) => {
     return { vehicles: vehicles.map(publicVehicle), page, pageSize };
   });
 
-  app.post('/vehicles', async (request, reply) => {
+  app.post("/vehicles", async (request, reply) => {
     const parsed = createVehicleSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.badRequest('Invalid vehicle input');
+      return reply.badRequest("Invalid vehicle input");
     }
 
     if (!(await authorizeCustomerOwner(app, request, parsed.data.customerId))) {
-      return reply.forbidden('You cannot register a vehicle for this customer');
+      return reply.forbidden("You cannot register a vehicle for this customer");
     }
 
     const vehicle = await app.deps.prisma.vehicle.create({
@@ -141,7 +154,7 @@ export const vehicleRoutes: FastifyPluginAsync = async (app) => {
     return reply.code(201).send({ vehicle: publicVehicle(vehicle) });
   });
 
-  app.get('/vehicles/:id', async (request, reply) => {
+  app.get("/vehicles/:id", async (request, reply) => {
     const params = request.params as { id: string };
     const vehicle = await app.deps.prisma.vehicle.findUnique({
       where: { id: params.id },
@@ -155,10 +168,10 @@ export const vehicleRoutes: FastifyPluginAsync = async (app) => {
     return { vehicle: publicVehicle(vehicle) };
   });
 
-  app.patch('/vehicles/:id', async (request, reply) => {
+  app.patch("/vehicles/:id", async (request, reply) => {
     const parsed = updateVehicleSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.badRequest('Invalid vehicle input');
+      return reply.badRequest("Invalid vehicle input");
     }
 
     const params = request.params as { id: string };
@@ -180,14 +193,23 @@ export const vehicleRoutes: FastifyPluginAsync = async (app) => {
     return { vehicle: publicVehicle(vehicle) };
   });
 
-  app.delete('/vehicles/:id', { preHandler: requireRoles('admin', 'front_desk') }, async (request, reply) => {
+  app.delete("/vehicles/:id", async (request, reply) => {
     const params = request.params as { id: string };
+    const existing = await app.deps.prisma.vehicle.findUnique({
+      where: { id: params.id },
+      include: { customer: { include: { user: true } } },
+    });
+
+    if (!(await authorizeVehicleAccess(request, reply, existing))) {
+      return reply;
+    }
+
     await app.deps.prisma.vehicle.delete({ where: { id: params.id } });
 
     return reply.code(204).send();
   });
 
-  app.get('/vehicles/:id/work-orders', async (request, reply) => {
+  app.get("/vehicles/:id/work-orders", async (request, reply) => {
     const params = request.params as { id: string };
     const vehicle = await app.deps.prisma.vehicle.findUnique({
       where: { id: params.id },

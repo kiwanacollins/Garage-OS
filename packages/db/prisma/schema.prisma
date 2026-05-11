@@ -91,8 +91,8 @@ model User {
 
   // Relations
   customerProfile    CustomerProfile?
-  assignedWorkOrders WorkOrder[]    @relation("AssignedMechanic")
-  createdWorkOrders  WorkOrder[]    @relation("CreatedBy")
+  assignedWorkOrders WorkOrder[]      @relation("AssignedMechanic")
+  createdWorkOrders  WorkOrder[]      @relation("CreatedBy")
   labourLogs         LabourLog[]
   partsRequests      PartsRequest[]
   auditLogs          AuditLog[]
@@ -223,8 +223,9 @@ model Invoice {
   updatedAt   DateTime      @updatedAt @map("updated_at")
 
   // Relations
-  workOrder WorkOrder @relation(fields: [workOrderId], references: [id])
-  payments  Payment[]
+  workOrder           WorkOrder            @relation(fields: [workOrderId], references: [id])
+  payments            Payment[]
+  pesapalTransactions PesapalTransaction[]
 
   @@map("invoices")
 }
@@ -241,6 +242,25 @@ model Payment {
   invoice Invoice @relation(fields: [invoiceId], references: [id])
 
   @@map("payments")
+}
+
+model PesapalTransaction {
+  id                String   @id @default(uuid()) @db.Uuid
+  invoiceId         String   @map("invoice_id") @db.Uuid
+  merchantReference String   @unique @map("merchant_reference") @db.VarChar(120)
+  orderTrackingId   String   @unique @map("order_tracking_id") @db.VarChar(120)
+  redirectUrl       String   @map("redirect_url") @db.Text
+  amount            Decimal  @db.Decimal(12, 2)
+  currency          String   @default("UGX") @db.VarChar(3)
+  status            String   @default("pending") @db.VarChar(30)
+  providerStatus    String?  @map("provider_status") @db.VarChar(100)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+
+  @@index([invoiceId, status])
+  @@map("pesapal_transactions")
 }
 
 model Appointment {

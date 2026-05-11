@@ -216,28 +216,28 @@
   - [x] 8.15 🟢 Build notification bell/dropdown UI — unread badge, notification list, mark-as-read
   - [x] 8.16 🟢 Build front desk manual notification UI — select customer, compose, choose channel, send, display queued/sent/failed state
 
-- [ ] 9.0 Customer Self-Service Portal
-  - [ ] 9.1 🔴 Write customer ownership tests for vehicles — customer can list/read/update only their own vehicles; another customer's vehicle returns 403; unauthenticated request returns 401
-  - [ ] 9.2 🔴 Write customer ownership tests for work orders and service history — customer can view only work orders for their own vehicles; another customer's work order/history returns 403
-  - [ ] 9.3 🔴 Write customer ownership tests for invoices and payments — customer can view/pay only invoices linked to their own work orders; another customer's invoice/payment returns 403
-  - [ ] 9.4 🔴 Write customer ownership tests for appointments and feedback — customer can manage only their own appointments and can rate only their own completed work orders
-  - [ ] 9.5 Implement ownership check middleware/helpers for all customer-facing endpoints — make scoped vehicle, work order, invoice, payment, appointment, and feedback tests pass
-  - [ ] 9.6 🔴 Write tests for feedback routes — POST creates rating + comment, GET by work order returns feedback
-  - [ ] 9.7 Implement `POST /api/v1/feedback` and `GET /api/v1/feedback/by-work-order/:id` — make tests pass
-  - [ ] 9.8 🟢 Build customer registration page — sign-up form with Zod validation
-  - [ ] 9.9 🟢 Build customer profile page — view/edit details, change password
-  - [ ] 9.10 🟢 Build customer vehicle management page — list, add, edit, remove vehicles
-  - [ ] 9.11 🟢 Build customer appointment booking page — date picker, slot grid, vehicle selector, issue description, confirmation
-  - [ ] 9.12 🟢 Build customer service status tracking page — active work orders with real-time status via Socket.io
-  - [ ] 9.13 🟢 Build customer service history page — past services per vehicle with expandable details
-  - [ ] 9.14 🟢 Build customer invoice and payment page — list invoices, download PDF, pay online
-  - [ ] 9.15 🔴 Write Pesapal payment initiation tests — customer initiates payment for own unpaid invoice, amount matches invoice balance, duplicate active payment requests are handled, wrong invoice owner returns 403
-  - [ ] 9.16 Implement Pesapal payment initiation endpoint — create order tracking ID, submit order request to Pesapal, persist pending transaction, return redirect/payment URL
-  - [ ] 9.17 🔴 Write Pesapal IPN/webhook tests — verifies notification signature/source, fetches transaction status from Pesapal, marks invoice paid only on completed payment, handles failed/cancelled/pending statuses idempotently
-  - [ ] 9.18 Implement Pesapal IPN/webhook and reconciliation job — update payment/invoice status, store transaction reference, retry status checks for pending payments
-  - [ ] 9.19 🟢 Build Pesapal checkout UI — start payment, redirect/return handling, pending/success/failed states, receipt display
-  - [ ] 9.20 🟢 Build customer feedback UI — star rating (1-5), comment, submit after completion
-  - [ ] 9.21 🟢 Write Playwright E2E test for full customer flow (register → add vehicle → book → track → pay with mocked Pesapal → rate)
+- [x] 9.0 Customer Self-Service Portal
+  - [x] 9.1 🔴 Write customer ownership tests for vehicles — customer can list/read/update only their own vehicles; another customer's vehicle returns 403; unauthenticated request returns 401
+  - [x] 9.2 🔴 Write customer ownership tests for work orders and service history — customer can view only work orders for their own vehicles; another customer's work order/history returns 403
+  - [x] 9.3 🔴 Write customer ownership tests for invoices and payments — customer can view/pay only invoices linked to their own work orders; another customer's invoice/payment returns 403
+  - [x] 9.4 🔴 Write customer ownership tests for appointments and feedback — customer can manage only their own appointments and can rate only their own completed work orders
+  - [x] 9.5 Implement ownership check middleware/helpers for all customer-facing endpoints — make scoped vehicle, work order, invoice, payment, appointment, and feedback tests pass
+  - [x] 9.6 🔴 Write tests for feedback routes — POST creates rating + comment, GET by work order returns feedback
+  - [x] 9.7 Implement `POST /api/v1/feedback` and `GET /api/v1/feedback/by-work-order/:id` — make tests pass
+  - [x] 9.8 🟢 Build customer registration page — sign-up form with Zod validation
+  - [x] 9.9 🟢 Build customer profile page — view/edit details, change password
+  - [x] 9.10 🟢 Build customer vehicle management page — list, add, edit, remove vehicles
+  - [x] 9.11 🟢 Build customer appointment booking page — date picker, slot grid, vehicle selector, issue description, confirmation
+  - [x] 9.12 🟢 Build customer service status tracking page — active work orders with real-time status via Socket.io
+  - [x] 9.13 🟢 Build customer service history page — past services per vehicle with expandable details
+  - [x] 9.14 🟢 Build customer invoice and payment page — list invoices, download PDF, pay online
+  - [x] 9.15 🔴 Write Pesapal payment initiation tests — customer initiates payment for own unpaid invoice, amount matches invoice balance, duplicate active payment requests are handled, wrong invoice owner returns 403
+  - [x] 9.16 Implement Pesapal payment initiation endpoint — create order tracking ID, submit order request to Pesapal, persist pending transaction, return redirect/payment URL
+  - [x] 9.17 🔴 Write Pesapal IPN/webhook tests — verifies notification signature/source, fetches transaction status from Pesapal, marks invoice paid only on completed payment, handles failed/cancelled/pending statuses idempotently
+  - [x] 9.18 Implement Pesapal IPN/webhook and reconciliation job — update payment/invoice status, store transaction reference, retry status checks for pending payments
+  - [x] 9.19 🟢 Build Pesapal checkout UI — start payment, redirect/return handling, pending/success/failed states, receipt display
+  - [x] 9.20 🟢 Build customer feedback UI — star rating (1-5), comment, submit after completion
+  - [x] 9.21 🟢 Write Playwright E2E test for full customer flow (register → add vehicle → book → track → pay with mocked Pesapal → rate)
 
 - [ ] 10.0 Audit Trail, System Settings, and Cross-Cutting Concerns
   - [ ] 10.1 🔴 Write tests for audit middleware — POST/PATCH/DELETE requests create AuditLog entry with user, entity, action, changes

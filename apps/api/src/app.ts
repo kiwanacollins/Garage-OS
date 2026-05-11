@@ -1,22 +1,25 @@
-import Fastify from 'fastify';
-import cors from '@fastify/cors';
-import rateLimit from '@fastify/rate-limit';
-import sensible from '@fastify/sensible';
-import nodemailer from 'nodemailer';
-import { authPlugin } from './plugins/auth.js';
-import { realtimePlugin } from './plugins/realtime.js';
-import { adminAnalyticsRoutes } from './routes/admin-analytics.js';
-import { authRoutes } from './routes/auth.js';
-import { customerRoutes } from './routes/customers.js';
-import { frontDeskRoutes } from './routes/front-desk.js';
-import { mechanicRoutes } from './routes/mechanic-operations.js';
-import { notificationRoutes } from './routes/notifications.js';
-import { userRoutes } from './routes/users.js';
-import { vehicleRoutes } from './routes/vehicles.js';
-import { workOrderRoutes } from './routes/work-orders.js';
-import { createNotificationService } from './services/notification.service.js';
-import type { AppMailer, AppPrisma } from './types.js';
-import './types.js';
+import Fastify from "fastify";
+import cors from "@fastify/cors";
+import rateLimit from "@fastify/rate-limit";
+import sensible from "@fastify/sensible";
+import nodemailer from "nodemailer";
+import { authPlugin } from "./plugins/auth.js";
+import { realtimePlugin } from "./plugins/realtime.js";
+import { adminAnalyticsRoutes } from "./routes/admin-analytics.js";
+import { authRoutes } from "./routes/auth.js";
+import { customerPortalRoutes } from "./routes/customer-portal.js";
+import { customerRoutes } from "./routes/customers.js";
+import { feedbackRoutes } from "./routes/feedback.js";
+import { frontDeskRoutes } from "./routes/front-desk.js";
+import { mechanicRoutes } from "./routes/mechanic-operations.js";
+import { notificationRoutes } from "./routes/notifications.js";
+import { pesapalIpnRoutes, pesapalRoutes } from "./routes/pesapal.js";
+import { userRoutes } from "./routes/users.js";
+import { vehicleRoutes } from "./routes/vehicles.js";
+import { workOrderRoutes } from "./routes/work-orders.js";
+import { createNotificationService } from "./services/notification.service.js";
+import type { AppMailer, AppPrisma } from "./types.js";
+import "./types.js";
 
 export type AppDependencies = {
   prisma?: AppPrisma;
@@ -30,7 +33,7 @@ async function resolvePrisma(dependency?: AppPrisma) {
     return dependency;
   }
 
-  const database = await import('@garage-os/db');
+  const database = await import("@garage-os/db");
   return database.prisma as unknown as AppPrisma;
 }
 
@@ -52,33 +55,38 @@ export async function buildApp(dependencies: AppDependencies = {}) {
 
   const app = Fastify({
     logger: {
-      level: process.env.LOG_LEVEL ?? 'info',
+      level: process.env.LOG_LEVEL ?? "info",
       transport:
-        process.env.NODE_ENV !== 'production'
-          ? { target: 'pino-pretty', options: { colorize: true } }
+        process.env.NODE_ENV !== "production"
+          ? { target: "pino-pretty", options: { colorize: true } }
           : undefined,
     },
   });
 
   // ── Plugins ──────────────────────────────────────────────────────────────
   await app.register(cors, {
-    origin: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN ?? "http://localhost:3000",
     credentials: true,
   });
 
   await app.register(rateLimit, {
     max: 100,
-    timeWindow: '1 minute',
+    timeWindow: "1 minute",
   });
 
   await app.register(sensible);
 
-  app.decorate('deps', {
+  app.decorate("deps", {
     prisma: defaultPrisma,
     mailer: defaultMailer,
-    jwtSecret: dependencies.jwtSecret ?? process.env.JWT_SECRET ?? 'dev-access-token-secret',
+    jwtSecret:
+      dependencies.jwtSecret ??
+      process.env.JWT_SECRET ??
+      "dev-access-token-secret",
     refreshTokenSecret:
-      dependencies.refreshTokenSecret ?? process.env.JWT_REFRESH_SECRET ?? 'dev-refresh-token-secret',
+      dependencies.refreshTokenSecret ??
+      process.env.JWT_REFRESH_SECRET ??
+      "dev-refresh-token-secret",
   });
   await app.register(realtimePlugin);
   app.deps.notificationService = createNotificationService({
@@ -88,21 +96,31 @@ export async function buildApp(dependencies: AppDependencies = {}) {
   });
 
   // ── Health Check ─────────────────────────────────────────────────────────
-  app.get('/api/v1/health', async () => {
-    return { status: 'ok', timestamp: new Date().toISOString() };
+  app.get("/api/v1/health", async () => {
+    return { status: "ok", timestamp: new Date().toISOString() };
   });
 
-  await app.register(authRoutes, { prefix: '/api/v1/auth' });
+  await app.register(authRoutes, { prefix: "/api/v1/auth" });
+  await app.register(pesapalIpnRoutes, { prefix: "/api/v1/payments/pesapal" });
   await app.register(async (secureApp) => {
     await secureApp.register(authPlugin);
-    await secureApp.register(adminAnalyticsRoutes, { prefix: '/api/v1' });
-    await secureApp.register(customerRoutes, { prefix: '/api/v1' });
-    await secureApp.register(frontDeskRoutes, { prefix: '/api/v1' });
-    await secureApp.register(mechanicRoutes, { prefix: '/api/v1' });
-    await secureApp.register(notificationRoutes, { prefix: '/api/v1/notifications' });
-    await secureApp.register(userRoutes, { prefix: '/api/v1' });
-    await secureApp.register(vehicleRoutes, { prefix: '/api/v1' });
-    await secureApp.register(workOrderRoutes, { prefix: '/api/v1' });
+    await secureApp.register(adminAnalyticsRoutes, { prefix: "/api/v1" });
+    await secureApp.register(customerPortalRoutes, {
+      prefix: "/api/v1/customer",
+    });
+    await secureApp.register(customerRoutes, { prefix: "/api/v1" });
+    await secureApp.register(feedbackRoutes, { prefix: "/api/v1" });
+    await secureApp.register(frontDeskRoutes, { prefix: "/api/v1" });
+    await secureApp.register(mechanicRoutes, { prefix: "/api/v1" });
+    await secureApp.register(notificationRoutes, {
+      prefix: "/api/v1/notifications",
+    });
+    await secureApp.register(pesapalRoutes, {
+      prefix: "/api/v1/payments/pesapal",
+    });
+    await secureApp.register(userRoutes, { prefix: "/api/v1" });
+    await secureApp.register(vehicleRoutes, { prefix: "/api/v1" });
+    await secureApp.register(workOrderRoutes, { prefix: "/api/v1" });
   });
 
   return app;
