@@ -30,15 +30,6 @@ import {
 } from "react-icons/pi";
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
 import { useAuth } from "@/components/AuthProvider";
-
-const CUSTOMER_NAV: NavItem[] = [
-  { key: 'portal', label: 'My portal', href: '/customer', icon: PiCarProfile },
-  { key: 'appointments', label: 'Appointments', href: '/customer', icon: PiCalendarCheck },
-  { key: 'services', label: 'Service status', href: '/customer', icon: PiWrench },
-  { key: 'history', label: 'Service history', href: '/customer', icon: PiSealCheck },
-  { key: 'invoices', label: 'Invoices & payments', href: '/customer', icon: PiReceipt },
-  { key: 'feedback', label: 'Feedback', href: '/customer', icon: PiStar },
-];
 import { apiRequest } from "@/lib/api";
 
 type Vehicle = {
@@ -317,10 +308,21 @@ export default function CustomerPortalPage() {
     setRating(5);
   }
 
+  const customerNav: NavItem[] = [
+    { key: 'overview',      label: 'My portal',            href: '/customer', icon: PiCarProfile,   onClick: () => setTab('overview') },
+    { key: 'vehicles',      label: 'My vehicles',          href: '/customer', icon: PiCarProfile,   onClick: () => setTab('vehicles') },
+    { key: 'appointments',  label: 'Appointments',         href: '/customer', icon: PiCalendarCheck, onClick: () => setTab('appointments') },
+    { key: 'history',       label: 'Service history',      href: '/customer', icon: PiSealCheck,    onClick: () => setTab('history') },
+    { key: 'invoices',      label: 'Invoices & payments',  href: '/customer', icon: PiReceipt,
+      count: outstandingInvoices.length || undefined,                                               onClick: () => setTab('invoices') },
+    { key: 'feedback',      label: 'Feedback',             href: '/customer', icon: PiStar,         onClick: () => setTab('feedback') },
+  ];
+
   return (
     <DashboardShell
       role="Customer"
-      navItems={CUSTOMER_NAV}
+      navItems={customerNav}
+      activeNavKey={tab ?? 'overview'}
       topBarAction={null}
       dateLabel="Monday, 11 May 2026"
       title="Customer portal"
@@ -356,7 +358,7 @@ export default function CustomerPortalPage() {
       }
     >
         <Tabs value={tab} onChange={setTab} className="admin-tabs">
-          <Tabs.List>
+          <Tabs.List style={{ display: 'none' }}>
             <Tabs.Tab value="overview">Overview</Tabs.Tab>
             <Tabs.Tab value="profile">Profile</Tabs.Tab>
             <Tabs.Tab value="vehicles">Vehicles</Tabs.Tab>

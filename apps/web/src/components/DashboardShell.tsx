@@ -21,6 +21,10 @@ export type NavItem = {
   label: string;
   href: string;
   icon: ElementType;
+  /** If provided, clicking this nav item calls onClick instead of navigating */
+  onClick?: () => void;
+  /** Optional count badge displayed on the right side of the nav item */
+  count?: number;
 };
 
 export type ShellStat = {
@@ -39,6 +43,8 @@ export type DashboardShellProps = {
   dateLabel: string;
   /** Role-specific sidebar navigation links */
   navItems: NavItem[];
+  /** The key of the currently active nav item (for click-driven navigation) */
+  activeNavKey?: string;
   /** Optional href for the Settings footer link (defaults to no settings link) */
   settingsHref?: string;
   /** Optional primary CTA in the top bar — pass null to hide the default "New work order" button */
@@ -68,6 +74,7 @@ export function DashboardShell({
   subtitle,
   dateLabel,
   navItems,
+  activeNavKey,
   settingsHref,
   topBarAction,
   stats = [],
@@ -119,14 +126,38 @@ export function DashboardShell({
   return (
     <main className="garage-shell">
       <aside className="garage-sidebar" aria-label="GarageOS navigation">
-        <Link className="garage-brand" href={brandHref}>
-          GarageOS
-        </Link>
+        <div className="garage-brand-wrap">
+          <Link className="garage-brand" href={brandHref}>
+            GarageOS
+          </Link>
+          <span className="garage-role-badge">{role}</span>
+        </div>
 
         <nav className="garage-nav" aria-label={`${role} navigation`}>
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            // Active if: explicit activeNavKey matches, or pathname matches href (for real page nav)
+            const isActive = activeNavKey
+              ? activeNavKey === item.key
+              : pathname === item.href || pathname.startsWith(item.href + '/');
+
+            if (item.onClick) {
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  className={`garage-nav-item${isActive ? ' is-active' : ''}`}
+                  onClick={item.onClick}
+                >
+                  <Icon size={20} />
+                  {item.label}
+                  {item.count != null && item.count > 0 && (
+                    <b className="nav-count">{item.count}</b>
+                  )}
+                </button>
+              );
+            }
+
             return (
               <Link
                 key={item.key}
@@ -135,6 +166,9 @@ export function DashboardShell({
               >
                 <Icon size={20} />
                 {item.label}
+                {item.count != null && item.count > 0 && (
+                  <b className="nav-count">{item.count}</b>
+                )}
               </Link>
             );
           })}
@@ -149,9 +183,8 @@ export function DashboardShell({
           )}
           <button
             type="button"
-            className="garage-nav-item"
+            className="garage-nav-item garage-signout"
             onClick={logout}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left' }}
           >
             <PiSignOut size={20} />
             Sign out

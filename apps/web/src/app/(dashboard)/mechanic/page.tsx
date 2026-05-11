@@ -31,13 +31,6 @@ import {
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
 import { API_URL } from "@/lib/api";
 
-const MECHANIC_NAV: NavItem[] = [
-  { key: 'jobs', label: 'Job cards', href: '/mechanic', icon: JobCardIcon },
-  { key: 'inspection', label: 'Inspection', href: '/mechanic', icon: WorkOrderIcon },
-  { key: 'labour', label: 'Labour log', href: '/mechanic', icon: TimerIcon },
-  { key: 'parts', label: 'Parts requests', href: '/mechanic', icon: PartsIcon },
-];
-
 type JobStatus = "assigned" | "in_progress" | "awaiting_parts" | "completed";
 type JobTab = "inspection" | "labour" | "parts" | "complete";
 
@@ -528,10 +521,20 @@ export default function MechanicPage() {
     setFinalNotes("");
   }
 
+  const mechanicNav: NavItem[] = [
+    { key: 'jobs',       label: 'Job cards',      href: '/mechanic', icon: JobCardIcon,   onClick: () => setTab('inspection') },
+    { key: 'inspection', label: 'Inspection',     href: '/mechanic', icon: WorkOrderIcon, onClick: () => setTab('inspection') },
+    { key: 'labour',     label: 'Labour log',     href: '/mechanic', icon: TimerIcon,     onClick: () => setTab('labour') },
+    { key: 'parts',      label: 'Parts requests', href: '/mechanic', icon: PartsIcon,     onClick: () => setTab('parts'),
+      count: selectedJob.parts.filter((p) => p.status === 'Pending' || p.status === 'Requested').length || undefined },
+    { key: 'complete',   label: 'Job completion', href: '/mechanic', icon: CameraIcon,    onClick: () => setTab('complete') },
+  ];
+
   return (
     <DashboardShell
       role="Mechanic"
-      navItems={MECHANIC_NAV}
+      navItems={mechanicNav}
+      activeNavKey={tab === 'inspection' ? 'inspection' : tab}
       dateLabel="Monday, 11 May 2026"
       title="Job cards"
       subtitle="Assigned job cards, inspection notes, labour time, parts requests, and completion."

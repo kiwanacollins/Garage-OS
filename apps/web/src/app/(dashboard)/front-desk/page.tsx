@@ -23,19 +23,13 @@ import {
   OdometerIcon,
   PaymentIcon,
   VehicleIcon,
+  WorkOrderIcon,
 } from '@/components/icons';
 import { DashboardShell, type NavItem } from '@/components/DashboardShell';
 import { useAuth } from '@/components/AuthProvider';
-
-const FRONT_DESK_NAV: NavItem[] = [
-  { key: 'register', label: 'Register', href: '/front-desk', icon: CustomerIcon },
-  { key: 'checkin', label: 'Check-in / out', href: '/front-desk', icon: VehicleIcon },
-  { key: 'appointments', label: 'Appointments', href: '/front-desk', icon: CalendarIcon },
-  { key: 'invoices', label: 'Invoices', href: '/front-desk', icon: InvoiceIcon },
-  { key: 'payments', label: 'Payments', href: '/front-desk', icon: PaymentIcon },
-  { key: 'notifications', label: 'Notifications', href: '/front-desk', icon: WorkOrderIcon },
-];
 import { apiRequest } from '@/lib/api';
+
+type FrontDeskSection = 'register' | 'checkin' | 'appointments' | 'invoices' | 'payments' | 'notifications';
 
 type Vehicle = {
   id: string;
@@ -175,6 +169,7 @@ const initialAppointments: Appointment[] = [
 
 export default function FrontDeskPage() {
   const { accessToken } = useAuth();
+  const [section, setSection] = useState<FrontDeskSection>('register');
   const [customers, setCustomers] = useState(initialCustomers);
   const [vehicles, setVehicles] = useState(initialVehicles);
   const [query, setQuery] = useState('');
@@ -415,10 +410,20 @@ export default function FrontDeskPage() {
     }
   }
 
+  const frontDeskNav: NavItem[] = [
+    { key: 'register',      label: 'Customer register', href: '/front-desk', icon: CustomerIcon,  onClick: () => setSection('register') },
+    { key: 'checkin',       label: 'Check-in / out',    href: '/front-desk', icon: VehicleIcon,   onClick: () => setSection('checkin') },
+    { key: 'appointments',  label: 'Appointments',      href: '/front-desk', icon: CalendarIcon,  onClick: () => setSection('appointments') },
+    { key: 'invoices',      label: 'Invoices',          href: '/front-desk', icon: InvoiceIcon,   onClick: () => setSection('invoices') },
+    { key: 'payments',      label: 'Payments',          href: '/front-desk', icon: PaymentIcon,   onClick: () => setSection('payments') },
+    { key: 'notifications', label: 'Notifications',     href: '/front-desk', icon: WorkOrderIcon, onClick: () => setSection('notifications') },
+  ];
+
   return (
     <DashboardShell
       role="Front desk"
-      navItems={FRONT_DESK_NAV}
+      navItems={frontDeskNav}
+      activeNavKey={section}
       dateLabel="Monday, 11 May 2026"
       title="Vehicle register and customers"
       subtitle="Customer lookup, vehicle intake, bookings, invoices, and collections."
@@ -439,7 +444,7 @@ export default function FrontDeskPage() {
       }
     >
 
-        <section className="register-layout" aria-label="Customer and vehicle register">
+        <section className="register-layout" aria-label="Customer and vehicle register" style={{ display: section === 'register' ? undefined : 'none' }}>
           <Paper className="register-main">
             <div className="register-toolbar">
               <div className="search-field">
@@ -554,8 +559,8 @@ export default function FrontDeskPage() {
           </Paper>
         </section>
 
-        <section className="operations-grid" aria-label="Front desk operations">
-          <Paper className="operation-panel" aria-label="Check-in">
+        <section className="operations-grid" aria-label="Front desk operations" style={{ display: ['checkin', 'appointments', 'invoices', 'payments', 'notifications'].includes(section) ? undefined : 'none' }}>
+          <Paper className="operation-panel" aria-label="Check-in" style={{ display: section === 'checkin' || section === 'register' ? undefined : 'none' }}>
             <Group className="operation-heading" align="flex-start" justify="space-between">
               <Stack gap={2}>
                 <Text className="eyebrow">Check-in</Text>
@@ -595,7 +600,7 @@ export default function FrontDeskPage() {
             </div>
           </Paper>
 
-          <Paper className="operation-panel" aria-label="Appointments">
+          <Paper className="operation-panel" aria-label="Appointments" style={{ display: section === 'appointments' || section === 'register' ? undefined : 'none' }}>
             <Group className="operation-heading" align="flex-start" justify="space-between">
               <Stack gap={2}>
                 <Text className="eyebrow">Appointments</Text>
@@ -629,7 +634,7 @@ export default function FrontDeskPage() {
             </div>
           </Paper>
 
-          <Paper className="operation-panel" aria-label="Invoice">
+          <Paper className="operation-panel" aria-label="Invoice" style={{ display: section === 'invoices' || section === 'register' ? undefined : 'none' }}>
             <Group className="operation-heading" align="flex-start" justify="space-between">
               <Stack gap={2}>
                 <Text className="eyebrow">Invoice</Text>
@@ -651,7 +656,7 @@ export default function FrontDeskPage() {
             </div>
           </Paper>
 
-          <Paper className="operation-panel" aria-label="Payment">
+          <Paper className="operation-panel" aria-label="Payment" style={{ display: section === 'payments' || section === 'register' ? undefined : 'none' }}>
             <Group className="operation-heading" align="flex-start" justify="space-between">
               <Stack gap={2}>
                 <Text className="eyebrow">Payment</Text>
@@ -673,7 +678,7 @@ export default function FrontDeskPage() {
             </form>
           </Paper>
 
-          <Paper className="operation-panel" aria-label="Manual notification">
+          <Paper className="operation-panel" aria-label="Manual notification" style={{ display: section === 'notifications' || section === 'register' ? undefined : 'none' }}>
             <Group className="operation-heading" align="flex-start" justify="space-between">
               <Stack gap={2}>
                 <Text className="eyebrow">Notification</Text>

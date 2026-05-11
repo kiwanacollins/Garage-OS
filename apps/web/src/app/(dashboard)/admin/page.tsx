@@ -41,15 +41,24 @@ import {
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
 import { API_URL } from "@/lib/api";
 
-const ADMIN_NAV: NavItem[] = [
-  { key: 'overview', label: 'Dashboard', href: '/admin', icon: ChartIcon },
-  { key: 'staff', label: 'Staff', href: '/admin', icon: StaffIcon },
-  { key: 'reports', label: 'Reports', href: '/admin', icon: ExportIcon },
-  { key: 'operations', label: 'Work orders', href: '/admin', icon: WorkOrderIcon },
-  { key: 'services', label: 'Services', href: '/admin', icon: MoneyIcon },
-  { key: 'suppliers', label: 'Suppliers', href: '/admin', icon: PiTruck },
-  { key: 'audit', label: 'Audit log', href: '/admin', icon: PiClipboardText },
-];
+function buildAdminNav(
+  tab: AdminTab,
+  setTab: (t: AdminTab) => void,
+  pendingParts: number,
+): NavItem[] {
+  return [
+    { key: 'overview',    label: 'Overview',      href: '/admin', icon: ChartIcon,       onClick: () => setTab('overview') },
+    { key: 'operations',  label: 'Work orders',   href: '/admin', icon: WorkOrderIcon,   onClick: () => setTab('operations'),
+      count: pendingParts > 0 ? pendingParts : undefined },
+    { key: 'staff',       label: 'Staff',         href: '/admin', icon: StaffIcon,       onClick: () => setTab('staff') },
+    { key: 'reports',     label: 'Reports',       href: '/admin', icon: ExportIcon,      onClick: () => setTab('reports') },
+    { key: 'services',    label: 'Services',      href: '/admin', icon: MoneyIcon,       onClick: () => setTab('services') },
+    { key: 'suppliers',   label: 'Suppliers',     href: '/admin', icon: PiTruck,         onClick: () => setTab('suppliers') },
+    { key: 'purchases',   label: 'Purchases',     href: '/admin', icon: PiClipboardText, onClick: () => setTab('purchases') },
+    { key: 'audit',       label: 'Audit log',     href: '/admin', icon: PiMagnifyingGlass, onClick: () => setTab('audit') },
+    { key: 'settings',    label: 'Settings',      href: '/admin', icon: PiGear,          onClick: () => setTab('settings') },
+  ];
+}
 
 type AssignmentStatus = "created" | "assigned" | "quality_check";
 type AdminTab =
@@ -652,11 +661,13 @@ export default function AdminDashboardPage() {
     );
   }
 
+  const adminNav = buildAdminNav(tab, setTab, metrics.partsPending);
+
   return (
     <DashboardShell
       role="Admin"
-      navItems={ADMIN_NAV}
-      settingsHref="/admin"
+      navItems={adminNav}
+      activeNavKey={tab}
       dateLabel="Monday, 11 May 2026"
       title="Admin dashboard"
       subtitle="Revenue, assignments, staff load, and approvals for the garage floor."
@@ -688,7 +699,7 @@ export default function AdminDashboardPage() {
           onChange={(value) => setTab((value ?? "overview") as AdminTab)}
           className="admin-tabs"
         >
-          <Tabs.List aria-label="Admin dashboard sections">
+          <Tabs.List aria-label="Admin dashboard sections" style={{ display: 'none' }}>
             <Tabs.Tab value="overview">overview</Tabs.Tab>
             <Tabs.Tab value="reports">reports</Tabs.Tab>
             <Tabs.Tab value="staff">staff</Tabs.Tab>
