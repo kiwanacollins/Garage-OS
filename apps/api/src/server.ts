@@ -1,3 +1,9 @@
+import { resolve } from 'path';
+import { config as loadEnv } from 'dotenv';
+
+// Load .env from monorepo root: apps/api/src → apps/api → apps → root
+loadEnv({ path: resolve(__dirname, '..', '..', '..', '.env') });
+
 import { buildApp } from './app.js';
 
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
