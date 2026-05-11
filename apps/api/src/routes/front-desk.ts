@@ -1,4 +1,4 @@
-import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import {
   availableSlotsSchema,
   checkInSchema,
@@ -21,6 +21,42 @@ function invoiceTotals(input: { labourTotal: number; partsTotal: number; tax: nu
     tax: input.tax,
     grandTotal: input.labourTotal + input.partsTotal + input.tax,
   };
+}
+
+async function enqueueCustomerNotification(
+  app: FastifyInstance,
+  customer:
+    | { id: string; preferredContact?: string | null; user?: { id: string; email: string; phone: string | null } }
+    | null
+    | undefined,
+  input: { title: string; body: string; trigger: string; entityId?: string },
+) {
+  const user = customer?.user;
+  if (!user) {
+    return;
+  }
+
+  await app.deps.notificationService?.enqueue({
+    type: 'in_app',
+    channel: 'in_app',
+    recipientId: user.id,
+    title: input.title,
+    body: input.body,
+    metadata: { trigger: input.trigger, entityId: input.entityId, customerId: customer?.id },
+  });
+
+  const preferred = customer?.preferredContact;
+  if (preferred === 'sms' || preferred === 'email' || preferred === 'whatsapp') {
+    await app.deps.notificationService?.enqueue({
+      type: preferred,
+      channel: preferred,
+      recipientId: user.id,
+      title: input.title,
+      body: input.body,
+      to: preferred === 'email' ? user.email : user.phone,
+      metadata: { trigger: input.trigger, entityId: input.entityId, customerId: customer?.id },
+    });
+  }
 }
 
 export const frontDeskRoutes: FastifyPluginAsync = async (app) => {
@@ -95,6 +131,12 @@ export const frontDeskRoutes: FastifyPluginAsync = async (app) => {
       },
       include: { customer: { include: { user: true } }, vehicle: true },
     });
+    await enqueueCustomerNotification(app, appointment.customer, {
+      title: 'Appointment scheduled',
+      body: `Your appointment is scheduled for ${new Date(appointment.scheduledAt).toISOString()}.`,
+      trigger: 'appointment-created',
+      entityId: appointment.id,
+    });
 
     return reply.code(201).send({ appointment });
   });
@@ -149,7 +191,7 @@ export const frontDeskRoutes: FastifyPluginAsync = async (app) => {
         status: InvoiceStatus.ISSUED,
         issuedAt: new Date(),
       },
-      include: { workOrder: { include: { vehicle: true } } },
+      include: { workOrder: { include: { vehicle: { include: { customer: { include: { user: true } } } } } } },
     });
 
     await app.deps.prisma.workOrder.update({
@@ -157,6 +199,12 @@ export const frontDeskRoutes: FastifyPluginAsync = async (app) => {
       data: { status: WorkOrderStatus.INVOICED },
     });
     app.realtime.emitWorkOrderStatus({ workOrderId: parsed.data.workOrderId, status: WorkOrderStatus.INVOICED });
+    await enqueueCustomerNotification(app, invoice.workOrder?.vehicle?.customer, {
+      title: 'Invoice ready',
+      body: `Your invoice is ready. Amount due: UGX ${invoice.grandTotal}.`,
+      trigger: 'invoice-issued',
+      entityId: invoice.id,
+    });
 
     return reply.code(201).send({ invoice });
   });

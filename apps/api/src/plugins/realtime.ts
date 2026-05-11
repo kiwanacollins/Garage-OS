@@ -17,6 +17,10 @@ export const realtimePlugin = fp(async (app) => {
     }) {
       io.emit('work-order:status-updated', payload);
     },
+    emitNotification(payload: { recipientId: string; notification: unknown }) {
+      io.to(payload.recipientId).emit('notification:created', payload.notification);
+      io.emit('notification:created', payload);
+    },
   });
 
   app.addHook('onClose', (_instance, done) => {

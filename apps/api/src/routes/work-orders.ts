@@ -222,6 +222,17 @@ export const workOrderRoutes: FastifyPluginAsync = async (app) => {
       status: workOrder.status,
       assignedMechanicId: workOrder.assignedMechanicId,
     });
+    const customerUserId = workOrder.vehicle?.customer?.userId;
+    if (customerUserId) {
+      await app.deps.notificationService?.enqueue({
+        type: 'in_app',
+        channel: 'in_app',
+        recipientId: customerUserId,
+        title: 'Work order updated',
+        body: `Your vehicle status is now ${workOrder.status.replaceAll('_', ' ')}.`,
+        metadata: { workOrderId: workOrder.id, trigger: 'status-change' },
+      });
+    }
 
     return { workOrder: publicWorkOrder(workOrder) };
   });
@@ -252,6 +263,14 @@ export const workOrderRoutes: FastifyPluginAsync = async (app) => {
         workOrderId: workOrder.id,
         status: workOrder.status,
         assignedMechanicId: workOrder.assignedMechanicId,
+      });
+      await app.deps.notificationService?.enqueue({
+        type: 'in_app',
+        channel: 'in_app',
+        recipientId: parsed.data.mechanicId,
+        title: 'New job assigned',
+        body: `Work order ${workOrder.id} has been assigned to you.`,
+        metadata: { workOrderId: workOrder.id, trigger: 'job-assignment' },
       });
 
       return { workOrder: publicWorkOrder(workOrder) };

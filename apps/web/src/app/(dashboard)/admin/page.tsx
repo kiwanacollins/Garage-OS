@@ -293,7 +293,7 @@ export default function AdminDashboardPage() {
         role="Admin"
         active="admin"
         dateLabel="Monday, 11 May 2026"
-        title="Good evening, Operations,"
+        title="Admin dashboard"
         subtitle="Revenue, assignments, staff load, and approvals for the garage floor."
         stats={[
           { value: String(metrics.open), label: 'open work orders' },

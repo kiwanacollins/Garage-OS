@@ -198,23 +198,23 @@
   - [x] 7.20 🟢 Build service catalogue UI — table with add/edit/delete, category filters, price editing
   - [x] 7.21 🟢 Write Playwright E2E test for dashboard load, KPI filtering, and report export
 
-- [ ] 8.0 Notification System and External Integrations
-  - [ ] 8.1 🔴 Write tests for notification service — in_app creates DB record + emits socket event, email jobs are enqueued correctly
-  - [ ] 8.2 Set up BullMQ notification queue with job types`email`, `in_app`
-  - [ ] 8.3 Implement `in_app` notification job — create Notification record, emit Socket.io event — make tests pass
-  - [ ] 8.4 🔴 Write tests for notification API — GET returns paginated list for logged-in user, PATCH marks as read
-  - [ ] 8.5 Implement `GET /api/v1/notifications` and `PATCH /:id/read` — make tests pass
-  - [ ] 8.6 Implement `sms` job — integrate SMS gateway, send message, log result
-  - [ ] 8.7 Implement `email` job — Nodemailer + SendGrid for transactional emails
-  - [ ] 8.8 Implement `whatsapp` job — WhatsApp Business API, send template messages
-  - [ ] 8.9 🔴 Write tests for notification triggers — status change enqueues job, appointment T-24h enqueues reminder
-  - [ ] 8.10 Create notification triggers — enqueue on: status change, appointment reminder, job assignment, invoice sent — make tests pass
-  - [ ] 8.11 Implement customer notification preferences via `CustomerProfile.preferred_contact`
-  - [ ] 8.12 Implement retry with exponential backoff for failed deliveries
-  - [ ] 8.13 🔴 Write tests for manual notification API — front desk can send SMS/WhatsApp/email to a selected customer, invalid channel returns 400, missing customer returns 404, non-front-desk/non-admin users get 403, and a notification job is enqueued with audit metadata
-  - [ ] 8.14 Implement `POST /api/v1/notifications/manual-send` — validate customer, channel, message, enqueue delivery job, create in-app/audit record, and return queued status
-  - [ ] 8.15 🟢 Build notification bell/dropdown UI — unread badge, notification list, mark-as-read
-  - [ ] 8.16 🟢 Build front desk manual notification UI — select customer, compose, choose channel, send, display queued/sent/failed state
+- [x] 8.0 Notification System and External Integrations
+  - [x] 8.1 🔴 Write tests for notification service — in_app creates DB record + emits socket event, email jobs are enqueued correctly
+  - [x] 8.2 Set up BullMQ notification queue with job types`email`, `in_app`
+  - [x] 8.3 Implement `in_app` notification job — create Notification record, emit Socket.io event — make tests pass
+  - [x] 8.4 🔴 Write tests for notification API — GET returns paginated list for logged-in user, PATCH marks as read
+  - [x] 8.5 Implement `GET /api/v1/notifications` and `PATCH /:id/read` — make tests pass
+  - [x] 8.6 Implement `sms` job — integrate SMS gateway, send message, log result
+  - [x] 8.7 Implement `email` job — Nodemailer + SendGrid for transactional emails
+  - [x] 8.8 Implement `whatsapp` job — WhatsApp Business API, send template messages
+  - [x] 8.9 🔴 Write tests for notification triggers — status change enqueues job, appointment T-24h enqueues reminder
+  - [x] 8.10 Create notification triggers — enqueue on: status change, appointment reminder, job assignment, invoice sent — make tests pass
+  - [x] 8.11 Implement customer notification preferences via `CustomerProfile.preferred_contact`
+  - [x] 8.12 Implement retry with exponential backoff for failed deliveries
+  - [x] 8.13 🔴 Write tests for manual notification API — front desk can send SMS/WhatsApp/email to a selected customer, invalid channel returns 400, missing customer returns 404, non-front-desk/non-admin users get 403, and a notification job is enqueued with audit metadata
+  - [x] 8.14 Implement `POST /api/v1/notifications/manual-send` — validate customer, channel, message, enqueue delivery job, create in-app/audit record, and return queued status
+  - [x] 8.15 🟢 Build notification bell/dropdown UI — unread badge, notification list, mark-as-read
+  - [x] 8.16 🟢 Build front desk manual notification UI — select customer, compose, choose channel, send, display queued/sent/failed state
 
 - [ ] 9.0 Customer Self-Service Portal
   - [ ] 9.1 🔴 Write customer ownership tests for vehicles — customer can list/read/update only their own vehicles; another customer's vehicle returns 403; unauthenticated request returns 401

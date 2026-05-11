@@ -1730,6 +1730,36 @@ p {
   font-size: 0.76rem;
 }
 
+.notification-bell {
+  position: relative;
+}
+
+.notification-count {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  height: 18px;
+  min-width: 18px;
+  padding: 0 5px;
+  font-size: 0.65rem;
+}
+
+.notification-item {
+  display: grid;
+  gap: 3px;
+  max-width: 260px;
+  white-space: normal;
+}
+
+.notification-item small {
+  color: #6b7280;
+  line-height: 1.35;
+}
+
+.is-unread .notification-item strong {
+  color: #2563eb;
+}
+
 .garage-content {
   gap: 20px;
   padding: 34px 24px 40px;

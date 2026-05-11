@@ -1,8 +1,8 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { ActionIcon, Button, Group, Kbd, Stack, Text, TextInput, Title } from '@mantine/core';
+import { ActionIcon, Badge, Button, Group, Kbd, Menu, Stack, Text, TextInput, Title } from '@mantine/core';
 import {
   PiBell,
   PiCalendarCheck,
@@ -16,6 +16,8 @@ import {
   PiUsersThree,
   PiWrench,
 } from 'react-icons/pi';
+import { apiRequest } from '@/lib/api';
+import { useAuth } from './AuthProvider';
 
 type RoleKey = 'admin' | 'front-desk' | 'mechanic' | 'customer';
 
@@ -34,6 +36,14 @@ type DashboardShellProps = {
   primaryAction?: ReactNode;
   secondaryAction?: ReactNode;
   children: ReactNode;
+};
+
+type AppNotification = {
+  id: string;
+  title: string;
+  body: string;
+  isRead: boolean;
+  createdAt: string;
 };
 
 const navItems = [
@@ -60,6 +70,35 @@ export function DashboardShell({
   secondaryAction,
   children,
 }: DashboardShellProps) {
+  const { accessToken } = useAuth();
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+
+  useEffect(() => {
+    if (!accessToken) {
+      return;
+    }
+
+    apiRequest<{ notifications: AppNotification[] }>('/api/v1/notifications?pageSize=8', {
+      headers: { authorization: `Bearer ${accessToken}` },
+    })
+      .then((result) => setNotifications(result.notifications))
+      .catch(() => setNotifications([]));
+  }, [accessToken]);
+
+  async function markNotificationRead(id: string) {
+    setNotifications((items) => items.map((item) => (item.id === id ? { ...item, isRead: true } : item)));
+    if (!accessToken) {
+      return;
+    }
+
+    await apiRequest(`/api/v1/notifications/${id}/read`, {
+      method: 'PATCH',
+      headers: { authorization: `Bearer ${accessToken}` },
+    }).catch(() => undefined);
+  }
+
+  const unreadCount = notifications.filter((notification) => !notification.isRead).length;
+
   return (
     <main className="garage-shell">
       <aside className="garage-sidebar" aria-label="GarageOS navigation">
@@ -128,9 +167,33 @@ export function DashboardShell({
           />
           <Group gap="sm" wrap="nowrap">
             <Button leftSection={<PiCarProfile size={18} />}>New work order</Button>
-            <ActionIcon variant="default" size="lg" aria-label="Notifications">
-              <PiBell size={20} />
-            </ActionIcon>
+            <Menu width={320} position="bottom-end" shadow="md">
+              <Menu.Target>
+                <ActionIcon variant="default" size="lg" aria-label="Notifications" className="notification-bell">
+                  <PiBell size={20} />
+                  {unreadCount ? <Badge className="notification-count">{unreadCount}</Badge> : null}
+                </ActionIcon>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Label>Notifications</Menu.Label>
+                {notifications.length ? (
+                  notifications.map((notification) => (
+                    <Menu.Item
+                      key={notification.id}
+                      onClick={() => markNotificationRead(notification.id)}
+                      className={notification.isRead ? '' : 'is-unread'}
+                    >
+                      <span className="notification-item">
+                        <strong>{notification.title}</strong>
+                        <small>{notification.body}</small>
+                      </span>
+                    </Menu.Item>
+                  ))
+                ) : (
+                  <Menu.Item disabled>No notifications</Menu.Item>
+                )}
+              </Menu.Dropdown>
+            </Menu>
             <span className="garage-avatar" aria-label="Signed in user">
               KO
             </span>

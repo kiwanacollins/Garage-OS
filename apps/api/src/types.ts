@@ -81,6 +81,15 @@ export type AppPrisma = {
     findMany(args?: Record<string, unknown>): Promise<any[]>;
     create(args: Record<string, unknown>): Promise<any>;
   };
+  auditLog: {
+    findMany(args?: Record<string, unknown>): Promise<any[]>;
+    create(args: Record<string, unknown>): Promise<any>;
+  };
+  notification: {
+    findMany(args?: Record<string, unknown>): Promise<any[]>;
+    create(args: Record<string, unknown>): Promise<any>;
+    update(args: Record<string, unknown>): Promise<any>;
+  };
 };
 
 export type AppMailer = {
@@ -98,6 +107,10 @@ export type AppRealtime = {
     status: string;
     assignedMechanicId?: string | null;
   }): void;
+  emitNotification(payload: {
+    recipientId: string;
+    notification: unknown;
+  }): void;
 };
 
 export type AppDeps = {
@@ -105,6 +118,17 @@ export type AppDeps = {
   mailer: AppMailer;
   jwtSecret: string;
   refreshTokenSecret: string;
+  notificationService?: {
+    enqueue(job: {
+      type: string;
+      recipientId: string;
+      channel: string;
+      title: string;
+      body: string;
+      to?: string | null;
+      metadata?: Record<string, unknown>;
+    }): Promise<unknown>;
+  };
 };
 
 declare module 'fastify' {

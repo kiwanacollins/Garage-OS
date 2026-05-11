@@ -26,6 +26,8 @@ import {
 } from '@/components/icons';
 import { DashboardShell } from '@/components/DashboardShell';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { useAuth } from '@/components/AuthProvider';
+import { apiRequest } from '@/lib/api';
 
 type Vehicle = {
   id: string;
@@ -164,6 +166,7 @@ const initialAppointments: Appointment[] = [
 ];
 
 export default function FrontDeskPage() {
+  const { accessToken } = useAuth();
   const [customers, setCustomers] = useState(initialCustomers);
   const [vehicles, setVehicles] = useState(initialVehicles);
   const [query, setQuery] = useState('');
@@ -173,6 +176,8 @@ export default function FrontDeskPage() {
   const [appointments, setAppointments] = useState(initialAppointments);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [paymentStatus, setPaymentStatus] = useState('No payment recorded');
+  const [notificationStatus, setNotificationStatus] = useState('No message queued');
+  const [notificationChannel, setNotificationChannel] = useState('whatsapp');
   const [customerPanel, setCustomerPanel] = useState<'closed' | 'new' | 'edit'>('closed');
   const [vehiclePanel, setVehiclePanel] = useState(false);
 
@@ -368,13 +373,47 @@ export default function FrontDeskPage() {
     setPaymentStatus(`${String(form.get('method'))} payment recorded`);
   }
 
+  async function sendManualNotification(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedCustomer) {
+      return;
+    }
+
+    const form = new FormData(event.currentTarget);
+    const message = String(form.get('message'));
+    setNotificationStatus('Queueing message...');
+
+    if (!accessToken || selectedCustomer.id.startsWith('customer-')) {
+      setNotificationStatus(`${notificationChannel.toUpperCase()} queued for ${selectedCustomer.name}`);
+      event.currentTarget.reset();
+      return;
+    }
+
+    try {
+      await apiRequest('/api/v1/notifications/manual-send', {
+        method: 'POST',
+        headers: { authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({
+          customerId: selectedCustomer.id,
+          channel: notificationChannel,
+          title: 'GarageOS update',
+          message,
+        }),
+      });
+      setNotificationStatus(`${notificationChannel.toUpperCase()} queued for ${selectedCustomer.name}`);
+      event.currentTarget.reset();
+    } catch (error) {
+      setNotificationStatus(error instanceof Error ? error.message : 'Unable to queue message');
+    }
+  }
+
   return (
     <ProtectedRoute>
       <DashboardShell
         role="Front desk"
         active="front-desk"
         dateLabel="Monday, 11 May 2026"
-        title="Good evening, Reception,"
+        title="Vehicle register and customers"
         subtitle="Customer lookup, vehicle intake, bookings, invoices, and collections."
         stats={[
           { value: String(filteredCustomers.length), label: 'customer records' },
@@ -623,6 +662,40 @@ export default function FrontDeskPage() {
               <NumberInput name="amount" label="Amount" min={1} required defaultValue={selectedInvoice?.grandTotal ?? 277300} />
               <Button type="submit" leftSection={<PaymentIcon size={18} />} disabled={!selectedInvoice}>
                 Record payment
+              </Button>
+            </form>
+          </Paper>
+
+          <Paper className="operation-panel" aria-label="Manual notification">
+            <Group className="operation-heading" align="flex-start" justify="space-between">
+              <Stack gap={2}>
+                <Text className="eyebrow">Notification</Text>
+                <Title order={2}>Customer message</Title>
+              </Stack>
+              <Badge>{notificationStatus}</Badge>
+            </Group>
+            <form className="operation-form" onSubmit={sendManualNotification}>
+              <Select
+                label="Channel"
+                value={notificationChannel}
+                onChange={(value) => setNotificationChannel(value ?? 'whatsapp')}
+                data={[
+                  { value: 'whatsapp', label: 'WhatsApp' },
+                  { value: 'sms', label: 'SMS' },
+                  { value: 'email', label: 'Email' },
+                ]}
+              />
+              <Textarea
+                className="wide-field"
+                name="message"
+                label="Message"
+                placeholder="Collection notice, appointment reminder, or status update"
+                required
+                autosize
+                minRows={2}
+              />
+              <Button type="submit" disabled={!selectedCustomer}>
+                Queue message
               </Button>
             </form>
           </Paper>

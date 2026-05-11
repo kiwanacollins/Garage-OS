@@ -174,6 +174,21 @@ export const createPaymentSchema = z.object({
   transactionRef: z.string().max(100).optional(),
 });
 
+// ─── Notification Schemas ────────────────────────────────────────────────────
+
+export const notificationSearchSchema = z.object({
+  page: z.coerce.number().int().min(1).optional().default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).optional().default(25),
+  unreadOnly: z.coerce.boolean().optional().default(false),
+});
+
+export const manualNotificationSchema = z.object({
+  customerId: z.string().min(1),
+  channel: z.enum(['sms', 'email', 'whatsapp']),
+  title: z.string().min(1).max(200).optional().default('GarageOS update'),
+  message: z.string().min(1).max(1000),
+});
+
 // ─── Mechanic Operation Schemas ───────────────────────────────────────────────
 
 export const createInspectionSchema = z.object({
@@ -319,6 +334,8 @@ export type CheckOutInput = z.infer<typeof checkOutSchema>;
 export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
 export type CreatePaymentInput = z.infer<typeof createPaymentSchema>;
+export type NotificationSearchInput = z.infer<typeof notificationSearchSchema>;
+export type ManualNotificationInput = z.infer<typeof manualNotificationSchema>;
 export type CreateInspectionInput = z.infer<typeof createInspectionSchema>;
 export type CreateLabourLogInput = z.infer<typeof createLabourLogSchema>;
 export type CreatePartsRequestInput = z.infer<typeof createPartsRequestSchema>;

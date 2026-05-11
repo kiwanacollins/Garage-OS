@@ -308,7 +308,7 @@ export default function MechanicPage() {
         role="Mechanic"
         active="mechanic"
         dateLabel="Monday, 11 May 2026"
-        title="Good evening, Service bay,"
+        title="Job cards"
         subtitle="Assigned job cards, inspection notes, labour time, parts requests, and completion."
         stats={[
           { value: String(jobItems.filter((job) => job.status !== 'completed').length), label: 'active jobs' },
@@ -329,13 +329,7 @@ export default function MechanicPage() {
             ]}
           />
         }
-        primaryAction={
-          selectedAction ? (
-            <Button type="button" leftSection={<WorkOrderIcon size={18} />} onClick={advanceSelectedJob}>
-              {selectedAction.label}
-            </Button>
-          ) : null
-        }
+        primaryAction={null}
       >
 
         <section className="job-layout" aria-label="Mechanic job cards">

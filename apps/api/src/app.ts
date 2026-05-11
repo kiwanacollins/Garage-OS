@@ -10,9 +10,11 @@ import { authRoutes } from './routes/auth.js';
 import { customerRoutes } from './routes/customers.js';
 import { frontDeskRoutes } from './routes/front-desk.js';
 import { mechanicRoutes } from './routes/mechanic-operations.js';
+import { notificationRoutes } from './routes/notifications.js';
 import { userRoutes } from './routes/users.js';
 import { vehicleRoutes } from './routes/vehicles.js';
 import { workOrderRoutes } from './routes/work-orders.js';
+import { createNotificationService } from './services/notification.service.js';
 import type { AppMailer, AppPrisma } from './types.js';
 import './types.js';
 
@@ -79,6 +81,11 @@ export async function buildApp(dependencies: AppDependencies = {}) {
       dependencies.refreshTokenSecret ?? process.env.JWT_REFRESH_SECRET ?? 'dev-refresh-token-secret',
   });
   await app.register(realtimePlugin);
+  app.deps.notificationService = createNotificationService({
+    prisma: app.deps.prisma,
+    mailer: app.deps.mailer,
+    realtime: app.realtime,
+  });
 
   // ── Health Check ─────────────────────────────────────────────────────────
   app.get('/api/v1/health', async () => {
@@ -92,6 +99,7 @@ export async function buildApp(dependencies: AppDependencies = {}) {
     await secureApp.register(customerRoutes, { prefix: '/api/v1' });
     await secureApp.register(frontDeskRoutes, { prefix: '/api/v1' });
     await secureApp.register(mechanicRoutes, { prefix: '/api/v1' });
+    await secureApp.register(notificationRoutes, { prefix: '/api/v1/notifications' });
     await secureApp.register(userRoutes, { prefix: '/api/v1' });
     await secureApp.register(vehicleRoutes, { prefix: '/api/v1' });
     await secureApp.register(workOrderRoutes, { prefix: '/api/v1' });
