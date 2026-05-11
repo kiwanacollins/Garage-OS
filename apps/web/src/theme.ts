@@ -5,10 +5,22 @@ export const garageTheme = createTheme({
   primaryShade: 6,
   fontFamily:
     'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  fontSizes: {
+    xs: '0.72rem',
+    sm: '0.8rem',
+    md: '0.9rem',
+    lg: '1rem',
+    xl: '1.1rem',
+  },
   headings: {
     fontFamily:
       'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     fontWeight: '750',
+    sizes: {
+      h1: { fontSize: '2rem', lineHeight: '1.12' },
+      h2: { fontSize: '1.25rem', lineHeight: '1.2' },
+      h3: { fontSize: '1.05rem', lineHeight: '1.25' },
+    },
   },
   defaultRadius: 'sm',
   colors: {
@@ -45,6 +57,7 @@ export const garageTheme = createTheme({
     Button: {
       defaultProps: {
         radius: 'sm',
+        size: 'sm',
       },
     },
     Paper: {
@@ -61,26 +74,31 @@ export const garageTheme = createTheme({
     TextInput: {
       defaultProps: {
         radius: 'sm',
+        size: 'sm',
       },
     },
     Select: {
       defaultProps: {
         radius: 'sm',
+        size: 'sm',
       },
     },
     NumberInput: {
       defaultProps: {
         radius: 'sm',
+        size: 'sm',
       },
     },
     Textarea: {
       defaultProps: {
         radius: 'sm',
+        size: 'sm',
       },
     },
     SegmentedControl: {
       defaultProps: {
         radius: 'sm',
+        size: 'sm',
       },
     },
   },

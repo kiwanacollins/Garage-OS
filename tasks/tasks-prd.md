@@ -200,7 +200,7 @@
 
 - [ ] 8.0 Notification System and External Integrations
   - [ ] 8.1 🔴 Write tests for notification service — in_app creates DB record + emits socket event, email jobs are enqueued correctly
-  - [ ] 8.2 Set up BullMQ notification queue with job types: `sms`, `whatsapp`, `email`, `in_app`
+  - [ ] 8.2 Set up BullMQ notification queue with job types`email`, `in_app`
   - [ ] 8.3 Implement `in_app` notification job — create Notification record, emit Socket.io event — make tests pass
   - [ ] 8.4 🔴 Write tests for notification API — GET returns paginated list for logged-in user, PATCH marks as read
   - [ ] 8.5 Implement `GET /api/v1/notifications` and `PATCH /:id/read` — make tests pass

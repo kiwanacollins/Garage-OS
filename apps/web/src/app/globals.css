@@ -1663,3 +1663,156 @@ p {
     content: none;
   }
 }
+
+/* Operational density pass: keep dashboards readable without landing-page scale. */
+body {
+  font-size: 14px;
+}
+
+h1 {
+  font-size: 1.65rem;
+}
+
+p {
+  line-height: 1.45;
+}
+
+.eyebrow,
+.garage-role,
+.search-field span,
+.register-count,
+.detail-list dt {
+  font-size: 0.7rem;
+}
+
+.garage-shell {
+  grid-template-columns: 220px minmax(0, 1fr);
+}
+
+.garage-sidebar {
+  gap: 22px;
+  padding: 18px 12px;
+}
+
+.garage-brand {
+  font-size: 1.55rem;
+}
+
+.garage-nav-item {
+  gap: 10px;
+  min-height: 36px;
+  padding: 0 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.garage-area {
+  gap: 10px;
+  font-size: 0.86rem;
+}
+
+.garage-sidebar-section {
+  padding: 18px 10px;
+}
+
+.garage-topbar {
+  min-height: 56px;
+  padding: 10px 24px;
+}
+
+.garage-command input {
+  min-height: 36px;
+}
+
+.garage-avatar {
+  width: 34px;
+  height: 34px;
+  font-size: 0.76rem;
+}
+
+.garage-content {
+  gap: 20px;
+  padding: 34px 24px 40px;
+}
+
+.garage-page-head {
+  gap: 18px;
+}
+
+.garage-date,
+.garage-subtitle {
+  font-size: 0.9rem;
+}
+
+.garage-page-head h1,
+.workspace-header h1 {
+  max-width: 760px;
+  font-size: clamp(1.9rem, 2.8vw, 2.65rem);
+  line-height: 1.08;
+}
+
+.garage-stat-strip span {
+  min-height: 42px;
+  padding: 0 18px;
+  font-size: 0.86rem;
+}
+
+.garage-stat-strip strong {
+  font-size: 1rem;
+}
+
+.admin-tabs .mantine-Tabs-tab,
+.job-detail .mantine-Tabs-tab {
+  min-height: 36px;
+  font-size: 0.86rem;
+}
+
+.analytics-panel,
+.operation-panel,
+.job-detail,
+.register-detail,
+.approval-board,
+.customer-status-panel {
+  padding: 16px;
+}
+
+.kpi-tile {
+  min-height: 96px;
+  padding: 16px;
+}
+
+.metric-number,
+.metric strong {
+  font-size: 1.25rem;
+}
+
+.assignment-metrics strong {
+  font-size: 1.25rem;
+}
+
+.job-card,
+.register-row {
+  min-height: 64px;
+  padding: 10px 14px;
+}
+
+@media (max-width: 1100px) {
+  .garage-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  body {
+    font-size: 14px;
+  }
+
+  .garage-page-head h1,
+  .workspace-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .garage-content {
+    padding: 24px 14px 34px;
+  }
+}
