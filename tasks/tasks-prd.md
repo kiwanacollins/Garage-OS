@@ -239,27 +239,27 @@
   - [x] 9.20 🟢 Build customer feedback UI — star rating (1-5), comment, submit after completion
   - [x] 9.21 🟢 Write Playwright E2E test for full customer flow (register → add vehicle → book → track → pay with mocked Pesapal → rate)
 
-- [ ] 10.0 Audit Trail, System Settings, and Cross-Cutting Concerns
-  - [ ] 10.1 🔴 Write tests for audit middleware — POST/PATCH/DELETE requests create AuditLog entry with user, entity, action, changes
-  - [ ] 10.2 Implement audit middleware (`middleware/audit.ts`) — make tests pass
-  - [ ] 10.3 🔴 Write tests for audit log API — GET returns paginated results, filters by entity/user/date, non-admin gets 403
-  - [ ] 10.4 Implement `GET /api/v1/audit-logs` (admin only) — make tests pass
-  - [ ] 10.5 🔴 Write tests for system settings — GET returns config, PATCH updates config, non-admin gets 403
-  - [ ] 10.6 Implement settings endpoints (`GET /api/v1/settings`, `PATCH /api/v1/settings`) — make tests pass
-  - [ ] 10.7 🔴 Write multipart/S3 upload adapter tests — accepts JPEG/PNG up to configured size, rejects invalid MIME/oversized files, stores via S3/MinIO adapter, returns public/object URLs, deletes temp files, and handles storage failure with 502
-  - [ ] 10.8 Implement shared upload adapter and multipart parsing for check-in condition photos and inspection photos — make upload tests pass
-  - [ ] 10.9 🔴 Write tests for supplier CRUD — create, list, update, delete, linked purchase orders
-  - [ ] 10.10 Implement supplier CRUD (`POST`, `GET`, `PATCH`, `DELETE`) — make tests pass
-  - [ ] 10.11 🔴 Write tests for purchase order routes — create from approved parts request, status transitions (ordered → shipped → received)
-  - [ ] 10.12 Implement purchase order CRUD and status transitions — make tests pass
-  - [ ] 10.13 🟢 Build admin audit log viewer UI — searchable table, filters, expandable change diff
-  - [ ] 10.14 🟢 Build admin system settings page — garage details, logo upload, tax config, notification prefs
-  - [ ] 10.15 🟢 Build supplier directory UI — table with CRUD, linked purchase orders
-  - [ ] 10.16 🟢 Build purchase order management UI — create from approved parts request, track status
-  - [ ] 10.17 Implement global error handling and standardised API error responses
-  - [ ] 10.18 🔴 Write PWA service worker tests — mechanic job card route, current assigned job data, inspection draft, labour timer state, and queued parts requests are available offline after first load
-  - [ ] 10.19 Implement PWA app manifest and service worker precache for shell routes (`/mechanic`, shared assets) plus runtime cache for current mechanic job-card API responses
-  - [ ] 10.20 Implement offline draft persistence for inspection notes, labour timer state, and parts requests using IndexedDB/local storage with clear sync status
-  - [ ] 10.21 Implement background/online sync for queued mechanic changes — retries when connection returns, prevents duplicate submissions, and surfaces sync failures in the mechanic UI
-  - [ ] 10.22 🟢 Write Playwright offline E2E test — load mechanic job card online, go offline, view cached job, create draft finding/parts request, return online, verify sync completes
-  - [ ] 10.23 🟢 Final Playwright E2E regression suite covering critical flows across all four roles
+- [x] 10.0 Audit Trail, System Settings, and Cross-Cutting Concerns
+  - [x] 10.1 🔴 Write tests for audit middleware — POST/PATCH/DELETE requests create AuditLog entry with user, entity, action, changes
+  - [x] 10.2 Implement audit middleware (`middleware/audit.ts`) — make tests pass
+  - [x] 10.3 🔴 Write tests for audit log API — GET returns paginated results, filters by entity/user/date, non-admin gets 403
+  - [x] 10.4 Implement `GET /api/v1/audit-logs` (admin only) — make tests pass
+  - [x] 10.5 🔴 Write tests for system settings — GET returns config, PATCH updates config, non-admin gets 403
+  - [x] 10.6 Implement settings endpoints (`GET /api/v1/settings`, `PATCH /api/v1/settings`) — make tests pass
+  - [x] 10.7 🔴 Write multipart/S3 upload adapter tests — accepts JPEG/PNG up to configured size, rejects invalid MIME/oversized files, stores via S3/MinIO adapter, returns public/object URLs, deletes temp files, and handles storage failure with 502
+  - [x] 10.8 Implement shared upload adapter and multipart parsing for check-in condition photos and inspection photos — make upload tests pass
+  - [x] 10.9 🔴 Write tests for supplier CRUD — create, list, update, delete, linked purchase orders
+  - [x] 10.10 Implement supplier CRUD (`POST`, `GET`, `PATCH`, `DELETE`) — make tests pass
+  - [x] 10.11 🔴 Write tests for purchase order routes — create from approved parts request, status transitions (ordered → shipped → received)
+  - [x] 10.12 Implement purchase order CRUD and status transitions — make tests pass
+  - [x] 10.13 🟢 Build admin audit log viewer UI — searchable table, filters, expandable change diff
+  - [x] 10.14 🟢 Build admin system settings page — garage details, logo upload, tax config, notification prefs
+  - [x] 10.15 🟢 Build supplier directory UI — table with CRUD, linked purchase orders
+  - [x] 10.16 🟢 Build purchase order management UI — create from approved parts request, track status
+  - [x] 10.17 Implement global error handling and standardised API error responses
+  - [x] 10.18 🔴 Write PWA service worker tests — mechanic job card route, current assigned job data, inspection draft, labour timer state, and queued parts requests are available offline after first load
+  - [x] 10.19 Implement PWA app manifest and service worker precache for shell routes (`/mechanic`, shared assets) plus runtime cache for current mechanic job-card API responses
+  - [x] 10.20 Implement offline draft persistence for inspection notes, labour timer state, and parts requests using IndexedDB/local storage with clear sync status
+  - [x] 10.21 Implement background/online sync for queued mechanic changes — retries when connection returns, prevents duplicate submissions, and surfaces sync failures in the mechanic UI
+  - [x] 10.22 🟢 Write Playwright offline E2E test — load mechanic job card online, go offline, view cached job, create draft finding/parts request, return online, verify sync completes
+  - [x] 10.23 🟢 Final Playwright E2E regression suite covering critical flows across all four roles

@@ -567,6 +567,36 @@ p {
   text-transform: uppercase;
 }
 
+.diff-box {
+  max-height: 360px;
+  overflow: auto;
+  margin: 0;
+  padding: 14px;
+  color: #17202a;
+  font-family:
+    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.is-selected-row {
+  background: #f8fbff;
+  box-shadow: inset 4px 0 0 #2563eb;
+}
+
+.sync-strip {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #dfe2e8;
+  border-radius: 8px;
+}
+
 .assignment-metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(82px, 1fr));

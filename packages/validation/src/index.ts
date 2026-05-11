@@ -363,6 +363,107 @@ export const reportExportSchema = z.object({
   dateTo: z.string().datetime().optional(),
 });
 
+// ─── Audit, Settings, Purchasing, and Upload Schemas ──────────────────────────
+
+export const auditLogSearchSchema = z.object({
+  entityType: z.string().max(100).optional(),
+  entityId: z.string().optional(),
+  userId: z.string().optional(),
+  action: z.string().max(50).optional(),
+  dateFrom: z.string().datetime().optional(),
+  dateTo: z.string().datetime().optional(),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).optional().default(25),
+});
+
+export const garageDetailsSettingsSchema = z.object({
+  name: z.string().min(1).max(160),
+  phone: z.string().max(30).optional(),
+  email: z.string().email().optional(),
+  address: z.string().max(500).optional(),
+  logoUrl: z.string().url().optional(),
+});
+
+export const taxSettingsSchema = z.object({
+  vatRate: z.number().min(0).max(100),
+  tin: z.string().max(80).optional(),
+  invoicePrefix: z.string().min(1).max(20),
+});
+
+export const notificationSettingsSchema = z.object({
+  appointmentReminders: z.boolean(),
+  invoiceAlerts: z.boolean(),
+  preferredChannels: z
+    .array(z.enum(["in_app", "sms", "email", "whatsapp"]))
+    .min(1),
+});
+
+export const backupSettingsSchema = z.object({
+  enabled: z.boolean(),
+  retentionDays: z.number().int().min(1).max(365),
+  runAt: z.string().regex(/^\d{2}:\d{2}$/),
+});
+
+export const systemSettingsSchema = z.object({
+  garage: garageDetailsSettingsSchema,
+  tax: taxSettingsSchema,
+  notifications: notificationSettingsSchema,
+  backups: backupSettingsSchema,
+});
+
+export const updateSystemSettingsSchema = z
+  .object({
+    garage: garageDetailsSettingsSchema.partial().optional(),
+    tax: taxSettingsSchema.partial().optional(),
+    notifications: notificationSettingsSchema.partial().optional(),
+    backups: backupSettingsSchema.partial().optional(),
+  })
+  .refine(
+    (value) => Object.keys(value).length > 0,
+    "At least one settings group is required",
+  );
+
+export const createSupplierSchema = z.object({
+  name: z.string().min(1).max(200),
+  contactPhone: z.string().max(20).optional(),
+  contactEmail: z.string().email().optional(),
+});
+
+export const updateSupplierSchema = createSupplierSchema
+  .partial()
+  .refine(
+    (value) => Object.keys(value).length > 0,
+    "At least one field is required",
+  );
+
+export const supplierSearchSchema = z.object({
+  q: z.string().max(100).optional(),
+});
+
+export const createPurchaseOrderSchema = z.object({
+  supplierId: z.string().min(1),
+  partsRequestId: z.string().min(1),
+  cost: z.number().min(0).optional(),
+});
+
+export const updatePurchaseOrderSchema = z
+  .object({
+    supplierId: z.string().min(1).optional(),
+    cost: z.number().min(0).nullable().optional(),
+  })
+  .refine(
+    (value) => Object.keys(value).length > 0,
+    "At least one field is required",
+  );
+
+export const updatePurchaseOrderStatusSchema = z.object({
+  status: z.enum(["ordered", "shipped", "received", "cancelled"]),
+});
+
+export const uploadPurposeSchema = z.object({
+  purpose: z.enum(["check-in-condition", "inspection-photo", "garage-logo"]),
+});
+
 // ─── Customer Schemas ──────────────────────────────────────────────────────────
 
 export const createCustomerSchema = z.object({
@@ -419,6 +520,19 @@ export type CreateLabourLogInput = z.infer<typeof createLabourLogSchema>;
 export type CreatePartsRequestInput = z.infer<typeof createPartsRequestSchema>;
 export type CreateExpenseInput = z.infer<typeof createExpenseSchema>;
 export type CreateServiceInput = z.infer<typeof createServiceSchema>;
+export type AuditLogSearchInput = z.infer<typeof auditLogSearchSchema>;
+export type SystemSettingsInput = z.infer<typeof systemSettingsSchema>;
+export type UpdateSystemSettingsInput = z.infer<
+  typeof updateSystemSettingsSchema
+>;
+export type CreateSupplierInput = z.infer<typeof createSupplierSchema>;
+export type UpdateSupplierInput = z.infer<typeof updateSupplierSchema>;
+export type CreatePurchaseOrderInput = z.infer<
+  typeof createPurchaseOrderSchema
+>;
+export type UpdatePurchaseOrderInput = z.infer<
+  typeof updatePurchaseOrderSchema
+>;
 export type CreateCustomerInput = z.infer<typeof createCustomerSchema>;
 export type UpdateCustomerInput = z.infer<typeof updateCustomerSchema>;
 export type CustomerSearchInput = z.infer<typeof customerSearchSchema>;

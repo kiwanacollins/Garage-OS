@@ -1,21 +1,31 @@
-import type { Metadata } from 'next';
-import { ColorSchemeScript, MantineProvider, mantineHtmlProps } from '@mantine/core';
-import { ModalsProvider } from '@mantine/modals';
-import { Notifications } from '@mantine/notifications';
-import { AuthProvider } from '@/components/AuthProvider';
-import { garageTheme } from '@/theme';
-import '@mantine/core/styles.css';
-import '@mantine/dates/styles.css';
-import '@mantine/notifications/styles.css';
-import '@mantine/dropzone/styles.css';
-import './globals.css';
+import type { Metadata } from "next";
+import {
+  ColorSchemeScript,
+  MantineProvider,
+  mantineHtmlProps,
+} from "@mantine/core";
+import { ModalsProvider } from "@mantine/modals";
+import { Notifications } from "@mantine/notifications";
+import { AuthProvider } from "@/components/AuthProvider";
+import { PwaRegister } from "@/components/PwaRegister";
+import { garageTheme } from "@/theme";
+import "@mantine/core/styles.css";
+import "@mantine/dates/styles.css";
+import "@mantine/notifications/styles.css";
+import "@mantine/dropzone/styles.css";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'GarageOS',
-  description: 'Garage operations platform',
+  title: "GarageOS",
+  description: "Garage operations platform",
+  manifest: "/manifest.webmanifest",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" {...mantineHtmlProps}>
       <head>
@@ -25,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <MantineProvider theme={garageTheme} defaultColorScheme="light">
           <ModalsProvider>
             <Notifications position="top-right" />
+            <PwaRegister />
             <AuthProvider>{children}</AuthProvider>
           </ModalsProvider>
         </MantineProvider>

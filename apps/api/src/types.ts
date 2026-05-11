@@ -73,9 +73,24 @@ export type AppPrisma = {
     update(args: Record<string, unknown>): Promise<any>;
   };
   partsRequest: {
+    findUnique(args: Record<string, unknown>): Promise<any>;
     findMany(args?: Record<string, unknown>): Promise<any[]>;
     create(args: Record<string, unknown>): Promise<any>;
     update(args: Record<string, unknown>): Promise<any>;
+  };
+  supplier: {
+    findUnique(args: Record<string, unknown>): Promise<any>;
+    findMany(args?: Record<string, unknown>): Promise<any[]>;
+    create(args: Record<string, unknown>): Promise<any>;
+    update(args: Record<string, unknown>): Promise<any>;
+    delete(args: Record<string, unknown>): Promise<any>;
+  };
+  purchaseOrder: {
+    findUnique(args: Record<string, unknown>): Promise<any>;
+    findMany(args?: Record<string, unknown>): Promise<any[]>;
+    create(args: Record<string, unknown>): Promise<any>;
+    update(args: Record<string, unknown>): Promise<any>;
+    delete(args: Record<string, unknown>): Promise<any>;
   };
   expense: {
     findMany(args?: Record<string, unknown>): Promise<any[]>;
@@ -97,6 +112,10 @@ export type AppPrisma = {
     findMany(args?: Record<string, unknown>): Promise<any[]>;
     create(args: Record<string, unknown>): Promise<any>;
   };
+  systemSetting: {
+    findUnique(args: Record<string, unknown>): Promise<any>;
+    upsert(args: Record<string, unknown>): Promise<any>;
+  };
   notification: {
     findMany(args?: Record<string, unknown>): Promise<any[]>;
     create(args: Record<string, unknown>): Promise<any>;
@@ -111,6 +130,24 @@ export type AppMailer = {
     subject: string;
     text: string;
   }): Promise<unknown>;
+};
+
+export type UploadObjectInput = {
+  purpose: string;
+  filename: string;
+  mimetype: string;
+  buffer: Buffer;
+};
+
+export type UploadedObject = {
+  objectKey: string;
+  objectUrl: string;
+  size: number;
+  mimetype: string;
+};
+
+export type ObjectStorageAdapter = {
+  putObject(input: UploadObjectInput): Promise<UploadedObject>;
 };
 
 export type AppRealtime = {
@@ -130,6 +167,8 @@ export type AppDeps = {
   mailer: AppMailer;
   jwtSecret: string;
   refreshTokenSecret: string;
+  uploadStorage?: ObjectStorageAdapter;
+  uploadMaxBytes?: number;
   notificationService?: {
     enqueue(job: {
       type: string;

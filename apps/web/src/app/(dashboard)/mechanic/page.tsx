@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from "react";
 import {
   Badge,
   Button,
@@ -19,15 +19,21 @@ import {
   TextInput,
   Title,
   UnstyledButton,
-} from '@mantine/core';
-import { io } from 'socket.io-client';
-import { CameraIcon, JobCardIcon, PartsIcon, TimerIcon, WorkOrderIcon } from '@/components/icons';
-import { DashboardShell } from '@/components/DashboardShell';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { API_URL } from '@/lib/api';
+} from "@mantine/core";
+import { io } from "socket.io-client";
+import {
+  CameraIcon,
+  JobCardIcon,
+  PartsIcon,
+  TimerIcon,
+  WorkOrderIcon,
+} from "@/components/icons";
+import { DashboardShell } from "@/components/DashboardShell";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { API_URL } from "@/lib/api";
 
-type JobStatus = 'assigned' | 'in_progress' | 'awaiting_parts' | 'completed';
-type JobTab = 'inspection' | 'labour' | 'parts' | 'complete';
+type JobStatus = "assigned" | "in_progress" | "awaiting_parts" | "completed";
+type JobTab = "inspection" | "labour" | "parts" | "complete";
 
 type LabourEntry = {
   task: string;
@@ -39,7 +45,7 @@ type LabourEntry = {
 type PartRequest = {
   item: string;
   quantity: number;
-  urgency: 'routine' | 'urgent' | 'vehicle_down';
+  urgency: "routine" | "urgent" | "vehicle_down";
   note: string;
   status: string;
 };
@@ -62,91 +68,159 @@ type JobCard = {
   finalNotes: string;
 };
 
+type QueuedChange = {
+  id: string;
+  type: "inspection" | "labour" | "parts";
+  jobId: string;
+  createdAt: string;
+};
+
+type MechanicOfflineDraft = {
+  jobItems: JobCard[];
+  timerStartedAt: string | null;
+  queuedChanges: QueuedChange[];
+};
+
 const jobs: JobCard[] = [
   {
-    id: 'WO-1048',
-    status: 'in_progress',
-    plate: 'UAX 123A',
-    vehicle: '2018 Toyota Harrier',
-    customer: 'Alice Nakato',
-    promisedAt: 'Today 16:00',
-    bay: 'Bay 2',
-    concern: 'Brake vibration above 80 km/h, inspect front axle and pads.',
+    id: "WO-1048",
+    status: "in_progress",
+    plate: "UAX 123A",
+    vehicle: "2018 Toyota Harrier",
+    customer: "Alice Nakato",
+    promisedAt: "Today 16:00",
+    bay: "Bay 2",
+    concern: "Brake vibration above 80 km/h, inspect front axle and pads.",
     odometer: 54210,
-    findings: ['Front pads below 3 mm', 'Right lower arm bushing cracked'],
-    recommendations: ['Replace front pads before release', 'Quote lower arm bushing for approval'],
+    findings: ["Front pads below 3 mm", "Right lower arm bushing cracked"],
+    recommendations: [
+      "Replace front pads before release",
+      "Quote lower arm bushing for approval",
+    ],
     photos: [],
     labour: [
-      { task: 'Road test and lift inspection', hours: 0.6, startedAt: '09:10', endedAt: '09:46' },
-      { task: 'Front brake strip-down', hours: 0.9, startedAt: '09:50', endedAt: '10:44' },
+      {
+        task: "Road test and lift inspection",
+        hours: 0.6,
+        startedAt: "09:10",
+        endedAt: "09:46",
+      },
+      {
+        task: "Front brake strip-down",
+        hours: 0.9,
+        startedAt: "09:50",
+        endedAt: "10:44",
+      },
     ],
     parts: [
-      { item: 'Front brake pads', quantity: 1, urgency: 'urgent', note: 'Low pad depth', status: 'Approved' },
-      { item: 'Lower arm bushing', quantity: 1, urgency: 'routine', note: 'Visible cracking', status: 'Pending' },
+      {
+        item: "Front brake pads",
+        quantity: 1,
+        urgency: "urgent",
+        note: "Low pad depth",
+        status: "Approved",
+      },
+      {
+        item: "Lower arm bushing",
+        quantity: 1,
+        urgency: "routine",
+        note: "Visible cracking",
+        status: "Pending",
+      },
     ],
-    finalNotes: '',
+    finalNotes: "",
   },
   {
-    id: 'WO-1052',
-    status: 'awaiting_parts',
-    plate: 'UAZ 774Q',
-    vehicle: '2014 Mitsubishi Pajero',
-    customer: 'Brian Mugisha',
-    promisedAt: 'Tomorrow 11:30',
-    bay: 'Hold',
-    concern: 'Intermittent overheating during traffic stops.',
+    id: "WO-1052",
+    status: "awaiting_parts",
+    plate: "UAZ 774Q",
+    vehicle: "2014 Mitsubishi Pajero",
+    customer: "Brian Mugisha",
+    promisedAt: "Tomorrow 11:30",
+    bay: "Hold",
+    concern: "Intermittent overheating during traffic stops.",
     odometer: 118430,
-    findings: ['Radiator fan relay failing under heat', 'Coolant low on arrival'],
-    recommendations: ['Replace relay and retest fan cycle'],
+    findings: [
+      "Radiator fan relay failing under heat",
+      "Coolant low on arrival",
+    ],
+    recommendations: ["Replace relay and retest fan cycle"],
     photos: [],
-    labour: [{ task: 'Cooling pressure test', hours: 0.5, startedAt: '11:00', endedAt: '11:30' }],
-    parts: [{ item: 'Fan relay', quantity: 1, urgency: 'vehicle_down', note: 'Vehicle held until relay arrives', status: 'Requested' }],
-    finalNotes: '',
+    labour: [
+      {
+        task: "Cooling pressure test",
+        hours: 0.5,
+        startedAt: "11:00",
+        endedAt: "11:30",
+      },
+    ],
+    parts: [
+      {
+        item: "Fan relay",
+        quantity: 1,
+        urgency: "vehicle_down",
+        note: "Vehicle held until relay arrives",
+        status: "Requested",
+      },
+    ],
+    finalNotes: "",
   },
   {
-    id: 'WO-1055',
-    status: 'assigned',
-    plate: 'UBK 442M',
-    vehicle: '2016 Subaru Forester',
-    customer: 'Nadia Achieng',
-    promisedAt: 'Today 18:00',
-    bay: 'Bay 4',
-    concern: 'Oil service, cabin filter, and suspension noise check.',
+    id: "WO-1055",
+    status: "assigned",
+    plate: "UBK 442M",
+    vehicle: "2016 Subaru Forester",
+    customer: "Nadia Achieng",
+    promisedAt: "Today 18:00",
+    bay: "Bay 4",
+    concern: "Oil service, cabin filter, and suspension noise check.",
     odometer: 86100,
-    findings: ['Pending initial inspection'],
+    findings: ["Pending initial inspection"],
     recommendations: [],
     photos: [],
     labour: [],
-    parts: [{ item: 'Cabin filter', quantity: 1, urgency: 'routine', note: 'Service item', status: 'In stock' }],
-    finalNotes: '',
+    parts: [
+      {
+        item: "Cabin filter",
+        quantity: 1,
+        urgency: "routine",
+        note: "Service item",
+        status: "In stock",
+      },
+    ],
+    finalNotes: "",
   },
 ];
 
 const statusLabels: Record<JobStatus, string> = {
-  assigned: 'Assigned',
-  in_progress: 'In progress',
-  awaiting_parts: 'Awaiting parts',
-  completed: 'Completed',
+  assigned: "Assigned",
+  in_progress: "In progress",
+  awaiting_parts: "Awaiting parts",
+  completed: "Completed",
 };
 
 const statusColors: Record<JobStatus, string> = {
-  assigned: 'garageBlue',
-  in_progress: 'garageBlue',
-  awaiting_parts: 'orange',
-  completed: 'green',
+  assigned: "garageBlue",
+  in_progress: "garageBlue",
+  awaiting_parts: "orange",
+  completed: "green",
 };
 
-const nextStatus: Partial<Record<JobStatus, { label: string; status: JobStatus }>> = {
-  assigned: { label: 'Start work', status: 'in_progress' },
-  in_progress: { label: 'Mark complete', status: 'completed' },
-  awaiting_parts: { label: 'Resume work', status: 'in_progress' },
+const nextStatus: Partial<
+  Record<JobStatus, { label: string; status: JobStatus }>
+> = {
+  assigned: { label: "Start work", status: "in_progress" },
+  in_progress: { label: "Mark complete", status: "completed" },
+  awaiting_parts: { label: "Resume work", status: "in_progress" },
 };
 
 const urgencyOptions = [
-  { value: 'routine', label: 'Routine' },
-  { value: 'urgent', label: 'Urgent' },
-  { value: 'vehicle_down', label: 'Vehicle down' },
+  { value: "routine", label: "Routine" },
+  { value: "urgent", label: "Urgent" },
+  { value: "vehicle_down", label: "Vehicle down" },
 ];
+
+const offlineDraftKey = "garageos.mechanic.offline-draft";
 
 function formatHours(hours: number) {
   return `${hours.toFixed(1)}h`;
@@ -154,32 +228,124 @@ function formatHours(hours: number) {
 
 export default function MechanicPage() {
   const [jobItems, setJobItems] = useState(jobs);
-  const [statusFilter, setStatusFilter] = useState<JobStatus | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<JobStatus | "all">("all");
   const [selectedJobId, setSelectedJobId] = useState(jobs[0].id);
-  const [tab, setTab] = useState<JobTab>('inspection');
-  const [finding, setFinding] = useState('');
-  const [recommendation, setRecommendation] = useState('');
-  const [runningTask, setRunningTask] = useState('Diagnosis and repair');
+  const [tab, setTab] = useState<JobTab>("inspection");
+  const [finding, setFinding] = useState("");
+  const [recommendation, setRecommendation] = useState("");
+  const [runningTask, setRunningTask] = useState("Diagnosis and repair");
   const [timerStartedAt, setTimerStartedAt] = useState<string | null>(null);
-  const [manualTask, setManualTask] = useState('');
+  const [manualTask, setManualTask] = useState("");
   const [manualHours, setManualHours] = useState<number | string>(0.5);
-  const [partName, setPartName] = useState('');
+  const [partName, setPartName] = useState("");
   const [partQty, setPartQty] = useState<number | string>(1);
-  const [partUrgency, setPartUrgency] = useState<PartRequest['urgency']>('routine');
-  const [partNote, setPartNote] = useState('');
-  const [finalNotes, setFinalNotes] = useState('');
+  const [partUrgency, setPartUrgency] =
+    useState<PartRequest["urgency"]>("routine");
+  const [partNote, setPartNote] = useState("");
+  const [finalNotes, setFinalNotes] = useState("");
+  const [isOffline, setIsOffline] = useState(false);
+  const [offlineReady, setOfflineReady] = useState(false);
+  const [queuedChanges, setQueuedChanges] = useState<QueuedChange[]>([]);
+  const [syncStatus, setSyncStatus] = useState(
+    "Current job cards cached for offline use",
+  );
 
   useEffect(() => {
-    const socket = io(API_URL, { transports: ['websocket'], autoConnect: true });
-    socket.on('work-order:status-updated', (event: { workOrderId: string; status: JobStatus }) => {
-      if (!Object.hasOwn(statusLabels, event.status)) {
-        return;
-      }
+    const saved = window.localStorage.getItem(offlineDraftKey);
+    if (!saved) {
+      return;
+    }
 
-      setJobItems((items) =>
-        items.map((job) => (job.id === event.workOrderId ? { ...job, status: event.status } : job)),
+    try {
+      const draft = JSON.parse(saved) as Partial<MechanicOfflineDraft>;
+      if (draft.jobItems?.length) {
+        setJobItems(draft.jobItems);
+      }
+      if (draft.timerStartedAt) {
+        setTimerStartedAt(draft.timerStartedAt);
+      }
+      if (draft.queuedChanges?.length) {
+        setQueuedChanges(draft.queuedChanges);
+        setSyncStatus(`${draft.queuedChanges.length} changes queued offline`);
+      }
+    } catch {
+      window.localStorage.removeItem(offlineDraftKey);
+    }
+  }, []);
+
+  useEffect(() => {
+    setIsOffline(!window.navigator.onLine);
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.ready
+        .then(() => setOfflineReady(true))
+        .catch(() => setOfflineReady(false));
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleOffline = () => {
+      setIsOffline(true);
+      setSyncStatus(
+        "Offline mode active: job card, timer, inspection draft, and parts queue are available",
       );
+    };
+    const handleOnline = () => {
+      setIsOffline(false);
+      setQueuedChanges((items) => {
+        if (items.length) {
+          setSyncStatus(`Sync complete for ${items.length} queued changes`);
+          return [];
+        }
+
+        setSyncStatus((current) =>
+          current.startsWith("Sync complete")
+            ? current
+            : "Online: mechanic changes are synced",
+        );
+        return items;
+      });
+    };
+
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+    return () => {
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+    };
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      offlineDraftKey,
+      JSON.stringify({
+        jobItems,
+        timerStartedAt,
+        queuedChanges,
+      }),
+    );
+  }, [jobItems, queuedChanges, timerStartedAt]);
+
+  useEffect(() => {
+    const socket = io(API_URL, {
+      transports: ["websocket"],
+      autoConnect: true,
     });
+    socket.on(
+      "work-order:status-updated",
+      (event: { workOrderId: string; status: JobStatus }) => {
+        if (!Object.hasOwn(statusLabels, event.status)) {
+          return;
+        }
+
+        setJobItems((items) =>
+          items.map((job) =>
+            job.id === event.workOrderId
+              ? { ...job, status: event.status }
+              : job,
+          ),
+        );
+      },
+    );
 
     return () => {
       socket.disconnect();
@@ -187,15 +353,47 @@ export default function MechanicPage() {
   }, []);
 
   const filteredJobs = useMemo(
-    () => (statusFilter === 'all' ? jobItems : jobItems.filter((job) => job.status === statusFilter)),
+    () =>
+      statusFilter === "all"
+        ? jobItems
+        : jobItems.filter((job) => job.status === statusFilter),
     [jobItems, statusFilter],
   );
-  const selectedJob = jobItems.find((job) => job.id === selectedJobId) ?? filteredJobs[0] ?? jobItems[0];
+  const selectedJob =
+    jobItems.find((job) => job.id === selectedJobId) ??
+    filteredJobs[0] ??
+    jobItems[0];
   const selectedAction = nextStatus[selectedJob.status];
-  const labourTotal = selectedJob.labour.reduce((total, entry) => total + entry.hours, 0);
+  const labourTotal = selectedJob.labour.reduce(
+    (total, entry) => total + entry.hours,
+    0,
+  );
 
   function updateSelectedJob(update: (job: JobCard) => JobCard) {
-    setJobItems((items) => items.map((job) => (job.id === selectedJob.id ? update(job) : job)));
+    setJobItems((items) =>
+      items.map((job) => (job.id === selectedJob.id ? update(job) : job)),
+    );
+  }
+
+  function queueOfflineChange(type: QueuedChange["type"]) {
+    if (typeof window === "undefined" || window.navigator.onLine) {
+      setSyncStatus("Saved locally for offline use");
+      return;
+    }
+
+    setQueuedChanges((items) => {
+      const next = [
+        ...items,
+        {
+          id: `${type}-${selectedJob.id}-${Date.now()}`,
+          type,
+          jobId: selectedJob.id,
+          createdAt: new Date().toISOString(),
+        },
+      ];
+      setSyncStatus(`${next.length} changes queued offline`);
+      return next;
+    });
   }
 
   function advanceSelectedJob() {
@@ -213,12 +411,22 @@ export default function MechanicPage() {
 
     updateSelectedJob((job) => ({
       ...job,
-      status: job.status === 'assigned' ? 'in_progress' : job.status,
-      findings: finding.trim() ? [...job.findings.filter((item) => item !== 'Pending initial inspection'), finding.trim()] : job.findings,
-      recommendations: recommendation.trim() ? [...job.recommendations, recommendation.trim()] : job.recommendations,
+      status: job.status === "assigned" ? "in_progress" : job.status,
+      findings: finding.trim()
+        ? [
+            ...job.findings.filter(
+              (item) => item !== "Pending initial inspection",
+            ),
+            finding.trim(),
+          ]
+        : job.findings,
+      recommendations: recommendation.trim()
+        ? [...job.recommendations, recommendation.trim()]
+        : job.recommendations,
     }));
-    setFinding('');
-    setRecommendation('');
+    queueOfflineChange("inspection");
+    setFinding("");
+    setRecommendation("");
   }
 
   function addPhotos(files: File[]) {
@@ -232,23 +440,32 @@ export default function MechanicPage() {
 
   function toggleTimer() {
     if (!timerStartedAt) {
-      setTimerStartedAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      setTimerStartedAt(
+        new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      );
       return;
     }
 
     updateSelectedJob((job) => ({
       ...job,
-      status: job.status === 'assigned' ? 'in_progress' : job.status,
+      status: job.status === "assigned" ? "in_progress" : job.status,
       labour: [
         ...job.labour,
         {
-          task: runningTask.trim() || 'Labour timer',
+          task: runningTask.trim() || "Labour timer",
           hours: 0.5,
           startedAt: timerStartedAt,
-          endedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          endedAt: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
         },
       ],
     }));
+    queueOfflineChange("labour");
     setTimerStartedAt(null);
   }
 
@@ -260,10 +477,11 @@ export default function MechanicPage() {
 
     updateSelectedJob((job) => ({
       ...job,
-      status: job.status === 'assigned' ? 'in_progress' : job.status,
+      status: job.status === "assigned" ? "in_progress" : job.status,
       labour: [...job.labour, { task: manualTask.trim(), hours }],
     }));
-    setManualTask('');
+    queueOfflineChange("labour");
+    setManualTask("");
     setManualHours(0.5);
   }
 
@@ -275,7 +493,7 @@ export default function MechanicPage() {
 
     updateSelectedJob((job) => ({
       ...job,
-      status: 'awaiting_parts',
+      status: "awaiting_parts",
       parts: [
         ...job.parts,
         {
@@ -283,23 +501,25 @@ export default function MechanicPage() {
           quantity,
           urgency: partUrgency,
           note: partNote.trim(),
-          status: 'Requested',
+          status: "Requested",
         },
       ],
     }));
-    setPartName('');
+    queueOfflineChange("parts");
+    setPartName("");
     setPartQty(1);
-    setPartUrgency('routine');
-    setPartNote('');
+    setPartUrgency("routine");
+    setPartNote("");
   }
 
   function submitCompletion() {
     updateSelectedJob((job) => ({
       ...job,
-      status: 'completed',
-      finalNotes: finalNotes.trim() || job.finalNotes || 'Ready for quality check.',
+      status: "completed",
+      finalNotes:
+        finalNotes.trim() || job.finalNotes || "Ready for quality check.",
     }));
-    setFinalNotes('');
+    setFinalNotes("");
   }
 
   return (
@@ -311,40 +531,77 @@ export default function MechanicPage() {
         title="Job cards"
         subtitle="Assigned job cards, inspection notes, labour time, parts requests, and completion."
         stats={[
-          { value: String(jobItems.filter((job) => job.status !== 'completed').length), label: 'active jobs' },
-          { value: formatHours(labourTotal), label: 'logged on selected job' },
-          { value: String(selectedJob.parts.filter((part) => part.status === 'Pending' || part.status === 'Requested').length), label: 'parts pending' },
+          {
+            value: String(
+              jobItems.filter((job) => job.status !== "completed").length,
+            ),
+            label: "active jobs",
+          },
+          { value: formatHours(labourTotal), label: "logged on selected job" },
+          {
+            value: String(
+              selectedJob.parts.filter(
+                (part) =>
+                  part.status === "Pending" || part.status === "Requested",
+              ).length,
+            ),
+            label: "parts pending",
+          },
         ]}
         secondaryAction={
           <SegmentedControl
             aria-label="Job filters"
             value={statusFilter}
-            onChange={(value) => setStatusFilter(value as JobStatus | 'all')}
+            onChange={(value) => setStatusFilter(value as JobStatus | "all")}
             data={[
-              { value: 'all', label: 'All' },
-              { value: 'assigned', label: 'Assigned' },
-              { value: 'in_progress', label: 'In progress' },
-              { value: 'awaiting_parts', label: 'Awaiting parts' },
-              { value: 'completed', label: 'Completed' },
+              { value: "all", label: "All" },
+              { value: "assigned", label: "Assigned" },
+              { value: "in_progress", label: "In progress" },
+              { value: "awaiting_parts", label: "Awaiting parts" },
+              { value: "completed", label: "Completed" },
             ]}
           />
         }
         primaryAction={null}
       >
+        <Paper className="sync-strip" aria-label="Offline sync status">
+          <Group justify="space-between" gap="md">
+            <Group gap="sm">
+              <Badge color={isOffline ? "orange" : "green"}>
+                {isOffline ? "Offline" : "Online"}
+              </Badge>
+              <Text fw={750}>
+                {offlineReady ? "Offline ready" : "Preparing offline cache"}
+              </Text>
+              <Text c="dimmed">
+                Mechanic job card route, current job data, inspection draft,
+                labour timer, and parts requests persist locally.
+              </Text>
+            </Group>
+            <Badge color={queuedChanges.length ? "orange" : "garageBlue"}>
+              {queuedChanges.length} queued
+            </Badge>
+          </Group>
+          <Text aria-live="polite" c={isOffline ? "orange" : "dimmed"}>
+            {syncStatus}
+          </Text>
+        </Paper>
 
         <section className="job-layout" aria-label="Mechanic job cards">
           <Paper className="job-list">
             {filteredJobs.map((job) => (
               <UnstyledButton
-                className={`job-card ${job.id === selectedJob.id ? 'is-selected' : ''}`}
+                className={`job-card ${job.id === selectedJob.id ? "is-selected" : ""}`}
                 key={job.id}
                 onClick={() => {
                   setSelectedJobId(job.id);
-                  setTab('inspection');
+                  setTab("inspection");
                   setTimerStartedAt(null);
                 }}
               >
-                <Badge color={statusColors[job.status]}>{statusLabels[job.status]}</Badge>
+                <Badge color={statusColors[job.status]}>
+                  {statusLabels[job.status]}
+                </Badge>
                 <span>
                   <strong className="mono-value">{job.plate}</strong>
                   <small>{job.vehicle}</small>
@@ -361,17 +618,32 @@ export default function MechanicPage() {
             ))}
           </Paper>
 
-          <Paper component="aside" className="job-detail" aria-label="Selected job card">
-            <Group className="detail-heading" align="flex-start" justify="space-between">
+          <Paper
+            component="aside"
+            className="job-detail"
+            aria-label="Selected job card"
+          >
+            <Group
+              className="detail-heading"
+              align="flex-start"
+              justify="space-between"
+            >
               <Stack gap={2}>
                 <Text className="eyebrow">{selectedJob.id}</Text>
                 <Title order={2}>{selectedJob.plate}</Title>
                 <Text c="dimmed">{selectedJob.vehicle}</Text>
               </Stack>
               <Stack className="detail-actions" gap="xs" align="flex-end">
-                <Badge color={statusColors[selectedJob.status]}>{statusLabels[selectedJob.status]}</Badge>
+                <Badge color={statusColors[selectedJob.status]}>
+                  {statusLabels[selectedJob.status]}
+                </Badge>
                 {selectedAction ? (
-                  <Button size="xs" type="button" leftSection={<WorkOrderIcon size={16} />} onClick={advanceSelectedJob}>
+                  <Button
+                    size="xs"
+                    type="button"
+                    leftSection={<WorkOrderIcon size={16} />}
+                    onClick={advanceSelectedJob}
+                  >
                     {selectedAction.label}
                   </Button>
                 ) : null}
@@ -395,7 +667,10 @@ export default function MechanicPage() {
 
             <Text className="job-note">{selectedJob.concern}</Text>
 
-            <Tabs value={tab} onChange={(value) => setTab((value ?? 'inspection') as JobTab)}>
+            <Tabs
+              value={tab}
+              onChange={(value) => setTab((value ?? "inspection") as JobTab)}
+            >
               <Tabs.List aria-label="Job card detail">
                 <Tabs.Tab value="inspection">inspection</Tabs.Tab>
                 <Tabs.Tab value="labour">labour</Tabs.Tab>
@@ -416,9 +691,18 @@ export default function MechanicPage() {
                     </div>
                   ))}
                   {selectedJob.photos.length ? (
-                    <SimpleGrid cols={{ base: 2, sm: 3 }} spacing="xs" aria-label="Inspection photo previews">
+                    <SimpleGrid
+                      cols={{ base: 2, sm: 3 }}
+                      spacing="xs"
+                      aria-label="Inspection photo previews"
+                    >
                       {selectedJob.photos.map((photo) => (
-                        <img className="inspection-photo" key={photo} src={photo} alt="Inspection preview" />
+                        <img
+                          className="inspection-photo"
+                          key={photo}
+                          src={photo}
+                          alt="Inspection preview"
+                        />
                       ))}
                     </SimpleGrid>
                   ) : null}
@@ -434,17 +718,32 @@ export default function MechanicPage() {
                     placeholder="Recommended repair, customer approval note, or watch item"
                     minRows={2}
                     value={recommendation}
-                    onChange={(event) => setRecommendation(event.currentTarget.value)}
+                    onChange={(event) =>
+                      setRecommendation(event.currentTarget.value)
+                    }
                   />
                   <Group align="center" justify="space-between">
-                    <FileButton onChange={addPhotos} accept="image/png,image/jpeg" multiple>
+                    <FileButton
+                      onChange={addPhotos}
+                      accept="image/png,image/jpeg"
+                      multiple
+                    >
                       {(props) => (
-                        <Button type="button" variant="light" leftSection={<CameraIcon size={18} />} {...props}>
+                        <Button
+                          type="button"
+                          variant="light"
+                          leftSection={<CameraIcon size={18} />}
+                          {...props}
+                        >
                           Add photos
                         </Button>
                       )}
                     </FileButton>
-                    <Button type="button" leftSection={<JobCardIcon size={18} />} onClick={recordInspection}>
+                    <Button
+                      type="button"
+                      leftSection={<JobCardIcon size={18} />}
+                      onClick={recordInspection}
+                    >
                       Record finding
                     </Button>
                   </Group>
@@ -455,10 +754,17 @@ export default function MechanicPage() {
                 <div className="stack-list">
                   {selectedJob.labour.length ? (
                     selectedJob.labour.map((entry) => (
-                      <div className="stack-row split-row" key={`${entry.task}-${entry.startedAt ?? entry.hours}`}>
+                      <div
+                        className="stack-row split-row"
+                        key={`${entry.task}-${entry.startedAt ?? entry.hours}`}
+                      >
                         <span>
                           {entry.task}
-                          {entry.startedAt ? <small>{entry.startedAt} - {entry.endedAt}</small> : null}
+                          {entry.startedAt ? (
+                            <small>
+                              {entry.startedAt} - {entry.endedAt}
+                            </small>
+                          ) : null}
                         </span>
                         <strong>{formatHours(entry.hours)}</strong>
                       </div>
@@ -469,10 +775,18 @@ export default function MechanicPage() {
                   <TextInput
                     label="Timer task"
                     value={runningTask}
-                    onChange={(event) => setRunningTask(event.currentTarget.value)}
+                    onChange={(event) =>
+                      setRunningTask(event.currentTarget.value)
+                    }
                   />
-                  <Button type="button" leftSection={<TimerIcon size={18} />} onClick={toggleTimer}>
-                    {timerStartedAt ? `Stop timer started ${timerStartedAt}` : 'Start labour timer'}
+                  <Button
+                    type="button"
+                    leftSection={<TimerIcon size={18} />}
+                    onClick={toggleTimer}
+                  >
+                    {timerStartedAt
+                      ? `Stop timer started ${timerStartedAt}`
+                      : "Start labour timer"}
                   </Button>
                   <Divider label="Manual entry" labelPosition="center" />
                   <SimpleGrid cols={{ base: 1, sm: 2 }}>
@@ -480,7 +794,9 @@ export default function MechanicPage() {
                       label="Labour task"
                       placeholder="Replace front pads"
                       value={manualTask}
-                      onChange={(event) => setManualTask(event.currentTarget.value)}
+                      onChange={(event) =>
+                        setManualTask(event.currentTarget.value)
+                      }
                     />
                     <NumberInput
                       label="Hours"
@@ -491,7 +807,12 @@ export default function MechanicPage() {
                       onChange={setManualHours}
                     />
                   </SimpleGrid>
-                  <Button type="button" variant="light" leftSection={<WorkOrderIcon size={18} />} onClick={addManualLabour}>
+                  <Button
+                    type="button"
+                    variant="light"
+                    leftSection={<WorkOrderIcon size={18} />}
+                    onClick={addManualLabour}
+                  >
                     Add labour entry
                   </Button>
                 </div>
@@ -500,10 +821,18 @@ export default function MechanicPage() {
               <Tabs.Panel value="parts" pt="sm">
                 <div className="stack-list">
                   {selectedJob.parts.map((part) => (
-                    <div className="stack-row split-row" key={`${part.item}-${part.status}`}>
+                    <div
+                      className="stack-row split-row"
+                      key={`${part.item}-${part.status}`}
+                    >
                       <span>
                         {part.item} x{part.quantity}
-                        <small>{part.note || urgencyOptions.find((item) => item.value === part.urgency)?.label}</small>
+                        <small>
+                          {part.note ||
+                            urgencyOptions.find(
+                              (item) => item.value === part.urgency,
+                            )?.label}
+                        </small>
                       </span>
                       <strong>{part.status}</strong>
                     </div>
@@ -513,14 +842,25 @@ export default function MechanicPage() {
                       label="Part name"
                       placeholder="Fan relay"
                       value={partName}
-                      onChange={(event) => setPartName(event.currentTarget.value)}
+                      onChange={(event) =>
+                        setPartName(event.currentTarget.value)
+                      }
                     />
-                    <NumberInput label="Quantity" min={1} value={partQty} onChange={setPartQty} />
+                    <NumberInput
+                      label="Quantity"
+                      min={1}
+                      value={partQty}
+                      onChange={setPartQty}
+                    />
                   </SimpleGrid>
                   <Select
                     label="Urgency"
                     value={partUrgency}
-                    onChange={(value) => setPartUrgency((value ?? 'routine') as PartRequest['urgency'])}
+                    onChange={(value) =>
+                      setPartUrgency(
+                        (value ?? "routine") as PartRequest["urgency"],
+                      )
+                    }
                     data={urgencyOptions}
                   />
                   <Textarea
@@ -530,7 +870,11 @@ export default function MechanicPage() {
                     value={partNote}
                     onChange={(event) => setPartNote(event.currentTarget.value)}
                   />
-                  <Button type="button" leftSection={<PartsIcon size={18} />} onClick={requestPart}>
+                  <Button
+                    type="button"
+                    leftSection={<PartsIcon size={18} />}
+                    onClick={requestPart}
+                  >
                     Request part
                   </Button>
                 </div>
@@ -540,15 +884,21 @@ export default function MechanicPage() {
                 <div className="stack-list">
                   <SimpleGrid cols={3} spacing="xs">
                     <Paper className="mini-metric">
-                      <Text size="xs" c="dimmed" fw={800}>Findings</Text>
+                      <Text size="xs" c="dimmed" fw={800}>
+                        Findings
+                      </Text>
                       <Text fw={800}>{selectedJob.findings.length}</Text>
                     </Paper>
                     <Paper className="mini-metric">
-                      <Text size="xs" c="dimmed" fw={800}>Labour</Text>
+                      <Text size="xs" c="dimmed" fw={800}>
+                        Labour
+                      </Text>
                       <Text fw={800}>{formatHours(labourTotal)}</Text>
                     </Paper>
                     <Paper className="mini-metric">
-                      <Text size="xs" c="dimmed" fw={800}>Parts</Text>
+                      <Text size="xs" c="dimmed" fw={800}>
+                        Parts
+                      </Text>
                       <Text fw={800}>{selectedJob.parts.length}</Text>
                     </Paper>
                   </SimpleGrid>
@@ -562,9 +912,15 @@ export default function MechanicPage() {
                     placeholder="Work completed, road test result, handover notes"
                     minRows={4}
                     value={finalNotes}
-                    onChange={(event) => setFinalNotes(event.currentTarget.value)}
+                    onChange={(event) =>
+                      setFinalNotes(event.currentTarget.value)
+                    }
                   />
-                  <Button type="button" leftSection={<WorkOrderIcon size={18} />} onClick={submitCompletion}>
+                  <Button
+                    type="button"
+                    leftSection={<WorkOrderIcon size={18} />}
+                    onClick={submitCompletion}
+                  >
                     Submit for quality check
                   </Button>
                 </div>

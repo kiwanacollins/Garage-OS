@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="GarageOS">
+  <rect width="64" height="64" rx="14" fill="#3857A3"/>
+  <path d="M17 40h30l-3-12a6 6 0 0 0-5.8-4.5H25.8A6 6 0 0 0 20 28l-3 12Z" fill="#fff"/>
+  <path d="M23 40a5 5 0 1 0 10 0 5 5 0 0 0-10 0Zm17 0a5 5 0 1 0 10 0 5 5 0 0 0-10 0Z" fill="#111318"/>
+  <path d="M25 28h14l1.8 6H23.2L25 28Z" fill="#DCE7FF"/>
+</svg>
