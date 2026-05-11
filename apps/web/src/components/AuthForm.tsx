@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button, PasswordInput, Stack, Text, TextInput } from '@mantine/core';
 import { useAuth } from './AuthProvider';
+import { getRoleRoute } from '@/lib/role-route';
 
 type AuthFormProps = {
   mode: 'login' | 'register';
@@ -10,7 +12,16 @@ type AuthFormProps = {
 
 export function AuthForm({ mode }: AuthFormProps) {
   const [status, setStatus] = useState<string>('');
-  const { login, register } = useAuth();
+  const router = useRouter();
+  const { login, register, user, accessToken } = useAuth();
+
+  useEffect(() => {
+    if (!accessToken || !user) {
+      return;
+    }
+
+    router.replace(getRoleRoute(user.role));
+  }, [accessToken, router, user]);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
