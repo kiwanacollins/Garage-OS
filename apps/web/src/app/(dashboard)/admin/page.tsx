@@ -30,6 +30,7 @@ import {
   WarningIcon,
   WorkOrderIcon,
 } from '@/components/icons';
+import { DashboardShell } from '@/components/DashboardShell';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { API_URL } from '@/lib/api';
 
@@ -288,31 +289,28 @@ export default function AdminDashboardPage() {
 
   return (
     <ProtectedRoute>
-      <main className="dashboard job-workspace">
-        <Group className="workspace-header" align="flex-end" justify="space-between" aria-labelledby="admin-title">
-          <Stack gap={4}>
-            <Text className="eyebrow">Admin</Text>
-            <Group gap="xs">
-              <ChartIcon size={30} />
-              <Title id="admin-title" order={1}>Admin dashboard</Title>
-            </Group>
-            <Text c="dimmed">Track revenue, workload, staff utilisation, reports, and operating controls.</Text>
-          </Stack>
-          <SimpleGrid className="assignment-metrics" cols={3} spacing={0} aria-label="Plan status">
-            <Stack gap={4}>
-              <Text size="xs" fw={800} c="dimmed" tt="uppercase">Open</Text>
-              <Text fw={800} fz="xl">{metrics.open}</Text>
-            </Stack>
-            <Stack gap={4}>
-              <Text size="xs" fw={800} c="dimmed" tt="uppercase">Unassigned</Text>
-              <Text fw={800} fz="xl">{metrics.unassigned}</Text>
-            </Stack>
-            <Stack gap={4}>
-              <Text size="xs" fw={800} c="dimmed" tt="uppercase">QC</Text>
-              <Text fw={800} fz="xl">{metrics.quality}</Text>
-            </Stack>
-          </SimpleGrid>
-        </Group>
+      <DashboardShell
+        role="Admin"
+        active="admin"
+        dateLabel="Monday, 11 May 2026"
+        title="Good evening, Operations,"
+        subtitle="Revenue, assignments, staff load, and approvals for the garage floor."
+        stats={[
+          { value: String(metrics.open), label: 'open work orders' },
+          { value: String(metrics.unassigned), label: 'unassigned jobs' },
+          { value: String(metrics.quality), label: 'in quality check' },
+        ]}
+        secondaryAction={
+          <Button variant="default" leftSection={<ExportIcon size={18} />} onClick={() => queueExport('Operations')}>
+            Share report
+          </Button>
+        }
+        primaryAction={
+          <Button leftSection={<ChartIcon size={18} />} onClick={() => setTab('operations')}>
+            Assign work
+          </Button>
+        }
+      >
 
         <Tabs value={tab} onChange={(value) => setTab((value ?? 'overview') as AdminTab)} className="admin-tabs">
           <Tabs.List aria-label="Admin dashboard sections">
@@ -652,7 +650,7 @@ export default function AdminDashboardPage() {
             </Paper>
           </Tabs.Panel>
         </Tabs>
-      </main>
+      </DashboardShell>
     </ProtectedRoute>
   );
 }

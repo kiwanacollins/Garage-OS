@@ -22,6 +22,7 @@ import {
 } from '@mantine/core';
 import { io } from 'socket.io-client';
 import { CameraIcon, JobCardIcon, PartsIcon, TimerIcon, WorkOrderIcon } from '@/components/icons';
+import { DashboardShell } from '@/components/DashboardShell';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { API_URL } from '@/lib/api';
 
@@ -303,16 +304,18 @@ export default function MechanicPage() {
 
   return (
     <ProtectedRoute>
-      <main className="dashboard job-workspace">
-        <Group className="workspace-header" align="flex-end" justify="space-between" aria-labelledby="mechanic-title">
-          <Stack gap={4}>
-            <Text className="eyebrow">Mechanic</Text>
-            <Group gap="xs">
-              <JobCardIcon size={30} />
-              <Title id="mechanic-title" order={1}>Job cards</Title>
-            </Group>
-            <Text c="dimmed">Review assigned work, record findings, track labour, and request parts.</Text>
-          </Stack>
+      <DashboardShell
+        role="Mechanic"
+        active="mechanic"
+        dateLabel="Monday, 11 May 2026"
+        title="Good evening, Service bay,"
+        subtitle="Assigned job cards, inspection notes, labour time, parts requests, and completion."
+        stats={[
+          { value: String(jobItems.filter((job) => job.status !== 'completed').length), label: 'active jobs' },
+          { value: formatHours(labourTotal), label: 'logged on selected job' },
+          { value: String(selectedJob.parts.filter((part) => part.status === 'Pending' || part.status === 'Requested').length), label: 'parts pending' },
+        ]}
+        secondaryAction={
           <SegmentedControl
             aria-label="Job filters"
             value={statusFilter}
@@ -325,7 +328,15 @@ export default function MechanicPage() {
               { value: 'completed', label: 'Completed' },
             ]}
           />
-        </Group>
+        }
+        primaryAction={
+          selectedAction ? (
+            <Button type="button" leftSection={<WorkOrderIcon size={18} />} onClick={advanceSelectedJob}>
+              {selectedAction.label}
+            </Button>
+          ) : null
+        }
+      >
 
         <section className="job-layout" aria-label="Mechanic job cards">
           <Paper className="job-list">
@@ -567,7 +578,7 @@ export default function MechanicPage() {
             </Tabs>
           </Paper>
         </section>
-      </main>
+      </DashboardShell>
     </ProtectedRoute>
   );
 }

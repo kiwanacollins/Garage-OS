@@ -24,6 +24,7 @@ import {
   PaymentIcon,
   VehicleIcon,
 } from '@/components/icons';
+import { DashboardShell } from '@/components/DashboardShell';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 type Vehicle = {
@@ -369,22 +370,28 @@ export default function FrontDeskPage() {
 
   return (
     <ProtectedRoute>
-      <main className="dashboard register-workspace">
-        <Group className="workspace-header" align="flex-end" justify="space-between" aria-labelledby="register-title">
-          <Stack gap={4}>
-            <Text className="eyebrow">Front desk</Text>
-            <Title id="register-title" order={1}>Vehicle register and customers</Title>
-            <Text c="dimmed">Find an owner, verify linked vehicles, and create a clean intake record.</Text>
-          </Stack>
-          <Group className="workspace-actions">
-            <Button variant="default" type="button" leftSection={<CustomerIcon size={18} />} onClick={() => setCustomerPanel('edit')}>
-              Edit customer
-            </Button>
-            <Button type="button" leftSection={<CustomerIcon size={18} />} onClick={() => setCustomerPanel('new')}>
-              Add customer
-            </Button>
-          </Group>
-        </Group>
+      <DashboardShell
+        role="Front desk"
+        active="front-desk"
+        dateLabel="Monday, 11 May 2026"
+        title="Good evening, Reception,"
+        subtitle="Customer lookup, vehicle intake, bookings, invoices, and collections."
+        stats={[
+          { value: String(filteredCustomers.length), label: 'customer records' },
+          { value: String(vehicles.filter((vehicle) => vehicle.status === 'In service').length), label: 'vehicles in service' },
+          { value: String(appointments.length), label: 'appointments booked' },
+        ]}
+        secondaryAction={
+          <Button variant="default" type="button" leftSection={<CustomerIcon size={18} />} onClick={() => setCustomerPanel('edit')}>
+            Edit customer
+          </Button>
+        }
+        primaryAction={
+          <Button type="button" leftSection={<CustomerIcon size={18} />} onClick={() => setCustomerPanel('new')}>
+            Add customer
+          </Button>
+        }
+      >
 
         <section className="register-layout" aria-label="Customer and vehicle register">
           <Paper className="register-main">
@@ -715,7 +722,7 @@ export default function FrontDeskPage() {
             </form>
           </section>
         ) : null}
-      </main>
+      </DashboardShell>
     </ProtectedRoute>
   );
 }
