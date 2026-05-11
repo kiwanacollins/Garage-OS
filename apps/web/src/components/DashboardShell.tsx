@@ -263,12 +263,14 @@ export function DashboardShell({
           </section>
 
           {stats.length > 0 && (
-            <div className="garage-stat-strip" aria-label={`${role} status`}>
+            <div className="ds-stat-grid" aria-label={`${role} status`}>
               {stats.map((stat) => (
-                <span key={stat.label}>
-                  <strong>{stat.value}</strong>
-                  {stat.label}
-                </span>
+                <div className="ds-stat-card ds-stat-card-mini" key={stat.label}>
+                  <div className="ds-stat-body">
+                    <span className="ds-stat-value">{stat.value}</span>
+                    <span className="ds-stat-label">{stat.label}</span>
+                  </div>
+                </div>
               ))}
             </div>
           )}

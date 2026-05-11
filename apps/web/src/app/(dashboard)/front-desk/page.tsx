@@ -26,6 +26,7 @@ import {
   WorkOrderIcon,
 } from '@/components/icons';
 import { DashboardShell, type NavItem } from '@/components/DashboardShell';
+import { StatCard, StatCardGrid } from '@/components/dashboard-ui';
 import { useAuth } from '@/components/AuthProvider';
 import { apiRequest } from '@/lib/api';
 
@@ -427,11 +428,7 @@ export default function FrontDeskPage() {
       dateLabel="Monday, 11 May 2026"
       title="Vehicle register and customers"
       subtitle="Customer lookup, vehicle intake, bookings, invoices, and collections."
-      stats={[
-        { value: String(filteredCustomers.length), label: 'customer records' },
-        { value: String(vehicles.filter((vehicle) => vehicle.status === 'In service').length), label: 'vehicles in service' },
-        { value: String(appointments.length), label: 'appointments booked' },
-      ]}
+      stats={[]}
       secondaryAction={
         <Button variant="default" type="button" leftSection={<CustomerIcon size={18} />} onClick={() => setCustomerPanel('edit')}>
           Edit customer
@@ -443,6 +440,29 @@ export default function FrontDeskPage() {
         </Button>
       }
     >
+        <StatCardGrid>
+          <StatCard
+            icon={CustomerIcon}
+            value={filteredCustomers.length}
+            label="Customer records"
+            helper="In the register"
+            color="#2563EB"
+          />
+          <StatCard
+            icon={VehicleIcon}
+            value={vehicles.filter((v) => v.status === 'In service').length}
+            label="Vehicles in service"
+            helper="Currently in workshop"
+            color="#F59E0B"
+          />
+          <StatCard
+            icon={CalendarIcon}
+            value={appointments.length}
+            label="Appointments booked"
+            helper="Upcoming schedule"
+            color="#16A34A"
+          />
+        </StatCardGrid>
 
         <section className="register-layout" aria-label="Customer and vehicle register" style={{ display: section === 'register' ? undefined : 'none' }}>
           <Paper className="register-main">

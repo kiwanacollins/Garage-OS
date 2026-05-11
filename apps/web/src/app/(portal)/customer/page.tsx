@@ -20,8 +20,11 @@ import {
 import {
   PiCalendarCheck,
   PiCarProfile,
+  PiCheckCircle,
+  PiCircleDashed,
   PiCreditCard,
   PiFloppyDisk,
+  PiInfo,
   PiReceipt,
   PiSealCheck,
   PiStar,
@@ -29,6 +32,18 @@ import {
   PiWrench,
 } from "react-icons/pi";
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
+import {
+  StatCard,
+  StatCardGrid,
+  DashboardCard,
+  CardHeader,
+  ServiceStepper,
+  AlertBanner,
+  InvoiceRow,
+  ContextCard,
+  ContextCardGrid,
+  type StepItem,
+} from "@/components/dashboard-ui";
 import { useAuth } from "@/components/AuthProvider";
 import { apiRequest } from "@/lib/api";
 
@@ -326,18 +341,8 @@ export default function CustomerPortalPage() {
       topBarAction={null}
       dateLabel="Monday, 11 May 2026"
       title="Customer portal"
-      subtitle="Manage vehicles, bookings, service progress, invoices, online payments, and feedback."
-      stats={[
-        { value: String(vehicles.length), label: "vehicles" },
-        {
-          value: String(
-            workOrders.filter((workOrder) => workOrder.status !== "paid")
-              .length,
-          ),
-          label: "active services",
-        },
-        { value: String(outstandingInvoices.length), label: "open invoices" },
-      ]}
+      subtitle="Track your vehicles, bookings, service progress, and invoices in one place."
+      stats={[]}
       secondaryAction={
         <Button
           variant="default"
@@ -369,147 +374,182 @@ export default function CustomerPortalPage() {
           </Tabs.List>
 
           <Tabs.Panel value="overview" pt="md">
+            <StatCardGrid>
+              <StatCard
+                icon={PiCarProfile}
+                value={vehicles.length}
+                label="Vehicles"
+                helper="Registered to your account"
+                color="#2563EB"
+              />
+              <StatCard
+                icon={PiWrench}
+                value={workOrders.filter((wo) => wo.status !== "paid").length}
+                label="Active services"
+                helper={activeWorkOrder ? `${activeWorkOrder.id} in progress` : "No active service"}
+                color="#F59E0B"
+              />
+              <StatCard
+                icon={PiReceipt}
+                value={outstandingInvoices.length}
+                label="Open invoices"
+                helper={outstandingInvoices.length > 0 ? "Payment required" : "All invoices settled"}
+                color={outstandingInvoices.length > 0 ? "#DC2626" : "#16A34A"}
+              />
+            </StatCardGrid>
+
             <section
-              className="customer-board"
+              className="ds-two-col"
               aria-label="Customer service overview"
             >
-              <Paper className="customer-status-panel">
-                <Group justify="space-between" align="flex-start">
-                  <Stack gap={3}>
-                    <Text className="eyebrow">Current service</Text>
-                    <Title order={2}>
-                      {selectedVehicle?.registrationPlate}
-                    </Title>
-                    <Text c="dimmed">
-                      {selectedVehicle?.year} {selectedVehicle?.make}{" "}
-                      {selectedVehicle?.model}
-                      {activeWorkOrder
-                        ? ` · ${activeWorkOrder.concern}`
-                        : " · No active service"}
-                    </Text>
-                  </Stack>
-                  <Badge
-                    color={
-                      activeWorkOrder?.status === "awaiting_parts"
-                        ? "orange"
-                        : "garageBlue"
-                    }
-                  >
-                    {activeWorkOrder
-                      ? statusLabel(activeWorkOrder.status)
-                      : "clear"}
-                  </Badge>
-                </Group>
-
-                <div className="service-timeline">
-                  {statusSteps.map((item, index) => (
-                    <div
-                      className={`service-step is-${index < 2 ? "done" : index === 2 ? "current" : "idle"}`}
-                      key={item}
-                    >
-                      <i />
-                      <span>
-                        <strong>{item}</strong>
-                        <small>
-                          {index < 2
-                            ? "Done"
-                            : index === 2
-                              ? "Waiting"
-                              : "Next"}
-                        </small>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="approval-callout">
-                  <PiWrench size={22} />
-                  <span>
-                    <strong>
-                      {activeWorkOrder?.mechanicNotes ??
-                        "No service issue pending"}
-                    </strong>
-                    <small>
-                      {activeWorkOrder?.updatedAt ??
-                        "Garage updates will appear here."}
-                    </small>
-                  </span>
-                  <Button
-                    size="xs"
-                    onClick={() => setTab("invoices")}
-                    disabled={!selectedInvoice}
-                  >
-                    Review
-                  </Button>
-                </div>
-              </Paper>
-
-              <Paper className="customer-status-panel">
-                <Group gap="xs">
-                  <PiReceipt size={22} />
-                  <Title order={2}>Invoices</Title>
-                </Group>
-                <div className="customer-list">
-                  {invoices.map((invoice) => (
-                    <div className="customer-row" key={invoice.id}>
-                      <span>
-                        <strong>{invoice.id}</strong>
-                        <small>{invoice.item}</small>
-                      </span>
-                      <b>{money(invoice.amount)}</b>
+              <DashboardCard>
+                <CardHeader
+                  title="Current service"
+                  icon={PiWrench}
+                  badge={
+                    activeWorkOrder ? (
                       <Badge
-                        color={
-                          invoice.status === "paid"
-                            ? "green"
-                            : invoice.status === "pending"
-                              ? "orange"
-                              : "garageBlue"
-                        }
+                        color={activeWorkOrder.status === "awaiting_parts" ? "orange" : "blue"}
+                        variant="light"
+                        size="sm"
                       >
-                        {invoice.status}
+                        {statusLabel(activeWorkOrder.status)}
                       </Badge>
-                    </div>
-                  ))}
-                </div>
-              </Paper>
+                    ) : (
+                      <Badge color="gray" variant="light" size="sm">No active service</Badge>
+                    )
+                  }
+                />
 
-              <Paper className="customer-status-panel customer-context">
-                <div className="context-row">
-                  <PiCalendarCheck size={21} />
-                  <span>
-                    <strong>Next appointment</strong>
-                    <small>
-                      {appointments[0]?.scheduledAt ?? "No appointment booked"}
-                    </small>
-                  </span>
-                </div>
-                <div className="context-row">
-                  <PiCarProfile size={21} />
-                  <span>
-                    <strong>Selected vehicle</strong>
-                    <small>
-                      {selectedVehicle
-                        ? `${selectedVehicle.make} ${selectedVehicle.model}`
-                        : "No vehicle"}
-                    </small>
-                  </span>
-                </div>
-                <div className="context-row">
-                  <PiSealCheck size={21} />
-                  <span>
-                    <strong>Payment status</strong>
-                    <small>{paymentStatus}</small>
-                  </span>
-                </div>
-                <div className="context-row">
-                  <PiStar size={21} />
-                  <span>
-                    <strong>Feedback</strong>
-                    <small>{feedbackStatus}</small>
-                  </span>
-                </div>
-              </Paper>
+                {activeWorkOrder && selectedVehicle ? (
+                  <>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', padding: '16px', background: '#F8FAFC', borderRadius: '12px', marginBottom: '16px' }}>
+                      <div>
+                        <Text size="xs" c="dimmed" fw={600} tt="uppercase" lts="0.03em">Vehicle</Text>
+                        <Text size="sm" fw={600} mt={2}>{selectedVehicle.registrationPlate}</Text>
+                        <Text size="xs" c="dimmed">{selectedVehicle.year} {selectedVehicle.make} {selectedVehicle.model}</Text>
+                      </div>
+                      <div>
+                        <Text size="xs" c="dimmed" fw={600} tt="uppercase" lts="0.03em">Service</Text>
+                        <Text size="sm" fw={600} mt={2}>{activeWorkOrder.concern}</Text>
+                        <Text size="xs" c="dimmed">Job card {activeWorkOrder.id}</Text>
+                      </div>
+                    </div>
+
+                    <ServiceStepper
+                      steps={statusSteps.map((step, index): StepItem => ({
+                        label: step,
+                        status: index < 2 ? 'done' : index === 2 ? 'current' : 'upcoming',
+                        sublabel: index < 2 ? 'Complete' : index === 2 ? 'Waiting' : 'Upcoming',
+                      }))}
+                    />
+
+                    <AlertBanner
+                      icon={activeWorkOrder.mechanicNotes ? PiWrench : PiInfo}
+                      title={activeWorkOrder.mechanicNotes ? "Mechanic update" : "No action required"}
+                      description={
+                        activeWorkOrder.mechanicNotes
+                          ?? "We'll notify you when your approval or feedback is needed."
+                      }
+                      variant={activeWorkOrder.status === "awaiting_parts" ? "warning" : "neutral"}
+                      action={
+                        <Button
+                          size="xs"
+                          variant="light"
+                          onClick={() => setTab("invoices")}
+                          disabled={!selectedInvoice}
+                        >
+                          View details
+                        </Button>
+                      }
+                    />
+                  </>
+                ) : (
+                  <div className="ds-empty">
+                    <div className="ds-empty-icon"><PiWrench size={28} /></div>
+                    <span className="ds-empty-title">No active service</span>
+                    <span className="ds-empty-desc">When you bring your vehicle in, service progress will appear here.</span>
+                  </div>
+                )}
+              </DashboardCard>
+
+              <DashboardCard>
+                <CardHeader
+                  title="Invoices"
+                  icon={PiReceipt}
+                  action={
+                    <Button variant="subtle" size="compact-sm" onClick={() => setTab("invoices")}>
+                      View all
+                    </Button>
+                  }
+                />
+
+                {invoices.length > 0 ? (
+                  <div>
+                    {invoices.map((invoice) => (
+                      <InvoiceRow
+                        key={invoice.id}
+                        id={invoice.id}
+                        description={invoice.item}
+                        amount={money(invoice.amount)}
+                        status={invoice.status}
+                        action={
+                          invoice.status !== "paid" ? (
+                            <Button
+                              size="compact-xs"
+                              variant="light"
+                              onClick={() => {
+                                setTab("invoices");
+                                startPesapalPayment(invoice);
+                              }}
+                            >
+                              Pay now
+                            </Button>
+                          ) : undefined
+                        }
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="ds-empty">
+                    <div className="ds-empty-icon"><PiReceipt size={28} /></div>
+                    <span className="ds-empty-title">No invoices yet</span>
+                    <span className="ds-empty-desc">Invoices will appear here once your vehicle is serviced.</span>
+                  </div>
+                )}
+              </DashboardCard>
             </section>
+
+            <ContextCardGrid>
+              <ContextCard
+                icon={PiCalendarCheck}
+                label="Next appointment"
+                value={appointments[0]?.scheduledAt ?? "None scheduled"}
+                helper={appointments[0] ? appointments[0].issue : "Book a service to get started"}
+                color="#2563EB"
+              />
+              <ContextCard
+                icon={PiCarProfile}
+                label="Selected vehicle"
+                value={selectedVehicle ? `${selectedVehicle.make} ${selectedVehicle.model}` : "No vehicle selected"}
+                helper={selectedVehicle ? selectedVehicle.registrationPlate : "Add a vehicle to your account"}
+                color="#7C3AED"
+              />
+              <ContextCard
+                icon={PiSealCheck}
+                label="Payment status"
+                value={paymentStatus === "No checkout started" ? "All clear" : paymentStatus}
+                helper={outstandingInvoices.length > 0 ? `${outstandingInvoices.length} outstanding` : "No pending payments"}
+                color={outstandingInvoices.length > 0 ? "#F59E0B" : "#16A34A"}
+              />
+              <ContextCard
+                icon={PiStar}
+                label="Feedback"
+                value={feedbackStatus === "No feedback submitted" ? "Share your experience" : feedbackStatus}
+                helper={completedOrders.length > 0 ? `${completedOrders.length} completed services` : "Complete a service to leave feedback"}
+                color="#EC4899"
+              />
+            </ContextCardGrid>
           </Tabs.Panel>
 
           <Tabs.Panel value="profile" pt="md">

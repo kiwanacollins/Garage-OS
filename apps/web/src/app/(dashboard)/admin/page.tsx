@@ -25,6 +25,13 @@ import {
   PiGear,
   PiMagnifyingGlass,
   PiTruck,
+  PiCurrencyCircleDollar,
+  PiUsers,
+  PiCalendarCheck,
+  PiPackage,
+  PiTimer,
+  PiGauge,
+  PiCarProfile,
 } from "react-icons/pi";
 import { io } from "socket.io-client";
 import {
@@ -39,6 +46,13 @@ import {
   WorkOrderIcon,
 } from "@/components/icons";
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
+import {
+  StatCard,
+  StatCardGrid,
+  KpiTile,
+  DashboardCard,
+  CardHeader,
+} from "@/components/dashboard-ui";
 import { API_URL } from "@/lib/api";
 
 function buildAdminNav(
@@ -671,11 +685,7 @@ export default function AdminDashboardPage() {
       dateLabel="Monday, 11 May 2026"
       title="Admin dashboard"
       subtitle="Revenue, assignments, staff load, and approvals for the garage floor."
-      stats={[
-        { value: String(metrics.open), label: "open work orders" },
-        { value: String(metrics.unassigned), label: "unassigned jobs" },
-        { value: String(metrics.quality), label: "in quality check" },
-      ]}
+      stats={[]}
       secondaryAction={
         <Button
           variant="default"
@@ -712,64 +722,37 @@ export default function AdminDashboardPage() {
           </Tabs.List>
 
           <Tabs.Panel value="overview" pt="md">
+            <StatCardGrid>
+              <StatCard
+                icon={PiCurrencyCircleDollar}
+                value={money(metrics.revenueToday)}
+                label="Revenue today"
+                helper="Paid invoices received today"
+                color="#16A34A"
+              />
+              <StatCard
+                icon={WorkOrderIcon}
+                value={`${metrics.open} open`}
+                label="Work orders"
+                helper={`${metrics.unassigned} unassigned, ${metrics.quality} in QC`}
+                color="#2563EB"
+              />
+              <StatCard
+                icon={PiPackage}
+                value={String(metrics.partsPending)}
+                label="Parts pending"
+                helper="Awaiting approval"
+                color={metrics.partsPending > 0 ? "#F59E0B" : "#16A34A"}
+              />
+            </StatCardGrid>
+
             <section className="admin-grid" aria-label="Dashboard KPIs">
-              {[
-                [
-                  "Revenue today",
-                  money(metrics.revenueToday),
-                  "Paid invoices received today",
-                ],
-                [
-                  "Revenue month",
-                  money(metrics.revenueMonth),
-                  "Issued and paid service revenue",
-                ],
-                [
-                  "Outstanding invoices",
-                  String(metrics.outstandingInvoices),
-                  "Invoices not paid or cancelled",
-                ],
-                [
-                  "Jobs by status",
-                  `${metrics.open} open`,
-                  "Created, assigned, active, and QC jobs",
-                ],
-                [
-                  "Average turnaround",
-                  metrics.averageTurnaround,
-                  "Completed job cycle time",
-                ],
-                [
-                  "Mechanic utilisation",
-                  `${metrics.utilisation}%`,
-                  "Booked labour against capacity",
-                ],
-                [
-                  "Parts awaiting approval",
-                  String(metrics.partsPending),
-                  "Pending mechanic requests",
-                ],
-                [
-                  "Appointments today",
-                  String(metrics.appointmentsToday),
-                  "Scheduled workshop visits",
-                ],
-                [
-                  "Collection-ready vehicles",
-                  String(metrics.collectionReady),
-                  "Paid jobs ready for pickup",
-                ],
-              ].map(([label, value, scope]) => (
-                <Paper className="kpi-tile" key={label}>
-                  <Text size="xs" c="dimmed" fw={800}>
-                    {label}
-                  </Text>
-                  <Text className="metric-number">{value}</Text>
-                  <Text size="xs" c="dimmed">
-                    {scope}
-                  </Text>
-                </Paper>
-              ))}
+              <KpiTile icon={MoneyIcon} label="Revenue month" value={money(metrics.revenueMonth)} helper="Issued and paid service revenue" accentColor="#16A34A" />
+              <KpiTile icon={MoneyIcon} label="Outstanding invoices" value={String(metrics.outstandingInvoices)} helper="Invoices not paid or cancelled" accentColor="#DC2626" />
+              <KpiTile icon={PiTimer} label="Avg turnaround" value={metrics.averageTurnaround} helper="Completed job cycle time" accentColor="#2563EB" />
+              <KpiTile icon={PiGauge} label="Mechanic utilisation" value={`${metrics.utilisation}%`} helper="Booked labour vs capacity" accentColor="#7C3AED" />
+              <KpiTile icon={PiCalendarCheck} label="Appointments today" value={String(metrics.appointmentsToday)} helper="Scheduled workshop visits" accentColor="#2563EB" />
+              <KpiTile icon={PiCarProfile} label="Collection ready" value={String(metrics.collectionReady)} helper="Paid jobs ready for pickup" accentColor="#16A34A" />
             </section>
 
             <section

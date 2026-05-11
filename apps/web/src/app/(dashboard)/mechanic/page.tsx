@@ -29,6 +29,7 @@ import {
   WorkOrderIcon,
 } from "@/components/icons";
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
+import { StatCard, StatCardGrid } from "@/components/dashboard-ui";
 import { API_URL } from "@/lib/api";
 
 type JobStatus = "assigned" | "in_progress" | "awaiting_parts" | "completed";
@@ -538,24 +539,7 @@ export default function MechanicPage() {
       dateLabel="Monday, 11 May 2026"
       title="Job cards"
       subtitle="Assigned job cards, inspection notes, labour time, parts requests, and completion."
-      stats={[
-        {
-          value: String(
-            jobItems.filter((job) => job.status !== "completed").length,
-          ),
-          label: "active jobs",
-        },
-        { value: formatHours(labourTotal), label: "logged on selected job" },
-        {
-          value: String(
-            selectedJob.parts.filter(
-              (part) =>
-                part.status === "Pending" || part.status === "Requested",
-            ).length,
-          ),
-          label: "parts pending",
-        },
-      ]}
+      stats={[]}
       secondaryAction={
         <SegmentedControl
           aria-label="Job filters"
@@ -572,6 +556,29 @@ export default function MechanicPage() {
       }
       primaryAction={null}
     >
+        <StatCardGrid>
+          <StatCard
+            icon={WorkOrderIcon}
+            value={jobItems.filter((job) => job.status !== "completed").length}
+            label="Active jobs"
+            helper="Assigned to you"
+            color="#2563EB"
+          />
+          <StatCard
+            icon={TimerIcon}
+            value={formatHours(labourTotal)}
+            label="Labour logged"
+            helper={`On ${selectedJob.id}`}
+            color="#7C3AED"
+          />
+          <StatCard
+            icon={PartsIcon}
+            value={selectedJob.parts.filter((p) => p.status === "Pending" || p.status === "Requested").length}
+            label="Parts pending"
+            helper="Awaiting approval or delivery"
+            color={selectedJob.parts.filter((p) => p.status === "Pending" || p.status === "Requested").length > 0 ? "#F59E0B" : "#16A34A"}
+          />
+        </StatCardGrid>
         <Paper className="sync-strip" aria-label="Offline sync status">
           <Group justify="space-between" gap="md">
             <Group gap="sm">
