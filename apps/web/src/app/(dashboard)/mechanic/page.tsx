@@ -1,26 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Badge, Button, Group, Paper, Text, Title } from "@mantine/core";
+import Link from "next/link";
 import {
-  Badge,
-  Button,
-  Divider,
-  FileButton,
-  Group,
-  NumberInput,
-  Paper,
-  SegmentedControl,
-  Select,
-  SimpleGrid,
-  Stack,
-  Tabs,
-  Text,
-  Textarea,
-  TextInput,
-  Title,
-  UnstyledButton,
-} from "@mantine/core";
-import { io } from "socket.io-client";
+  PiArrowRight,
+  PiCheckCircle,
+  PiClockCountdown,
+  PiHourglass,
+  PiWrench,
+} from "react-icons/pi";
 import {
   CameraIcon,
   JobCardIcon,
@@ -30,919 +18,235 @@ import {
 } from "@/components/icons";
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
 import { StatCard, StatCardGrid } from "@/components/dashboard-ui";
-import { API_URL } from "@/lib/api";
+import {
+  formatHours,
+  STATUS_COLORS,
+  STATUS_LABELS,
+  useMechanic,
+} from "@/lib/mechanic-store";
 
-type JobStatus = "assigned" | "in_progress" | "awaiting_parts" | "completed";
-type JobTab = "inspection" | "labour" | "parts" | "complete";
-
-type LabourEntry = {
-  task: string;
-  hours: number;
-  startedAt?: string;
-  endedAt?: string;
-};
-
-type PartRequest = {
-  item: string;
-  quantity: number;
-  urgency: "routine" | "urgent" | "vehicle_down";
-  note: string;
-  status: string;
-};
-
-type JobCard = {
-  id: string;
-  status: JobStatus;
-  plate: string;
-  vehicle: string;
-  customer: string;
-  promisedAt: string;
-  bay: string;
-  concern: string;
-  odometer: number;
-  findings: string[];
-  recommendations: string[];
-  photos: string[];
-  labour: LabourEntry[];
-  parts: PartRequest[];
-  finalNotes: string;
-};
-
-type QueuedChange = {
-  id: string;
-  type: "inspection" | "labour" | "parts";
-  jobId: string;
-  createdAt: string;
-};
-
-type MechanicOfflineDraft = {
-  jobItems: JobCard[];
-  timerStartedAt: string | null;
-  queuedChanges: QueuedChange[];
-};
-
-const jobs: JobCard[] = [
-  {
-    id: "WO-1048",
-    status: "in_progress",
-    plate: "UAX 123A",
-    vehicle: "2018 Toyota Harrier",
-    customer: "Alice Nakato",
-    promisedAt: "Today 16:00",
-    bay: "Bay 2",
-    concern: "Brake vibration above 80 km/h, inspect front axle and pads.",
-    odometer: 54210,
-    findings: ["Front pads below 3 mm", "Right lower arm bushing cracked"],
-    recommendations: [
-      "Replace front pads before release",
-      "Quote lower arm bushing for approval",
-    ],
-    photos: [],
-    labour: [
-      {
-        task: "Road test and lift inspection",
-        hours: 0.6,
-        startedAt: "09:10",
-        endedAt: "09:46",
-      },
-      {
-        task: "Front brake strip-down",
-        hours: 0.9,
-        startedAt: "09:50",
-        endedAt: "10:44",
-      },
-    ],
-    parts: [
-      {
-        item: "Front brake pads",
-        quantity: 1,
-        urgency: "urgent",
-        note: "Low pad depth",
-        status: "Approved",
-      },
-      {
-        item: "Lower arm bushing",
-        quantity: 1,
-        urgency: "routine",
-        note: "Visible cracking",
-        status: "Pending",
-      },
-    ],
-    finalNotes: "",
-  },
-  {
-    id: "WO-1052",
-    status: "awaiting_parts",
-    plate: "UAZ 774Q",
-    vehicle: "2014 Mitsubishi Pajero",
-    customer: "Brian Mugisha",
-    promisedAt: "Tomorrow 11:30",
-    bay: "Hold",
-    concern: "Intermittent overheating during traffic stops.",
-    odometer: 118430,
-    findings: [
-      "Radiator fan relay failing under heat",
-      "Coolant low on arrival",
-    ],
-    recommendations: ["Replace relay and retest fan cycle"],
-    photos: [],
-    labour: [
-      {
-        task: "Cooling pressure test",
-        hours: 0.5,
-        startedAt: "11:00",
-        endedAt: "11:30",
-      },
-    ],
-    parts: [
-      {
-        item: "Fan relay",
-        quantity: 1,
-        urgency: "vehicle_down",
-        note: "Vehicle held until relay arrives",
-        status: "Requested",
-      },
-    ],
-    finalNotes: "",
-  },
-  {
-    id: "WO-1055",
-    status: "assigned",
-    plate: "UBK 442M",
-    vehicle: "2016 Subaru Forester",
-    customer: "Nadia Achieng",
-    promisedAt: "Today 18:00",
-    bay: "Bay 4",
-    concern: "Oil service, cabin filter, and suspension noise check.",
-    odometer: 86100,
-    findings: ["Pending initial inspection"],
-    recommendations: [],
-    photos: [],
-    labour: [],
-    parts: [
-      {
-        item: "Cabin filter",
-        quantity: 1,
-        urgency: "routine",
-        note: "Service item",
-        status: "In stock",
-      },
-    ],
-    finalNotes: "",
-  },
+const MECHANIC_NAV: NavItem[] = [
+  { key: "overview",   label: "Overview",       href: "/mechanic",            icon: WorkOrderIcon },
+  { key: "jobs",       label: "Job cards",      href: "/mechanic/jobs",       icon: JobCardIcon   },
+  { key: "inspection", label: "Inspection",     href: "/mechanic/inspection", icon: WorkOrderIcon },
+  { key: "labour",     label: "Labour log",     href: "/mechanic/labour",     icon: TimerIcon     },
+  { key: "parts",      label: "Parts requests", href: "/mechanic/parts",      icon: PartsIcon     },
+  { key: "complete",   label: "Job completion", href: "/mechanic/complete",   icon: CameraIcon    },
 ];
 
-const statusLabels: Record<JobStatus, string> = {
-  assigned: "Assigned",
-  in_progress: "In progress",
-  awaiting_parts: "Awaiting parts",
-  completed: "Completed",
-};
+export default function MechanicOverviewPage() {
+  const { jobItems } = useMechanic();
 
-const statusColors: Record<JobStatus, string> = {
-  assigned: "garageBlue",
-  in_progress: "garageBlue",
-  awaiting_parts: "orange",
-  completed: "green",
-};
-
-const nextStatus: Partial<
-  Record<JobStatus, { label: string; status: JobStatus }>
-> = {
-  assigned: { label: "Start work", status: "in_progress" },
-  in_progress: { label: "Mark complete", status: "completed" },
-  awaiting_parts: { label: "Resume work", status: "in_progress" },
-};
-
-const urgencyOptions = [
-  { value: "routine", label: "Routine" },
-  { value: "urgent", label: "Urgent" },
-  { value: "vehicle_down", label: "Vehicle down" },
-];
-
-const offlineDraftKey = "garageos.mechanic.offline-draft";
-
-function formatHours(hours: number) {
-  return `${hours.toFixed(1)}h`;
-}
-
-export default function MechanicPage() {
-  const [jobItems, setJobItems] = useState(jobs);
-  const [statusFilter, setStatusFilter] = useState<JobStatus | "all">("all");
-  const [selectedJobId, setSelectedJobId] = useState(jobs[0].id);
-  const [tab, setTab] = useState<JobTab>("inspection");
-  const [finding, setFinding] = useState("");
-  const [recommendation, setRecommendation] = useState("");
-  const [runningTask, setRunningTask] = useState("Diagnosis and repair");
-  const [timerStartedAt, setTimerStartedAt] = useState<string | null>(null);
-  const [manualTask, setManualTask] = useState("");
-  const [manualHours, setManualHours] = useState<number | string>(0.5);
-  const [partName, setPartName] = useState("");
-  const [partQty, setPartQty] = useState<number | string>(1);
-  const [partUrgency, setPartUrgency] =
-    useState<PartRequest["urgency"]>("routine");
-  const [partNote, setPartNote] = useState("");
-  const [finalNotes, setFinalNotes] = useState("");
-  const [isOffline, setIsOffline] = useState(false);
-  const [offlineReady, setOfflineReady] = useState(false);
-  const [queuedChanges, setQueuedChanges] = useState<QueuedChange[]>([]);
-  const [syncStatus, setSyncStatus] = useState(
-    "Current job cards cached for offline use",
-  );
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem(offlineDraftKey);
-    if (!saved) {
-      return;
-    }
-
-    try {
-      const draft = JSON.parse(saved) as Partial<MechanicOfflineDraft>;
-      if (draft.jobItems?.length) {
-        setJobItems(draft.jobItems);
-      }
-      if (draft.timerStartedAt) {
-        setTimerStartedAt(draft.timerStartedAt);
-      }
-      if (draft.queuedChanges?.length) {
-        setQueuedChanges(draft.queuedChanges);
-        setSyncStatus(`${draft.queuedChanges.length} changes queued offline`);
-      }
-    } catch {
-      window.localStorage.removeItem(offlineDraftKey);
-    }
-  }, []);
-
-  useEffect(() => {
-    setIsOffline(!window.navigator.onLine);
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.ready
-        .then(() => setOfflineReady(true))
-        .catch(() => setOfflineReady(false));
-    }
-  }, []);
-
-  useEffect(() => {
-    const handleOffline = () => {
-      setIsOffline(true);
-      setSyncStatus(
-        "Offline mode active: job card, timer, inspection draft, and parts queue are available",
-      );
-    };
-    const handleOnline = () => {
-      setIsOffline(false);
-      setQueuedChanges((items) => {
-        if (items.length) {
-          setSyncStatus(`Sync complete for ${items.length} queued changes`);
-          return [];
-        }
-
-        setSyncStatus((current) =>
-          current.startsWith("Sync complete")
-            ? current
-            : "Online: mechanic changes are synced",
-        );
-        return items;
-      });
-    };
-
-    window.addEventListener("offline", handleOffline);
-    window.addEventListener("online", handleOnline);
-    return () => {
-      window.removeEventListener("offline", handleOffline);
-      window.removeEventListener("online", handleOnline);
-    };
-  }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem(
-      offlineDraftKey,
-      JSON.stringify({
-        jobItems,
-        timerStartedAt,
-        queuedChanges,
-      }),
-    );
-  }, [jobItems, queuedChanges, timerStartedAt]);
-
-  useEffect(() => {
-    const socket = io(API_URL, {
-      transports: ["websocket"],
-      autoConnect: true,
-    });
-    socket.on(
-      "work-order:status-updated",
-      (event: { workOrderId: string; status: JobStatus }) => {
-        if (!Object.hasOwn(statusLabels, event.status)) {
-          return;
-        }
-
-        setJobItems((items) =>
-          items.map((job) =>
-            job.id === event.workOrderId
-              ? { ...job, status: event.status }
-              : job,
-          ),
-        );
-      },
-    );
-
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
-
-  const filteredJobs = useMemo(
-    () =>
-      statusFilter === "all"
-        ? jobItems
-        : jobItems.filter((job) => job.status === statusFilter),
-    [jobItems, statusFilter],
-  );
-  const selectedJob =
-    jobItems.find((job) => job.id === selectedJobId) ??
-    filteredJobs[0] ??
-    jobItems[0];
-  const selectedAction = nextStatus[selectedJob.status];
-  const labourTotal = selectedJob.labour.reduce(
-    (total, entry) => total + entry.hours,
+  const activeJobs    = jobItems.filter((j) => j.status !== "completed");
+  const awaitingParts = jobItems.filter((j) => j.status === "awaiting_parts");
+  const totalLabour   = jobItems.reduce(
+    (sum, j) => sum + j.labour.reduce((s, e) => s + e.hours, 0),
     0,
   );
-
-  function updateSelectedJob(update: (job: JobCard) => JobCard) {
-    setJobItems((items) =>
-      items.map((job) => (job.id === selectedJob.id ? update(job) : job)),
-    );
-  }
-
-  function queueOfflineChange(type: QueuedChange["type"]) {
-    if (typeof window === "undefined" || window.navigator.onLine) {
-      setSyncStatus("Saved locally for offline use");
-      return;
-    }
-
-    setQueuedChanges((items) => {
-      const next = [
-        ...items,
-        {
-          id: `${type}-${selectedJob.id}-${Date.now()}`,
-          type,
-          jobId: selectedJob.id,
-          createdAt: new Date().toISOString(),
-        },
-      ];
-      setSyncStatus(`${next.length} changes queued offline`);
-      return next;
-    });
-  }
-
-  function advanceSelectedJob() {
-    if (!selectedAction) {
-      return;
-    }
-
-    updateSelectedJob((job) => ({ ...job, status: selectedAction.status }));
-  }
-
-  function recordInspection() {
-    if (!finding.trim() && !recommendation.trim()) {
-      return;
-    }
-
-    updateSelectedJob((job) => ({
-      ...job,
-      status: job.status === "assigned" ? "in_progress" : job.status,
-      findings: finding.trim()
-        ? [
-            ...job.findings.filter(
-              (item) => item !== "Pending initial inspection",
-            ),
-            finding.trim(),
-          ]
-        : job.findings,
-      recommendations: recommendation.trim()
-        ? [...job.recommendations, recommendation.trim()]
-        : job.recommendations,
-    }));
-    queueOfflineChange("inspection");
-    setFinding("");
-    setRecommendation("");
-  }
-
-  function addPhotos(files: File[]) {
-    if (!files.length) {
-      return;
-    }
-
-    const urls = files.map((file) => URL.createObjectURL(file));
-    updateSelectedJob((job) => ({ ...job, photos: [...job.photos, ...urls] }));
-  }
-
-  function toggleTimer() {
-    if (!timerStartedAt) {
-      setTimerStartedAt(
-        new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      );
-      return;
-    }
-
-    updateSelectedJob((job) => ({
-      ...job,
-      status: job.status === "assigned" ? "in_progress" : job.status,
-      labour: [
-        ...job.labour,
-        {
-          task: runningTask.trim() || "Labour timer",
-          hours: 0.5,
-          startedAt: timerStartedAt,
-          endedAt: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        },
-      ],
-    }));
-    queueOfflineChange("labour");
-    setTimerStartedAt(null);
-  }
-
-  function addManualLabour() {
-    const hours = Number(manualHours);
-    if (!manualTask.trim() || Number.isNaN(hours) || hours <= 0) {
-      return;
-    }
-
-    updateSelectedJob((job) => ({
-      ...job,
-      status: job.status === "assigned" ? "in_progress" : job.status,
-      labour: [...job.labour, { task: manualTask.trim(), hours }],
-    }));
-    queueOfflineChange("labour");
-    setManualTask("");
-    setManualHours(0.5);
-  }
-
-  function requestPart() {
-    const quantity = Number(partQty);
-    if (!partName.trim() || Number.isNaN(quantity) || quantity < 1) {
-      return;
-    }
-
-    updateSelectedJob((job) => ({
-      ...job,
-      status: "awaiting_parts",
-      parts: [
-        ...job.parts,
-        {
-          item: partName.trim(),
-          quantity,
-          urgency: partUrgency,
-          note: partNote.trim(),
-          status: "Requested",
-        },
-      ],
-    }));
-    queueOfflineChange("parts");
-    setPartName("");
-    setPartQty(1);
-    setPartUrgency("routine");
-    setPartNote("");
-  }
-
-  function submitCompletion() {
-    updateSelectedJob((job) => ({
-      ...job,
-      status: "completed",
-      finalNotes:
-        finalNotes.trim() || job.finalNotes || "Ready for quality check.",
-    }));
-    setFinalNotes("");
-  }
-
-  const mechanicNav: NavItem[] = [
-    { key: 'jobs',       label: 'Job cards',      href: '/mechanic', icon: JobCardIcon,   onClick: () => setTab('inspection') },
-    { key: 'inspection', label: 'Inspection',     href: '/mechanic', icon: WorkOrderIcon, onClick: () => setTab('inspection') },
-    { key: 'labour',     label: 'Labour log',     href: '/mechanic', icon: TimerIcon,     onClick: () => setTab('labour') },
-    { key: 'parts',      label: 'Parts requests', href: '/mechanic', icon: PartsIcon,     onClick: () => setTab('parts'),
-      count: selectedJob.parts.filter((p) => p.status === 'Pending' || p.status === 'Requested').length || undefined },
-    { key: 'complete',   label: 'Job completion', href: '/mechanic', icon: CameraIcon,    onClick: () => setTab('complete') },
-  ];
+  const pendingParts  = jobItems.reduce(
+    (sum, j) =>
+      sum +
+      j.parts.filter(
+        (p) => p.status === "Pending" || p.status === "Requested",
+      ).length,
+    0,
+  );
 
   return (
     <DashboardShell
       role="Mechanic"
-      navItems={mechanicNav}
-      activeNavKey={tab === 'inspection' ? 'inspection' : tab}
-      dateLabel="Monday, 11 May 2026"
-      title="Job cards"
-      subtitle="Assigned job cards, inspection notes, labour time, parts requests, and completion."
+      navItems={MECHANIC_NAV}
+      dateLabel="Tuesday, 12 May 2026"
+      title="Good morning, Mechanic"
+      subtitle="Here's your workload summary for today."
       stats={[]}
-      secondaryAction={
-        <SegmentedControl
-          aria-label="Job filters"
-          value={statusFilter}
-          onChange={(value) => setStatusFilter(value as JobStatus | "all")}
-          data={[
-            { value: "all", label: "All" },
-            { value: "assigned", label: "Assigned" },
-            { value: "in_progress", label: "In progress" },
-            { value: "awaiting_parts", label: "Awaiting parts" },
-            { value: "completed", label: "Completed" },
-          ]}
-        />
-      }
-      primaryAction={null}
+      topBarAction={null}
     >
-        <StatCardGrid>
-          <StatCard
-            icon={WorkOrderIcon}
-            value={jobItems.filter((job) => job.status !== "completed").length}
-            label="Active jobs"
-            helper="Assigned to you"
-            color="#2563EB"
-          />
-          <StatCard
-            icon={TimerIcon}
-            value={formatHours(labourTotal)}
-            label="Labour logged"
-            helper={`On ${selectedJob.id}`}
-            color="#7C3AED"
-          />
-          <StatCard
-            icon={PartsIcon}
-            value={selectedJob.parts.filter((p) => p.status === "Pending" || p.status === "Requested").length}
-            label="Parts pending"
-            helper="Awaiting approval or delivery"
-            color={selectedJob.parts.filter((p) => p.status === "Pending" || p.status === "Requested").length > 0 ? "#F59E0B" : "#16A34A"}
-          />
-        </StatCardGrid>
-        <Paper className="sync-strip" aria-label="Offline sync status">
-          <Group justify="space-between" gap="md">
-            <Group gap="sm">
-              <Badge color={isOffline ? "orange" : "green"}>
-                {isOffline ? "Offline" : "Online"}
-              </Badge>
-              <Text fw={750}>
-                {offlineReady ? "Offline ready" : "Preparing offline cache"}
-              </Text>
-              <Text c="dimmed">
-                Mechanic job card route, current job data, inspection draft,
-                labour timer, and parts requests persist locally.
-              </Text>
-            </Group>
-            <Badge color={queuedChanges.length ? "orange" : "garageBlue"}>
-              {queuedChanges.length} queued
-            </Badge>
-          </Group>
-          <Text aria-live="polite" c={isOffline ? "orange" : "dimmed"}>
-            {syncStatus}
-          </Text>
-        </Paper>
+      {/* ── Stats ─────────────────────────────────────────────────── */}
+      <StatCardGrid>
+        <StatCard
+          icon={WorkOrderIcon}
+          value={activeJobs.length}
+          label="Active jobs"
+          helper="Assigned to you today"
+          color="#2563EB"
+        />
+        <StatCard
+          icon={TimerIcon}
+          value={formatHours(totalLabour)}
+          label="Labour logged"
+          helper="Across all active jobs"
+          color="#7C3AED"
+        />
+        <StatCard
+          icon={PartsIcon}
+          value={pendingParts}
+          label="Parts pending"
+          helper="Awaiting approval or delivery"
+          color={pendingParts > 0 ? "#F59E0B" : "#16A34A"}
+        />
+      </StatCardGrid>
 
-        <section className="job-layout" aria-label="Mechanic job cards">
-          <Paper className="job-list">
-            {filteredJobs.map((job) => (
-              <UnstyledButton
-                className={`job-card ${job.id === selectedJob.id ? "is-selected" : ""}`}
-                key={job.id}
-                onClick={() => {
-                  setSelectedJobId(job.id);
-                  setTab("inspection");
-                  setTimerStartedAt(null);
-                }}
-              >
-                <Badge color={statusColors[job.status]}>
-                  {statusLabels[job.status]}
-                </Badge>
-                <span>
-                  <strong className="mono-value">{job.plate}</strong>
-                  <small>{job.vehicle}</small>
-                </span>
-                <span>
-                  {job.customer}
-                  <small>{job.concern}</small>
-                </span>
-                <span>
-                  {job.bay}
-                  <small>{job.promisedAt}</small>
-                </span>
-              </UnstyledButton>
-            ))}
-          </Paper>
-
-          <Paper
-            component="aside"
-            className="job-detail"
-            aria-label="Selected job card"
+      {/* ── Active jobs quick-view ──────────────────────────────────── */}
+      <section className="mech-overview-section">
+        <Group justify="space-between" mb={16}>
+          <div>
+            <Text className="section-eyebrow">Your workload</Text>
+            <Title order={3} className="section-title">Active jobs</Title>
+          </div>
+          <Button
+            component={Link}
+            href="/mechanic/jobs"
+            variant="light"
+            rightSection={<PiArrowRight size={16} />}
           >
-            <Group
-              className="detail-heading"
-              align="flex-start"
-              justify="space-between"
-            >
-              <Stack gap={2}>
-                <Text className="eyebrow">{selectedJob.id}</Text>
-                <Title order={2}>{selectedJob.plate}</Title>
-                <Text c="dimmed">{selectedJob.vehicle}</Text>
-              </Stack>
-              <Stack className="detail-actions" gap="xs" align="flex-end">
-                <Badge color={statusColors[selectedJob.status]}>
-                  {statusLabels[selectedJob.status]}
-                </Badge>
-                {selectedAction ? (
-                  <Button
-                    size="xs"
-                    type="button"
-                    leftSection={<WorkOrderIcon size={16} />}
-                    onClick={advanceSelectedJob}
-                  >
-                    {selectedAction.label}
-                  </Button>
-                ) : null}
-              </Stack>
-            </Group>
+            All job cards
+          </Button>
+        </Group>
 
-            <dl className="detail-list compact-detail">
-              <div>
-                <dt>Customer</dt>
-                <dd>{selectedJob.customer}</dd>
-              </div>
-              <div>
-                <dt>Odometer</dt>
-                <dd>{selectedJob.odometer.toLocaleString()} km</dd>
-              </div>
-              <div>
-                <dt>Labour</dt>
-                <dd>{formatHours(labourTotal)}</dd>
-              </div>
-            </dl>
-
-            <Text className="job-note">{selectedJob.concern}</Text>
-
-            <Tabs
-              value={tab}
-              onChange={(value) => setTab((value ?? "inspection") as JobTab)}
-            >
-              <Tabs.List aria-label="Job card detail">
-                <Tabs.Tab value="inspection">inspection</Tabs.Tab>
-                <Tabs.Tab value="labour">labour</Tabs.Tab>
-                <Tabs.Tab value="parts">parts</Tabs.Tab>
-                <Tabs.Tab value="complete">complete</Tabs.Tab>
-              </Tabs.List>
-
-              <Tabs.Panel value="inspection" pt="sm">
-                <div className="stack-list">
-                  {selectedJob.findings.map((item) => (
-                    <div className="stack-row" key={item}>
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                  {selectedJob.recommendations.map((item) => (
-                    <div className="stack-row muted-row" key={item}>
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                  {selectedJob.photos.length ? (
-                    <SimpleGrid
-                      cols={{ base: 2, sm: 3 }}
-                      spacing="xs"
-                      aria-label="Inspection photo previews"
-                    >
-                      {selectedJob.photos.map((photo) => (
-                        <img
-                          className="inspection-photo"
-                          key={photo}
-                          src={photo}
-                          alt="Inspection preview"
-                        />
-                      ))}
-                    </SimpleGrid>
-                  ) : null}
-                  <Textarea
-                    label="Finding"
-                    placeholder="Record measured fault, damage, or diagnostic result"
-                    minRows={3}
-                    value={finding}
-                    onChange={(event) => setFinding(event.currentTarget.value)}
-                  />
-                  <Textarea
-                    label="Recommendation"
-                    placeholder="Recommended repair, customer approval note, or watch item"
-                    minRows={2}
-                    value={recommendation}
-                    onChange={(event) =>
-                      setRecommendation(event.currentTarget.value)
-                    }
-                  />
-                  <Group align="center" justify="space-between">
-                    <FileButton
-                      onChange={addPhotos}
-                      accept="image/png,image/jpeg"
-                      multiple
-                    >
-                      {(props) => (
-                        <Button
-                          type="button"
-                          variant="light"
-                          leftSection={<CameraIcon size={18} />}
-                          {...props}
-                        >
-                          Add photos
-                        </Button>
-                      )}
-                    </FileButton>
-                    <Button
-                      type="button"
-                      leftSection={<JobCardIcon size={18} />}
-                      onClick={recordInspection}
-                    >
-                      Record finding
-                    </Button>
+        <div className="mech-job-summary-grid">
+          {activeJobs.length === 0 ? (
+            <Paper className="mech-empty-state">
+              <PiCheckCircle size={40} color="#16A34A" />
+              <Text fw={600} mt={12}>All caught up</Text>
+              <Text c="dimmed" size="sm">
+                No active jobs assigned to you right now.
+              </Text>
+            </Paper>
+          ) : (
+            activeJobs.map((job) => {
+              const labourTotal = job.labour.reduce(
+                (s, e) => s + e.hours,
+                0,
+              );
+              const pendingCount = job.parts.filter(
+                (p) =>
+                  p.status === "Pending" || p.status === "Requested",
+              ).length;
+              return (
+                <Paper
+                  key={job.id}
+                  component={Link}
+                  href={`/mechanic/jobs?id=${job.id}`}
+                  className="mech-job-summary-card"
+                >
+                  <Group justify="space-between" mb={8}>
+                    <Text className="mono-value" fw={700}>
+                      {job.id}
+                    </Text>
+                    <Badge color={STATUS_COLORS[job.status]}>
+                      {STATUS_LABELS[job.status]}
+                    </Badge>
                   </Group>
-                </div>
-              </Tabs.Panel>
-
-              <Tabs.Panel value="labour" pt="sm">
-                <div className="stack-list">
-                  {selectedJob.labour.length ? (
-                    selectedJob.labour.map((entry) => (
-                      <div
-                        className="stack-row split-row"
-                        key={`${entry.task}-${entry.startedAt ?? entry.hours}`}
-                      >
-                        <span>
-                          {entry.task}
-                          {entry.startedAt ? (
-                            <small>
-                              {entry.startedAt} - {entry.endedAt}
-                            </small>
-                          ) : null}
-                        </span>
-                        <strong>{formatHours(entry.hours)}</strong>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="empty-state">No labour logged yet.</div>
-                  )}
-                  <TextInput
-                    label="Timer task"
-                    value={runningTask}
-                    onChange={(event) =>
-                      setRunningTask(event.currentTarget.value)
-                    }
-                  />
-                  <Button
-                    type="button"
-                    leftSection={<TimerIcon size={18} />}
-                    onClick={toggleTimer}
-                  >
-                    {timerStartedAt
-                      ? `Stop timer started ${timerStartedAt}`
-                      : "Start labour timer"}
-                  </Button>
-                  <Divider label="Manual entry" labelPosition="center" />
-                  <SimpleGrid cols={{ base: 1, sm: 2 }}>
-                    <TextInput
-                      label="Labour task"
-                      placeholder="Replace front pads"
-                      value={manualTask}
-                      onChange={(event) =>
-                        setManualTask(event.currentTarget.value)
-                      }
-                    />
-                    <NumberInput
-                      label="Hours"
-                      min={0.1}
-                      step={0.1}
-                      decimalScale={1}
-                      value={manualHours}
-                      onChange={setManualHours}
-                    />
-                  </SimpleGrid>
-                  <Button
-                    type="button"
-                    variant="light"
-                    leftSection={<WorkOrderIcon size={18} />}
-                    onClick={addManualLabour}
-                  >
-                    Add labour entry
-                  </Button>
-                </div>
-              </Tabs.Panel>
-
-              <Tabs.Panel value="parts" pt="sm">
-                <div className="stack-list">
-                  {selectedJob.parts.map((part) => (
-                    <div
-                      className="stack-row split-row"
-                      key={`${part.item}-${part.status}`}
-                    >
-                      <span>
-                        {part.item} x{part.quantity}
-                        <small>
-                          {part.note ||
-                            urgencyOptions.find(
-                              (item) => item.value === part.urgency,
-                            )?.label}
-                        </small>
+                  <Text fw={600} size="sm">
+                    {job.plate} — {job.vehicle}
+                  </Text>
+                  <Text c="dimmed" size="sm" lineClamp={2} mt={4}>
+                    {job.concern}
+                  </Text>
+                  <div className="mech-job-meta">
+                    <span>
+                      <PiClockCountdown size={14} /> {job.promisedAt}
+                    </span>
+                    <span>
+                      <PiWrench size={14} /> {job.bay}
+                    </span>
+                    <span>
+                      <TimerIcon size={14} /> {formatHours(labourTotal)}
+                    </span>
+                    {pendingCount > 0 && (
+                      <span className="mech-parts-badge">
+                        <PiHourglass size={14} /> {pendingCount} part
+                        {pendingCount > 1 ? "s" : ""} pending
                       </span>
-                      <strong>{part.status}</strong>
-                    </div>
-                  ))}
-                  <SimpleGrid cols={{ base: 1, sm: 2 }}>
-                    <TextInput
-                      label="Part name"
-                      placeholder="Fan relay"
-                      value={partName}
-                      onChange={(event) =>
-                        setPartName(event.currentTarget.value)
-                      }
-                    />
-                    <NumberInput
-                      label="Quantity"
-                      min={1}
-                      value={partQty}
-                      onChange={setPartQty}
-                    />
-                  </SimpleGrid>
-                  <Select
-                    label="Urgency"
-                    value={partUrgency}
-                    onChange={(value) =>
-                      setPartUrgency(
-                        (value ?? "routine") as PartRequest["urgency"],
-                      )
-                    }
-                    data={urgencyOptions}
-                  />
-                  <Textarea
-                    label="Urgency note"
-                    placeholder="Why this part is needed"
-                    minRows={2}
-                    value={partNote}
-                    onChange={(event) => setPartNote(event.currentTarget.value)}
-                  />
-                  <Button
-                    type="button"
-                    leftSection={<PartsIcon size={18} />}
-                    onClick={requestPart}
-                  >
-                    Request part
-                  </Button>
-                </div>
-              </Tabs.Panel>
+                    )}
+                  </div>
+                </Paper>
+              );
+            })
+          )}
+        </div>
+      </section>
 
-              <Tabs.Panel value="complete" pt="sm">
-                <div className="stack-list">
-                  <SimpleGrid cols={3} spacing="xs">
-                    <Paper className="mini-metric">
-                      <Text size="xs" c="dimmed" fw={800}>
-                        Findings
-                      </Text>
-                      <Text fw={800}>{selectedJob.findings.length}</Text>
-                    </Paper>
-                    <Paper className="mini-metric">
-                      <Text size="xs" c="dimmed" fw={800}>
-                        Labour
-                      </Text>
-                      <Text fw={800}>{formatHours(labourTotal)}</Text>
-                    </Paper>
-                    <Paper className="mini-metric">
-                      <Text size="xs" c="dimmed" fw={800}>
-                        Parts
-                      </Text>
-                      <Text fw={800}>{selectedJob.parts.length}</Text>
-                    </Paper>
-                  </SimpleGrid>
-                  {selectedJob.finalNotes ? (
-                    <div className="stack-row">
-                      <span>{selectedJob.finalNotes}</span>
-                    </div>
-                  ) : null}
-                  <Textarea
-                    label="Final notes"
-                    placeholder="Work completed, road test result, handover notes"
-                    minRows={4}
-                    value={finalNotes}
-                    onChange={(event) =>
-                      setFinalNotes(event.currentTarget.value)
-                    }
-                  />
-                  <Button
-                    type="button"
-                    leftSection={<WorkOrderIcon size={18} />}
-                    onClick={submitCompletion}
-                  >
-                    Submit for quality check
-                  </Button>
-                </div>
-              </Tabs.Panel>
-            </Tabs>
-          </Paper>
-        </section>
+      {/* ── Quick actions ───────────────────────────────────────────── */}
+      <section className="mech-overview-section">
+        <Text className="section-eyebrow" mb={4}>
+          Quick actions
+        </Text>
+        <Title order={3} className="section-title" mb={16}>
+          Go to
+        </Title>
+        <div className="mech-quicklinks">
+          {[
+            {
+              href: "/mechanic/inspection",
+              icon: WorkOrderIcon,
+              label: "Inspection",
+              desc: "Record findings, recommendations, and photos",
+              color: "#2563EB",
+            },
+            {
+              href: "/mechanic/labour",
+              icon: TimerIcon,
+              label: "Labour log",
+              desc: "Start the timer or add manual labour entries",
+              color: "#7C3AED",
+            },
+            {
+              href: "/mechanic/parts",
+              icon: PartsIcon,
+              label: "Parts requests",
+              desc: "Request parts and track delivery status",
+              color: awaitingParts.length > 0 ? "#F59E0B" : "#0EA5E9",
+              badge:
+                awaitingParts.length > 0
+                  ? `${awaitingParts.length} waiting`
+                  : undefined,
+            },
+            {
+              href: "/mechanic/complete",
+              icon: CameraIcon,
+              label: "Job completion",
+              desc: "Add final notes and submit for quality check",
+              color: "#16A34A",
+            },
+          ].map(({ href, icon: Icon, label, desc, color, badge }) => (
+            <Paper
+              key={href}
+              component={Link}
+              href={href}
+              className="mech-quicklink-card"
+            >
+              <span
+                className="stat-icon-wrap"
+                style={{ background: `${color}18`, color }}
+              >
+                <Icon size={22} />
+              </span>
+              <div className="mech-quicklink-body">
+                <Group gap={8} mb={2}>
+                  <Text fw={600} size="sm">
+                    {label}
+                  </Text>
+                  {badge && (
+                    <Badge size="xs" color="orange">
+                      {badge}
+                    </Badge>
+                  )}
+                </Group>
+                <Text c="dimmed" size="xs">
+                  {desc}
+                </Text>
+              </div>
+              <PiArrowRight
+                size={18}
+                color="#94A3B8"
+                className="mech-quicklink-arrow"
+              />
+            </Paper>
+          ))}
+        </div>
+      </section>
     </DashboardShell>
   );
 }
