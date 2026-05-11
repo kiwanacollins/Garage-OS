@@ -28,9 +28,17 @@ import {
   PiTrash,
   PiWrench,
 } from "react-icons/pi";
-import { DashboardShell } from "@/components/DashboardShell";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { DashboardShell, type NavItem } from "@/components/DashboardShell";
 import { useAuth } from "@/components/AuthProvider";
+
+const CUSTOMER_NAV: NavItem[] = [
+  { key: 'portal', label: 'My portal', href: '/customer', icon: PiCarProfile },
+  { key: 'appointments', label: 'Appointments', href: '/customer', icon: PiCalendarCheck },
+  { key: 'services', label: 'Service status', href: '/customer', icon: PiWrench },
+  { key: 'history', label: 'Service history', href: '/customer', icon: PiSealCheck },
+  { key: 'invoices', label: 'Invoices & payments', href: '/customer', icon: PiReceipt },
+  { key: 'feedback', label: 'Feedback', href: '/customer', icon: PiStar },
+];
 import { apiRequest } from "@/lib/api";
 
 type Vehicle = {
@@ -310,43 +318,43 @@ export default function CustomerPortalPage() {
   }
 
   return (
-    <ProtectedRoute>
-      <DashboardShell
-        role="Customer"
-        active="customer"
-        dateLabel="Monday, 11 May 2026"
-        title="Customer portal"
-        subtitle="Manage vehicles, bookings, service progress, invoices, online payments, and feedback."
-        stats={[
-          { value: String(vehicles.length), label: "vehicles" },
-          {
-            value: String(
-              workOrders.filter((workOrder) => workOrder.status !== "paid")
-                .length,
-            ),
-            label: "active services",
-          },
-          { value: String(outstandingInvoices.length), label: "open invoices" },
-        ]}
-        secondaryAction={
-          <Button
-            variant="default"
-            leftSection={<PiCalendarCheck size={18} />}
-            onClick={() => setTab("appointments")}
-          >
-            Book service
-          </Button>
-        }
-        primaryAction={
-          <Button
-            leftSection={<PiCreditCard size={18} />}
-            onClick={() => setTab("invoices")}
-            disabled={!selectedInvoice}
-          >
-            Pay invoice
-          </Button>
-        }
-      >
+    <DashboardShell
+      role="Customer"
+      navItems={CUSTOMER_NAV}
+      topBarAction={null}
+      dateLabel="Monday, 11 May 2026"
+      title="Customer portal"
+      subtitle="Manage vehicles, bookings, service progress, invoices, online payments, and feedback."
+      stats={[
+        { value: String(vehicles.length), label: "vehicles" },
+        {
+          value: String(
+            workOrders.filter((workOrder) => workOrder.status !== "paid")
+              .length,
+          ),
+          label: "active services",
+        },
+        { value: String(outstandingInvoices.length), label: "open invoices" },
+      ]}
+      secondaryAction={
+        <Button
+          variant="default"
+          leftSection={<PiCalendarCheck size={18} />}
+          onClick={() => setTab("appointments")}
+        >
+          Book service
+        </Button>
+      }
+      primaryAction={
+        <Button
+          leftSection={<PiCreditCard size={18} />}
+          onClick={() => setTab("invoices")}
+          disabled={!selectedInvoice}
+        >
+          Pay invoice
+        </Button>
+      }
+    >
         <Tabs value={tab} onChange={setTab} className="admin-tabs">
           <Tabs.List>
             <Tabs.Tab value="overview">Overview</Tabs.Tab>
@@ -833,7 +841,6 @@ export default function CustomerPortalPage() {
             </Paper>
           </Tabs.Panel>
         </Tabs>
-      </DashboardShell>
-    </ProtectedRoute>
+    </DashboardShell>
   );
 }

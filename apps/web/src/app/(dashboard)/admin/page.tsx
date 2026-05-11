@@ -38,9 +38,18 @@ import {
   WarningIcon,
   WorkOrderIcon,
 } from "@/components/icons";
-import { DashboardShell } from "@/components/DashboardShell";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { DashboardShell, type NavItem } from "@/components/DashboardShell";
 import { API_URL } from "@/lib/api";
+
+const ADMIN_NAV: NavItem[] = [
+  { key: 'overview', label: 'Dashboard', href: '/admin', icon: ChartIcon },
+  { key: 'staff', label: 'Staff', href: '/admin', icon: StaffIcon },
+  { key: 'reports', label: 'Reports', href: '/admin', icon: ExportIcon },
+  { key: 'operations', label: 'Work orders', href: '/admin', icon: WorkOrderIcon },
+  { key: 'services', label: 'Services', href: '/admin', icon: MoneyIcon },
+  { key: 'suppliers', label: 'Suppliers', href: '/admin', icon: PiTruck },
+  { key: 'audit', label: 'Audit log', href: '/admin', icon: PiClipboardText },
+];
 
 type AssignmentStatus = "created" | "assigned" | "quality_check";
 type AdminTab =
@@ -644,36 +653,36 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <ProtectedRoute>
-      <DashboardShell
-        role="Admin"
-        active="admin"
-        dateLabel="Monday, 11 May 2026"
-        title="Admin dashboard"
-        subtitle="Revenue, assignments, staff load, and approvals for the garage floor."
-        stats={[
-          { value: String(metrics.open), label: "open work orders" },
-          { value: String(metrics.unassigned), label: "unassigned jobs" },
-          { value: String(metrics.quality), label: "in quality check" },
-        ]}
-        secondaryAction={
-          <Button
-            variant="default"
-            leftSection={<ExportIcon size={18} />}
-            onClick={() => queueExport("Operations")}
-          >
-            Share report
-          </Button>
-        }
-        primaryAction={
-          <Button
-            leftSection={<ChartIcon size={18} />}
-            onClick={() => setTab("operations")}
-          >
-            Assign work
-          </Button>
-        }
-      >
+    <DashboardShell
+      role="Admin"
+      navItems={ADMIN_NAV}
+      settingsHref="/admin"
+      dateLabel="Monday, 11 May 2026"
+      title="Admin dashboard"
+      subtitle="Revenue, assignments, staff load, and approvals for the garage floor."
+      stats={[
+        { value: String(metrics.open), label: "open work orders" },
+        { value: String(metrics.unassigned), label: "unassigned jobs" },
+        { value: String(metrics.quality), label: "in quality check" },
+      ]}
+      secondaryAction={
+        <Button
+          variant="default"
+          leftSection={<ExportIcon size={18} />}
+          onClick={() => queueExport("Operations")}
+        >
+          Share report
+        </Button>
+      }
+      primaryAction={
+        <Button
+          leftSection={<ChartIcon size={18} />}
+          onClick={() => setTab("operations")}
+        >
+          Assign work
+        </Button>
+      }
+    >
         <Tabs
           value={tab}
           onChange={(value) => setTab((value ?? "overview") as AdminTab)}
@@ -1582,7 +1591,6 @@ export default function AdminDashboardPage() {
             </Paper>
           </Tabs.Panel>
         </Tabs>
-      </DashboardShell>
-    </ProtectedRoute>
+    </DashboardShell>
   );
 }

@@ -24,9 +24,17 @@ import {
   PaymentIcon,
   VehicleIcon,
 } from '@/components/icons';
-import { DashboardShell } from '@/components/DashboardShell';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { DashboardShell, type NavItem } from '@/components/DashboardShell';
 import { useAuth } from '@/components/AuthProvider';
+
+const FRONT_DESK_NAV: NavItem[] = [
+  { key: 'register', label: 'Register', href: '/front-desk', icon: CustomerIcon },
+  { key: 'checkin', label: 'Check-in / out', href: '/front-desk', icon: VehicleIcon },
+  { key: 'appointments', label: 'Appointments', href: '/front-desk', icon: CalendarIcon },
+  { key: 'invoices', label: 'Invoices', href: '/front-desk', icon: InvoiceIcon },
+  { key: 'payments', label: 'Payments', href: '/front-desk', icon: PaymentIcon },
+  { key: 'notifications', label: 'Notifications', href: '/front-desk', icon: WorkOrderIcon },
+];
 import { apiRequest } from '@/lib/api';
 
 type Vehicle = {
@@ -408,29 +416,28 @@ export default function FrontDeskPage() {
   }
 
   return (
-    <ProtectedRoute>
-      <DashboardShell
-        role="Front desk"
-        active="front-desk"
-        dateLabel="Monday, 11 May 2026"
-        title="Vehicle register and customers"
-        subtitle="Customer lookup, vehicle intake, bookings, invoices, and collections."
-        stats={[
-          { value: String(filteredCustomers.length), label: 'customer records' },
-          { value: String(vehicles.filter((vehicle) => vehicle.status === 'In service').length), label: 'vehicles in service' },
-          { value: String(appointments.length), label: 'appointments booked' },
-        ]}
-        secondaryAction={
-          <Button variant="default" type="button" leftSection={<CustomerIcon size={18} />} onClick={() => setCustomerPanel('edit')}>
-            Edit customer
-          </Button>
-        }
-        primaryAction={
-          <Button type="button" leftSection={<CustomerIcon size={18} />} onClick={() => setCustomerPanel('new')}>
-            Add customer
-          </Button>
-        }
-      >
+    <DashboardShell
+      role="Front desk"
+      navItems={FRONT_DESK_NAV}
+      dateLabel="Monday, 11 May 2026"
+      title="Vehicle register and customers"
+      subtitle="Customer lookup, vehicle intake, bookings, invoices, and collections."
+      stats={[
+        { value: String(filteredCustomers.length), label: 'customer records' },
+        { value: String(vehicles.filter((vehicle) => vehicle.status === 'In service').length), label: 'vehicles in service' },
+        { value: String(appointments.length), label: 'appointments booked' },
+      ]}
+      secondaryAction={
+        <Button variant="default" type="button" leftSection={<CustomerIcon size={18} />} onClick={() => setCustomerPanel('edit')}>
+          Edit customer
+        </Button>
+      }
+      primaryAction={
+        <Button type="button" leftSection={<CustomerIcon size={18} />} onClick={() => setCustomerPanel('new')}>
+          Add customer
+        </Button>
+      }
+    >
 
         <section className="register-layout" aria-label="Customer and vehicle register">
           <Paper className="register-main">
@@ -795,7 +802,6 @@ export default function FrontDeskPage() {
             </form>
           </section>
         ) : null}
-      </DashboardShell>
-    </ProtectedRoute>
+    </DashboardShell>
   );
 }

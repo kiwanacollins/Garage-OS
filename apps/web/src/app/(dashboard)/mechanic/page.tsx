@@ -28,9 +28,15 @@ import {
   TimerIcon,
   WorkOrderIcon,
 } from "@/components/icons";
-import { DashboardShell } from "@/components/DashboardShell";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { DashboardShell, type NavItem } from "@/components/DashboardShell";
 import { API_URL } from "@/lib/api";
+
+const MECHANIC_NAV: NavItem[] = [
+  { key: 'jobs', label: 'Job cards', href: '/mechanic', icon: JobCardIcon },
+  { key: 'inspection', label: 'Inspection', href: '/mechanic', icon: WorkOrderIcon },
+  { key: 'labour', label: 'Labour log', href: '/mechanic', icon: TimerIcon },
+  { key: 'parts', label: 'Parts requests', href: '/mechanic', icon: PartsIcon },
+];
 
 type JobStatus = "assigned" | "in_progress" | "awaiting_parts" | "completed";
 type JobTab = "inspection" | "labour" | "parts" | "complete";
@@ -523,47 +529,46 @@ export default function MechanicPage() {
   }
 
   return (
-    <ProtectedRoute>
-      <DashboardShell
-        role="Mechanic"
-        active="mechanic"
-        dateLabel="Monday, 11 May 2026"
-        title="Job cards"
-        subtitle="Assigned job cards, inspection notes, labour time, parts requests, and completion."
-        stats={[
-          {
-            value: String(
-              jobItems.filter((job) => job.status !== "completed").length,
-            ),
-            label: "active jobs",
-          },
-          { value: formatHours(labourTotal), label: "logged on selected job" },
-          {
-            value: String(
-              selectedJob.parts.filter(
-                (part) =>
-                  part.status === "Pending" || part.status === "Requested",
-              ).length,
-            ),
-            label: "parts pending",
-          },
-        ]}
-        secondaryAction={
-          <SegmentedControl
-            aria-label="Job filters"
-            value={statusFilter}
-            onChange={(value) => setStatusFilter(value as JobStatus | "all")}
-            data={[
-              { value: "all", label: "All" },
-              { value: "assigned", label: "Assigned" },
-              { value: "in_progress", label: "In progress" },
-              { value: "awaiting_parts", label: "Awaiting parts" },
-              { value: "completed", label: "Completed" },
-            ]}
-          />
-        }
-        primaryAction={null}
-      >
+    <DashboardShell
+      role="Mechanic"
+      navItems={MECHANIC_NAV}
+      dateLabel="Monday, 11 May 2026"
+      title="Job cards"
+      subtitle="Assigned job cards, inspection notes, labour time, parts requests, and completion."
+      stats={[
+        {
+          value: String(
+            jobItems.filter((job) => job.status !== "completed").length,
+          ),
+          label: "active jobs",
+        },
+        { value: formatHours(labourTotal), label: "logged on selected job" },
+        {
+          value: String(
+            selectedJob.parts.filter(
+              (part) =>
+                part.status === "Pending" || part.status === "Requested",
+            ).length,
+          ),
+          label: "parts pending",
+        },
+      ]}
+      secondaryAction={
+        <SegmentedControl
+          aria-label="Job filters"
+          value={statusFilter}
+          onChange={(value) => setStatusFilter(value as JobStatus | "all")}
+          data={[
+            { value: "all", label: "All" },
+            { value: "assigned", label: "Assigned" },
+            { value: "in_progress", label: "In progress" },
+            { value: "awaiting_parts", label: "Awaiting parts" },
+            { value: "completed", label: "Completed" },
+          ]}
+        />
+      }
+      primaryAction={null}
+    >
         <Paper className="sync-strip" aria-label="Offline sync status">
           <Group justify="space-between" gap="md">
             <Group gap="sm">
@@ -928,7 +933,6 @@ export default function MechanicPage() {
             </Tabs>
           </Paper>
         </section>
-      </DashboardShell>
-    </ProtectedRoute>
+    </DashboardShell>
   );
 }

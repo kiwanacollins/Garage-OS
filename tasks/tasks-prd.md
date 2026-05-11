@@ -263,3 +263,35 @@
   - [x] 10.21 Implement background/online sync for queued mechanic changes — retries when connection returns, prevents duplicate submissions, and surfaces sync failures in the mechanic UI
   - [x] 10.22 🟢 Write Playwright offline E2E test — load mechanic job card online, go offline, view cached job, create draft finding/parts request, return online, verify sync completes
   - [x] 10.23 🟢 Final Playwright E2E regression suite covering critical flows across all four roles
+
+---
+
+## 11.0 Role-Based Routing Restructure
+
+> **Context:** The previous implementation collapsed all four role dashboards into a single shared shell with a sidebar that lets any logged-in user switch between `/admin`, `/front-desk`, `/mechanic`, and `/customer`. This section fixes that by enforcing true role isolation: each role has its own protected route tree, its own layout with role-scoped navigation, and a login redirect that lands the user directly in their workspace.
+
+### Core problems to fix
+
+| # | Problem | Fix |
+|---|---------|-----|
+| A | `DashboardShell` renders all-role nav links for every user | Replace with per-role shell components (or a role-aware shell that only renders that role's nav) |
+| B | `ProtectedRoute` only checks `accessToken` — no role check | Extend to accept an `allowedRoles` prop and redirect to `/unauthorized` when the role doesn't match |
+| C | No `layout.tsx` in each route group to enforce role at routing level | Add `layout.tsx` inside `(dashboard)/admin/`, `(dashboard)/front-desk/`, `(dashboard)/mechanic/`, `(portal)/customer/` that wrap children in a role-guarded layout |
+| D | After login the redirect is correct, but nothing stops a mechanic from visiting `/admin` directly | Role-guard middleware/layout fix (covered by C + B) |
+| E | All four role pages import the same `DashboardShell` with a shared nav | Each page should import a role-specific shell or pass role info to a smart shell |
+
+### Sub-tasks
+
+- [x] 11.1 🟢 Create `components/RoleGuard.tsx` — client component that reads `user.role` from `AuthProvider`; if role is not in `allowedRoles` prop, redirects to `/unauthorized`; if not authenticated, redirects to `/login`; shows a `Loader` while auth is still loading
+- [x] 11.2 🟢 Create `app/unauthorized/page.tsx` — friendly "Access denied" page with a button to return to the user's correct dashboard (using `getRoleRoute`)
+- [x] 11.3 🟢 Add `app/(dashboard)/admin/layout.tsx` — wraps children in `<RoleGuard allowedRoles={['admin']} />`
+- [x] 11.4 🟢 Add `app/(dashboard)/front-desk/layout.tsx` — wraps children in `<RoleGuard allowedRoles={['front_desk']} />`
+- [x] 11.5 🟢 Add `app/(dashboard)/mechanic/layout.tsx` — wraps children in `<RoleGuard allowedRoles={['mechanic']} />`
+- [x] 11.6 🟢 Add `app/(portal)/customer/layout.tsx` — wraps children in `<RoleGuard allowedRoles={['customer']} />`
+- [x] 11.7 🟢 Refactor `DashboardShell.tsx` — remove the all-roles nav list; accept a `navItems` prop (or a `role` prop that drives a role-scoped nav) so each shell only shows links relevant to that role's workspace
+- [x] 11.8 🟢 Update `(dashboard)/admin/page.tsx` — pass admin-specific nav items and remove any reference to other role routes from within the admin shell
+- [x] 11.9 🟢 Update `(dashboard)/front-desk/page.tsx` — pass front-desk-specific nav items
+- [x] 11.10 🟢 Update `(dashboard)/mechanic/page.tsx` — pass mechanic-specific nav items
+- [x] 11.11 🟢 Update `(portal)/customer/page.tsx` — pass customer-specific nav items (portal style, not ops shell)
+- [x] 11.12 🟢 Update `AuthForm.tsx` / `AuthProvider.tsx` post-login redirect — verify `getRoleRoute` is called after the user object is populated and the user cannot manually navigate to a foreign role route
+- [ ] 11.13 🟢 Smoke-test: log in as each of the four seeded users and verify (a) you land on the correct dashboard, (b) visiting another role's URL redirects to `/unauthorized`, and (c) the sidebar only shows that role's navigation

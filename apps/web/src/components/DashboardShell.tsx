@@ -1,42 +1,56 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ElementType, type ReactNode } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ActionIcon, Badge, Button, Group, Kbd, Menu, Stack, Text, TextInput, Title } from '@mantine/core';
 import {
   PiBell,
-  PiCalendarCheck,
   PiCarProfile,
-  PiChartLine,
   PiGear,
-  PiHouse,
   PiMagnifyingGlass,
-  PiQuestion,
-  PiUserCircle,
-  PiUsersThree,
-  PiWrench,
+  PiSignOut,
 } from 'react-icons/pi';
 import { apiRequest } from '@/lib/api';
 import { useAuth } from './AuthProvider';
 
-type RoleKey = 'admin' | 'front-desk' | 'mechanic' | 'customer';
+// ─── Public types ────────────────────────────────────────────────────────────
 
-type ShellStat = {
+export type NavItem = {
+  key: string;
+  label: string;
+  href: string;
+  icon: ElementType;
+};
+
+export type ShellStat = {
   label: string;
   value: string;
 };
 
-type DashboardShellProps = {
+export type DashboardShellProps = {
+  /** Display label shown above the page title (e.g. "Admin", "Front Desk") */
   role: string;
-  active: RoleKey;
+  /** The page title */
   title: string;
+  /** Secondary description below the title */
   subtitle: string;
+  /** Date / context string shown in the page header */
   dateLabel: string;
+  /** Role-specific sidebar navigation links */
+  navItems: NavItem[];
+  /** Optional href for the Settings footer link (defaults to no settings link) */
+  settingsHref?: string;
+  /** Optional primary CTA in the top bar — pass null to hide the default "New work order" button */
+  topBarAction?: ReactNode | null;
+  /** Stat strip items shown below the page header */
   stats?: ShellStat[];
   primaryAction?: ReactNode;
   secondaryAction?: ReactNode;
   children: ReactNode;
 };
+
+// ─── Internal types ───────────────────────────────────────────────────────────
 
 type AppNotification = {
   id: string;
@@ -46,37 +60,37 @@ type AppNotification = {
   createdAt: string;
 };
 
-const navItems = [
-  { key: 'admin', label: 'Admin', href: '/admin', icon: PiChartLine },
-  { key: 'front-desk', label: 'Front desk', href: '/front-desk', icon: PiUsersThree },
-  { key: 'mechanic', label: 'Mechanic', href: '/mechanic', icon: PiWrench },
-  { key: 'customer', label: 'Customer', href: '/customer', icon: PiUserCircle },
-] as const;
-
-const workAreas = [
-  { label: 'Today queue', color: '#3857A3' },
-  { label: 'Awaiting approval', color: '#F59E0B' },
-  { label: 'Ready for collection', color: '#16A34A' },
-];
+// ─── Component ───────────────────────────────────────────────────────────────
 
 export function DashboardShell({
   role,
-  active,
   title,
   subtitle,
   dateLabel,
+  navItems,
+  settingsHref,
+  topBarAction,
   stats = [],
   primaryAction,
   secondaryAction,
   children,
 }: DashboardShellProps) {
-  const { accessToken } = useAuth();
+  const { accessToken, user, logout } = useAuth();
+  const pathname = usePathname();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
+  // Derive initials for the avatar
+  const initials = user?.name
+    ? user.name
+        .split(' ')
+        .slice(0, 2)
+        .map((w) => w[0])
+        .join('')
+        .toUpperCase()
+    : '??';
+
   useEffect(() => {
-    if (!accessToken) {
-      return;
-    }
+    if (!accessToken) return;
 
     apiRequest<{ notifications: AppNotification[] }>('/api/v1/notifications?pageSize=8', {
       headers: { authorization: `Bearer ${accessToken}` },
@@ -86,10 +100,10 @@ export function DashboardShell({
   }, [accessToken]);
 
   async function markNotificationRead(id: string) {
-    setNotifications((items) => items.map((item) => (item.id === id ? { ...item, isRead: true } : item)));
-    if (!accessToken) {
-      return;
-    }
+    setNotifications((items) =>
+      items.map((item) => (item.id === id ? { ...item, isRead: true } : item)),
+    );
+    if (!accessToken) return;
 
     await apiRequest(`/api/v1/notifications/${id}/read`, {
       method: 'PATCH',
@@ -97,27 +111,27 @@ export function DashboardShell({
     }).catch(() => undefined);
   }
 
-  const unreadCount = notifications.filter((notification) => !notification.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  // Determine the brand home link — send users back to their own dashboard root
+  const brandHref = navItems[0]?.href ?? '/login';
 
   return (
     <main className="garage-shell">
       <aside className="garage-sidebar" aria-label="GarageOS navigation">
-        <Link className="garage-brand" href="/admin">
+        <Link className="garage-brand" href={brandHref}>
           GarageOS
         </Link>
 
-        <nav className="garage-nav" aria-label="Role dashboards">
-          <Link className="garage-nav-item" href="/admin">
-            <PiHouse size={20} />
-            Dashboard
-          </Link>
+        <nav className="garage-nav" aria-label={`${role} navigation`}>
           {navItems.map((item) => {
             const Icon = item.icon;
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
             return (
               <Link
-                className={`garage-nav-item ${item.key === active ? 'is-active' : ''}`}
-                href={item.href}
                 key={item.key}
+                className={`garage-nav-item${isActive ? ' is-active' : ''}`}
+                href={item.href}
               >
                 <Icon size={20} />
                 {item.label}
@@ -126,33 +140,22 @@ export function DashboardShell({
           })}
         </nav>
 
-        <div className="garage-sidebar-section">
-          <Group justify="space-between">
-            <Text fw={750}>Work areas</Text>
-            <ActionIcon variant="subtle" aria-label="Add work area">
-              <PiCalendarCheck size={18} />
-            </ActionIcon>
-          </Group>
-          <Stack gap={14}>
-            {workAreas.map((area) => (
-              <span className="garage-area" key={area.label}>
-                <i style={{ background: area.color }} />
-                {area.label}
-              </span>
-            ))}
-          </Stack>
-        </div>
-
         <div className="garage-sidebar-footer">
-          <Link className="garage-nav-item" href="/admin">
-            <PiGear size={20} />
-            Settings
-          </Link>
-          <Link className="garage-nav-item" href="/customer">
-            <PiQuestion size={20} />
-            Help & support
-            <b>8</b>
-          </Link>
+          {settingsHref && (
+            <Link className="garage-nav-item" href={settingsHref}>
+              <PiGear size={20} />
+              Settings
+            </Link>
+          )}
+          <button
+            type="button"
+            className="garage-nav-item"
+            onClick={logout}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left' }}
+          >
+            <PiSignOut size={20} />
+            Sign out
+          </button>
         </div>
       </aside>
 
@@ -166,12 +169,22 @@ export function DashboardShell({
             rightSection={<Kbd>⌘ F</Kbd>}
           />
           <Group gap="sm" wrap="nowrap">
-            <Button leftSection={<PiCarProfile size={18} />}>New work order</Button>
+            {/* topBarAction === null hides the button; undefined shows the default */}
+            {topBarAction === null ? null : topBarAction ?? (
+              <Button leftSection={<PiCarProfile size={18} />}>New work order</Button>
+            )}
             <Menu width={320} position="bottom-end" shadow="md">
               <Menu.Target>
-                <ActionIcon variant="default" size="lg" aria-label="Notifications" className="notification-bell">
+                <ActionIcon
+                  variant="default"
+                  size="lg"
+                  aria-label={`Notifications${unreadCount ? ` (${unreadCount} unread)` : ''}`}
+                  className="notification-bell"
+                >
                   <PiBell size={20} />
-                  {unreadCount ? <Badge className="notification-count">{unreadCount}</Badge> : null}
+                  {unreadCount > 0 && (
+                    <Badge className="notification-count">{unreadCount}</Badge>
+                  )}
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
@@ -194,18 +207,18 @@ export function DashboardShell({
                 )}
               </Menu.Dropdown>
             </Menu>
-            <span className="garage-avatar" aria-label="Signed in user">
-              KO
+            <span className="garage-avatar" aria-label={`Signed in as ${user?.name ?? 'user'}`}>
+              {initials}
             </span>
           </Group>
         </header>
 
         <div className="garage-content">
-          <section className="garage-page-head" aria-labelledby={`${active}-title`}>
+          <section className="garage-page-head" aria-labelledby="page-title">
             <Stack gap={5}>
               <Text className="garage-date">{dateLabel}</Text>
               <Text className="garage-role">{role}</Text>
-              <Title id={`${active}-title`} order={1}>
+              <Title id="page-title" order={1}>
                 {title}
               </Title>
               <Text className="garage-subtitle">{subtitle}</Text>
@@ -216,7 +229,7 @@ export function DashboardShell({
             </Group>
           </section>
 
-          {stats.length ? (
+          {stats.length > 0 && (
             <div className="garage-stat-strip" aria-label={`${role} status`}>
               {stats.map((stat) => (
                 <span key={stat.label}>
@@ -225,7 +238,7 @@ export function DashboardShell({
                 </span>
               ))}
             </div>
-          ) : null}
+          )}
 
           {children}
         </div>
