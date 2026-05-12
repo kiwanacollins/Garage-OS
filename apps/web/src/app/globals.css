@@ -1461,11 +1461,17 @@ p {
 }
 
 .garage-page-head {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 24px;
   align-items: end;
-  padding-bottom: 8px;
+  padding: 36px 40px;
+  margin: -32px -40px 32px -40px;
+  background-color: #ffffff;
+  background-image: radial-gradient(rgb(15 23 42 / 6%) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
+  border-bottom: 1px solid var(--line);
 }
 
 .garage-date,
@@ -2578,6 +2584,11 @@ p {
 
   .garage-content {
     padding: 24px 16px 36px;
+  }
+
+  .garage-page-head {
+    padding: 28px 16px;
+    margin: -24px -16px 24px -16px;
   }
 
   .ds-stat-grid {
