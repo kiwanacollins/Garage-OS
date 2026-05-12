@@ -134,15 +134,7 @@ type ExpenseItem = {
   amount: number;
 };
 
-type AuditItem = {
-  id: string;
-  user: string;
-  entityType: string;
-  entityId: string;
-  action: string;
-  createdAt: string;
-  changes: Record<string, unknown>;
-};
+// Removed AuditItem type
 
 type SupplierItem = {
   id: string;
@@ -410,12 +402,7 @@ export default function AdminDashboardPage() {
   const [partsApprovals, setPartsApprovals] = useState(initialPartsApprovals);
   const [services, setServices] = useState(initialServices);
   const [expenses, setExpenses] = useState(initialExpenses);
-  const [auditLogs] = useState(initialAuditLogs);
-  const [auditSearch, setAuditSearch] = useState("");
-  const [auditEntity, setAuditEntity] = useState<string | null>("all");
-  const [selectedAuditId, setSelectedAuditId] = useState(
-    initialAuditLogs[0].id,
-  );
+  // Audit log functionality removed
   const [garageName, setGarageName] = useState("GarageOS Service Centre");
   const [garagePhone, setGaragePhone] = useState("+256700000000");
   const [garageEmail, setGarageEmail] = useState("frontdesk@garageos.local");
@@ -453,21 +440,6 @@ export default function AdminDashboardPage() {
   const selected =
     assignments.find((assignment) => assignment.id === selectedId) ??
     assignments[0];
-  const filteredAuditLogs = auditLogs.filter((item) => {
-    const query = auditSearch.trim().toLowerCase();
-    const matchesSearch =
-      !query ||
-      [item.user, item.entityType, item.entityId, item.action].some((value) =>
-        value.toLowerCase().includes(query),
-      );
-    const matchesEntity =
-      !auditEntity || auditEntity === "all" || item.entityType === auditEntity;
-    return matchesSearch && matchesEntity;
-  });
-  const selectedAudit =
-    auditLogs.find((item) => item.id === selectedAuditId) ??
-    filteredAuditLogs[0] ??
-    auditLogs[0];
   const selectedSupplier =
     suppliers.find((supplier) => supplier.id === selectedSupplierId) ??
     suppliers[0];
@@ -1057,97 +1029,7 @@ export default function AdminDashboardPage() {
             </Paper>
           </Tabs.Panel>
 
-          <Tabs.Panel value="audit" pt="md">
-            <section className="job-layout" aria-label="Audit log workspace">
-              <Paper className="job-list">
-                <Group align="flex-end" justify="space-between">
-                  <TextInput
-                    label="Search audit logs"
-                    placeholder="User, entity, action"
-                    leftSection={<PiMagnifyingGlass size={18} />}
-                    value={auditSearch}
-                    onChange={(event) =>
-                      setAuditSearch(event.currentTarget.value)
-                    }
-                  />
-                  <Select
-                    label="Audit entity"
-                    value={auditEntity}
-                    onChange={setAuditEntity}
-                    data={[
-                      { value: "all", label: "All entities" },
-                      { value: "work_order", label: "Work orders" },
-                      { value: "invoice", label: "Invoices" },
-                      { value: "settings", label: "Settings" },
-                    ]}
-                  />
-                </Group>
-                {filteredAuditLogs.map((item) => (
-                  <UnstyledButton
-                    className={`job-card ${item.id === selectedAudit.id ? "is-selected" : ""}`}
-                    key={item.id}
-                    onClick={() => setSelectedAuditId(item.id)}
-                  >
-                    <Badge
-                      color={item.action === "create" ? "green" : "garageBlue"}
-                    >
-                      {item.action}
-                    </Badge>
-                    <span>
-                      <strong className="mono-value">{item.entityId}</strong>
-                      <small>{item.entityType}</small>
-                    </span>
-                    <span>
-                      {item.user}
-                      <small>{item.createdAt}</small>
-                    </span>
-                    <span>
-                      {item.id}
-                      <small>captured by audit middleware</small>
-                    </span>
-                  </UnstyledButton>
-                ))}
-              </Paper>
 
-              <Paper
-                component="aside"
-                className="job-detail"
-                aria-label="Audit change diff"
-              >
-                <Group
-                  className="detail-heading"
-                  justify="space-between"
-                  align="flex-start"
-                >
-                  <Stack gap={2}>
-                    <Text className="eyebrow">{selectedAudit.id}</Text>
-                    <Title order={2}>Change diff</Title>
-                    <Text c="dimmed">
-                      {selectedAudit.user} · {selectedAudit.createdAt}
-                    </Text>
-                  </Stack>
-                  <Badge color="garageBlue">{selectedAudit.entityType}</Badge>
-                </Group>
-                <dl className="detail-list compact-detail">
-                  <div>
-                    <dt>Entity</dt>
-                    <dd>{selectedAudit.entityId}</dd>
-                  </div>
-                  <div>
-                    <dt>Action</dt>
-                    <dd>{selectedAudit.action}</dd>
-                  </div>
-                  <div>
-                    <dt>User</dt>
-                    <dd>{selectedAudit.user}</dd>
-                  </div>
-                </dl>
-                <pre className="diff-box">
-                  {JSON.stringify(selectedAudit.changes, null, 2)}
-                </pre>
-              </Paper>
-            </section>
-          </Tabs.Panel>
 
           <Tabs.Panel value="settings" pt="md">
             <Paper className="analytics-panel" aria-label="System settings">
