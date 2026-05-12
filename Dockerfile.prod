@@ -34,10 +34,9 @@ COPY packages/db/package.json ./packages/db/
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/validation/package.json ./packages/validation/
 
-# Install with --network=host so npm can reach registry.docker.io in restricted
-# build environments (Coolify, air-gapped CI, etc.). Falls back to npm install
-# if lock file is out of sync.
-RUN --network=host npm install --prefer-offline 2>/dev/null || npm install
+# --network=host lets npm reach registry.npmjs.org in restricted build
+# environments where the container's default network is isolated (Coolify, etc.)
+RUN --network=host npm install
 
 # Copy full source
 COPY . .
