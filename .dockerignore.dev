@@ -1,0 +1,36 @@
+# Dev build — node_modules IS included (copied from host to avoid in-container npm install)
+# Only exclude things that would break the build or bloat the image unnecessarily
+
+.git
+.gitignore
+*.md
+docs/
+
+# Build artifacts — rebuilt inside container if needed
+.next
+dist
+build
+out
+*.tsbuildinfo
+
+# Env files (injected via docker-compose environment:)
+.env
+.env.*
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode
+.idea
+
+# Test outputs
+test-results/
+playwright-report/
+coverage/
+
+# Docker files themselves (not needed inside)
+Dockerfile*
+docker-compose*
+.dockerignore*

@@ -28,3 +28,6 @@ CREATE INDEX "pesapal_transactions_invoice_id_status_idx"
 ALTER TABLE "pesapal_transactions"
   ADD CONSTRAINT "pesapal_transactions_invoice_id_fkey"
   FOREIGN KEY ("invoice_id") REFERENCES "invoices"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AlterTable (moved here from 20260511213054 since the table is created in this migration)
+ALTER TABLE "pesapal_transactions" ALTER COLUMN "id" DROP DEFAULT;

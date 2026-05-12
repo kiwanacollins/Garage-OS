@@ -35,9 +35,6 @@ ALTER TABLE "parts_requests" ALTER COLUMN "id" DROP DEFAULT;
 ALTER TABLE "payments" ALTER COLUMN "id" DROP DEFAULT;
 
 -- AlterTable
-ALTER TABLE "pesapal_transactions" ALTER COLUMN "id" DROP DEFAULT;
-
--- AlterTable
 ALTER TABLE "purchase_orders" ALTER COLUMN "id" DROP DEFAULT;
 
 -- AlterTable

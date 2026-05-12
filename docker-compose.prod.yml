@@ -1,5 +1,16 @@
 # Production Docker Compose for Coolify deployment
-# This uses environment variables for all configuration
+# Build all services on the host first: npm run build
+# Then deploy with: docker-compose -f docker-compose.prod.yml up -d
+
+x-common-env: &common-env
+  NODE_ENV: production
+  DATABASE_URL: postgresql://${POSTGRES_USER:-garageos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-garageos}
+  REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+  JWT_SECRET: ${JWT_SECRET}
+  JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+  SMTP_URL: ${SMTP_URL}
+  MAIL_FROM: ${MAIL_FROM}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
 
 services:
   postgres:
@@ -31,34 +42,102 @@ services:
       - garageos-network
     restart: unless-stopped
 
+  # ── Migration (one-shot) ──────────────────────────────────────────────────
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    environment:
+      <<: *common-env
+    command: >
+      sh -c "npx prisma migrate deploy --schema=packages/db/prisma/schema.prisma &&
+             npx tsx packages/db/prisma/seed.ts"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - garageos-network
+    restart: "no"
+    profiles: ["setup"]
+
+  # ── API ───────────────────────────────────────────────────────────────────
   api:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile
-      target: runtime
+      dockerfile: Dockerfile.prod
+    container_name: garageos-api
     environment:
-      - NODE_ENV=production
-      - PORT=${API_PORT:-3001}
-      - HOST=0.0.0.0
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-garageos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-garageos}
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
-      - CORS_ORIGIN=${CORS_ORIGIN}
-      - UPLOAD_STORAGE_DIR=/app/uploads
-      - UPLOAD_MAX_BYTES=${UPLOAD_MAX_BYTES:-10485760}
-      - UPLOAD_PUBLIC_BASE_URL=${UPLOAD_PUBLIC_BASE_URL}
-      - SMTP_URL=${SMTP_URL}
-      - MAIL_FROM=${MAIL_FROM}
-      - LOG_LEVEL=${LOG_LEVEL:-info}
+      <<: *common-env
+      PORT: ${API_PORT:-3001}
+      HOST: 0.0.0.0
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      UPLOAD_STORAGE_DIR: /app/uploads
+      UPLOAD_MAX_BYTES: ${UPLOAD_MAX_BYTES:-10485760}
+      UPLOAD_PUBLIC_BASE_URL: ${UPLOAD_PUBLIC_BASE_URL}
       # PesaPal configuration
-      - PESAPAL_BASE_URL=${PESAPAL_BASE_URL}
-      - PESAPAL_CONSUMER_KEY=${PESAPAL_CONSUMER_KEY}
-      - PESAPAL_CONSUMER_SECRET=${PESAPAL_CONSUMER_SECRET}
-      - PESAPAL_CALLBACK_URL=${PESAPAL_CALLBACK_URL}
-      - PESAPAL_NOTIFICATION_ID=${PESAPAL_NOTIFICATION_ID}
+      PESAPAL_BASE_URL: ${PESAPAL_BASE_URL}
+      PESAPAL_CONSUMER_KEY: ${PESAPAL_CONSUMER_KEY}
+      PESAPAL_CONSUMER_SECRET: ${PESAPAL_CONSUMER_SECRET}
+      PESAPAL_CALLBACK_URL: ${PESAPAL_CALLBACK_URL}
+      PESAPAL_NOTIFICATION_ID: ${PESAPAL_NOTIFICATION_ID}
+    ports:
+      - "${API_PORT:-3001}:${API_PORT:-3001}"
     volumes:
-      - ./uploads:/app/uploads
+      - uploads_data:/app/uploads
+    command: npm run start --workspace=@garage-os/api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - garageos-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${API_PORT:-3001}/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "coolify.managed=true"
+
+  # ── Web (Next.js) ────────────────────────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: garageos-web
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    command: npm run start --workspace=@garage-os/web
+    depends_on:
+      - api
+    networks:
+      - garageos-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "coolify.managed=true"
+
+  # ── Queue Worker ──────────────────────────────────────────────────────────
+  queue-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: garageos-queue-worker
+    environment:
+      <<: *common-env
+    command: npm run start --workspace=@garage-os/queue
     depends_on:
       postgres:
         condition: service_healthy
@@ -69,6 +148,11 @@ services:
     restart: unless-stopped
     labels:
       - "coolify.managed=true"
-      - "traefik.enable=true"
-      - "traefik.http.routers.garageos-api.rule=Host(`${API_DOMAIN}`) && PathPrefix(`/api`)"
-      - "traefik.http.services.garageos-api.loadbalancer.server.port=3001"\n\n  web:\n    build:\n      context: .\n      dockerfile: apps/web/Dockerfile\n      target: runtime\n    environment:\n      - NODE_ENV=production\n      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}\n    depends_on:\n      - api\n    networks:\n      - garageos-network\n    restart: unless-stopped\n    labels:\n      - \"coolify.managed=true\"\n      - \"traefik.enable=true\"\n      - \"traefik.http.routers.garageos-web.rule=Host(`${WEB_DOMAIN}`)\"\n      - \"traefik.http.services.garageos-web.loadbalancer.server.port=3000\"\n\n  queue-worker:\n    build:\n      context: .\n      dockerfile: workers/queue/Dockerfile\n      target: runtime\n    environment:\n      - NODE_ENV=production\n      - DATABASE_URL=postgresql://${POSTGRES_USER:-garageos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-garageos}\n      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379\n      - SMTP_URL=${SMTP_URL}\n      - MAIL_FROM=${MAIL_FROM}\n      - LOG_LEVEL=${LOG_LEVEL:-info}\n    depends_on:\n      postgres:\n        condition: service_healthy\n      redis:\n        condition: service_healthy\n    networks:\n      - garageos-network\n    restart: unless-stopped\n    labels:\n      - \"coolify.managed=true\"\n\nvolumes:\n  postgres_data:\n\nnetworks:\n  garageos-network:\n    driver: bridge
+
+volumes:
+  postgres_data:
+  uploads_data:
+
+networks:
+  garageos-network:
+    driver: bridge

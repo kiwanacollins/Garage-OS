@@ -1,0 +1,27 @@
+# Production Dockerfile for all services
+# Build all services and create optimized runtime images
+
+FROM node:20-alpine AS base
+WORKDIR /app
+RUN apk add --no-cache libc6-compat
+
+# ============================================================================
+# Runtime image - everything pre-built on host, just copy artifacts
+# ============================================================================
+FROM base AS runtime
+
+# Copy the entire built project from host (assumes npm run build was run)
+COPY . .
+
+# Ensure essential directories exist
+RUN mkdir -p /app/uploads /app/logs
+
+# Set up non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 && \
+    chown -R nodejs:nodejs /app
+
+USER nodejs
+
+# Default command - overridden by docker-compose for each service
+CMD ["npm", "start"]

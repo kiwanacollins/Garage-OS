@@ -66,8 +66,7 @@ uploads/
 .eslintcache
 .turbo
 
-# Prisma
-packages/db/prisma/migrations/
+# Prisma (migrations must be included for prisma migrate deploy)
 *.db
 *.sqlite
 
