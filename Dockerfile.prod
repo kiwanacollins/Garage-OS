@@ -1,27 +1,132 @@
-# Production Dockerfile for all services
-# Build all services and create optimized runtime images
+# Production Dockerfile for GarageOS
+# Multi-stage build optimized for production deployment
 
+# ============================================================================
+# Base stage
+# ============================================================================
 FROM node:20-alpine AS base
 WORKDIR /app
 RUN apk add --no-cache libc6-compat
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
 # ============================================================================
-# Runtime image - everything pre-built on host, just copy artifacts
+# Dependencies stage
 # ============================================================================
-FROM base AS runtime
+FROM base AS deps
 
-# Copy the entire built project from host (assumes npm run build was run)
+# Copy package files for workspace setup
+COPY package*.json ./
+COPY apps/*/package.json ./apps/*/
+COPY workers/*/package.json ./workers/*/
+COPY packages/*/package.json ./packages/*/
+
+# Install only production dependencies
+RUN npm ci --omit=dev
+
+# ============================================================================
+# Builder stage
+# ============================================================================
+FROM base AS builder
+
+# Copy package files
+COPY package*.json ./
+COPY apps/*/package.json ./apps/*/
+COPY workers/*/package.json ./workers/*/
+COPY packages/*/package.json ./packages/*/
+
+# Install all dependencies (including dev)
+RUN npm ci
+
+# Copy source code
 COPY . .
 
-# Ensure essential directories exist
-RUN mkdir -p /app/uploads /app/logs
+# Generate Prisma client
+RUN npx prisma generate --schema=packages/db/prisma/schema.prisma
 
-# Set up non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001 && \
-    chown -R nodejs:nodejs /app
+# Build all packages and applications
+RUN npm run build
+
+# ============================================================================
+# API Runtime
+# ============================================================================
+FROM base AS api
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy built API and shared packages
+COPY --from=builder --chown=nodejs:nodejs /app/apps/api/dist ./apps/api/dist
+COPY --from=builder --chown=nodejs:nodejs /app/packages ./packages
+COPY --from=builder --chown=nodejs:nodejs /app/package.json ./
+COPY --chown=nodejs:nodejs apps/api/package.json ./apps/api/
+
+# Create uploads directory
+RUN mkdir -p /app/uploads && chown -R nodejs:nodejs /app/uploads
+
+USER nodejs
+EXPOSE 3001
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api/v1/health || exit 1
+
+CMD ["node", "apps/api/dist/server.js"]
+
+# ============================================================================
+# Web Runtime
+# ============================================================================
+FROM base AS web
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy built Next.js app and shared packages
+COPY --from=builder --chown=nodejs:nodejs /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=nodejs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=nodejs:nodejs /app/apps/web/public ./apps/web/public
+COPY --from=builder --chown=nodejs:nodejs /app/packages ./packages
+
+USER nodejs
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
+
+CMD ["node", "apps/web/server.js"]
+
+# ============================================================================
+# Queue Worker Runtime
+# ============================================================================
+FROM base AS queue
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy built queue worker and shared packages
+COPY --from=builder --chown=nodejs:nodejs /app/workers/queue/dist ./workers/queue/dist
+COPY --from=builder --chown=nodejs:nodejs /app/packages ./packages
+COPY --from=builder --chown=nodejs:nodejs /app/package.json ./
+COPY --chown=nodejs:nodejs workers/queue/package.json ./workers/queue/
 
 USER nodejs
 
-# Default command - overridden by docker-compose for each service
-CMD ["npm", "start"]
+CMD ["node", "workers/queue/dist/index.js"]
+
+# ============================================================================
+# Migration/Setup Runtime
+# ============================================================================
+FROM base AS migrate
+
+# Copy dependencies
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy source and packages for migrations
+COPY --from=builder --chown=nodejs:nodejs /app/packages ./packages
+COPY --from=builder --chown=nodejs:nodejs /app/package.json ./
+
+# Install tsx for running seed script
+RUN npm install tsx
+
+USER nodejs
+
+# Default migration command
+CMD sh -c "npx prisma migrate deploy --schema=packages/db/prisma/schema.prisma && npx tsx packages/db/prisma/seed.ts"

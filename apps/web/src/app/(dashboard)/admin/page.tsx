@@ -67,6 +67,7 @@ import {
   CardHeader,
 } from "@/components/dashboard-ui";
 import { API_URL } from "@/lib/api";
+import type { AuditLog } from "@garage-os/shared-types";
 
 function buildAdminNav(
   tab: AdminTab,
@@ -290,14 +291,14 @@ const initialExpenses: ExpenseItem[] = [
   },
 ];
 
-const initialAuditLogs: AuditItem[] = [
+const initialAuditLogs: AuditLog[] = [
   {
     id: "AUD-9001",
-    user: "Moses Kato",
+    userId: "user-1",
     entityType: "work_order",
     entityId: "WO-1048",
     action: "update",
-    createdAt: "11 May 2026, 10:42",
+    createdAt: new Date("2026-05-11T10:42:00Z"),
     changes: {
       request: { status: "awaiting_parts" },
       path: "/api/v1/parts-requests",
@@ -305,11 +306,11 @@ const initialAuditLogs: AuditItem[] = [
   },
   {
     id: "AUD-9002",
-    user: "Grace Nalwanga",
+    userId: "user-2",
     entityType: "invoice",
     entityId: "INV-1849",
     action: "create",
-    createdAt: "11 May 2026, 09:15",
+    createdAt: new Date("2026-05-11T09:15:00Z"),
     changes: {
       request: { labourTotal: 180000, tax: 42300 },
       path: "/api/v1/invoices",
@@ -317,11 +318,11 @@ const initialAuditLogs: AuditItem[] = [
   },
   {
     id: "AUD-9003",
-    user: "Kiwana Admin",
+    userId: "user-3",
     entityType: "settings",
     entityId: "garage-os",
     action: "update",
-    createdAt: "10 May 2026, 17:30",
+    createdAt: new Date("2026-05-10T17:30:00Z"),
     changes: { request: { tax: { vatRate: 18 } }, path: "/api/v1/settings" },
   },
 ];
