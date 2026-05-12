@@ -1,9 +1,8 @@
 # Production Dockerfile for GarageOS
 # ─────────────────────────────────────────────────────────────────────────────
-# STRATEGY: Single builder stage installs deps and builds. All npm install
-# calls use --network=host so they reach the registry even in environments
-# where the container default network is isolated (e.g. Coolify).
-# Runtime stages copy only the built output — no network access needed there.
+# STRATEGY: Single builder stage runs npm install + npm run build.
+# Runtime stages only COPY pre-built artifacts from builder — zero network
+# calls needed after the builder stage completes.
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ============================================================================
