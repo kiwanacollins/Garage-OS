@@ -1,135 +1,105 @@
 # Production Dockerfile for GarageOS
-# Multi-stage build optimized for production deployment
+# ─────────────────────────────────────────────────────────────────────────────
+# STRATEGY: Single builder stage installs deps and builds. All npm install
+# calls use --network=host so they reach the registry even in environments
+# where the container default network is isolated (e.g. Coolify).
+# Runtime stages copy only the built output — no network access needed there.
+# ─────────────────────────────────────────────────────────────────────────────
 
 # ============================================================================
-# Base stage
+# Base — shared by all stages
 # ============================================================================
 FROM node:20-alpine AS base
 WORKDIR /app
+
 RUN apk add --no-cache libc6-compat
+
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
-# Copy entrypoint script
+# Entrypoint: generates Prisma client on first start, then execs CMD.
 COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # ============================================================================
-# Dependencies stage
-# ============================================================================
-FROM base AS deps
-
-# Copy package files for workspace setup
-COPY package*.json ./
-COPY apps/*/package.json ./apps/*/
-COPY workers/*/package.json ./workers/*/
-COPY packages/*/package.json ./packages/*/
-
-# Create empty node_modules directory (will be populated at runtime or by compose volume)
-RUN mkdir -p /app/node_modules
-
-# ============================================================================
-# Builder stage
+# Builder — installs ALL deps and compiles everything
 # ============================================================================
 FROM base AS builder
 
-# Copy package files
+# Copy package manifests first (layer-cache friendly)
 COPY package*.json ./
-COPY apps/*/package.json ./apps/*/
-COPY workers/*/package.json ./workers/*/
-COPY packages/*/package.json ./packages/*/
+COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/
+COPY workers/queue/package.json ./workers/queue/
+COPY packages/db/package.json ./packages/db/
+COPY packages/shared-types/package.json ./packages/shared-types/
+COPY packages/validation/package.json ./packages/validation/
 
-# Install all dependencies (including dev)
-RUN npm ci
+# Install with --network=host so npm can reach registry.docker.io in restricted
+# build environments (Coolify, air-gapped CI, etc.). Falls back to npm install
+# if lock file is out of sync.
+RUN --network=host npm install --prefer-offline 2>/dev/null || npm install
 
-# Copy source code
+# Copy full source
 COPY . .
 
-# Generate Prisma client
+# Generate Prisma client (no network needed, uses local schema)
 RUN npx prisma generate --schema=packages/db/prisma/schema.prisma
 
-# Build all packages and applications
+# Build all packages and apps via Turbo
 RUN npm run build
 
 # ============================================================================
-# API Runtime
+# API runtime
 # ============================================================================
 FROM base AS api
 
-# Copy dependencies from deps stage (may be empty, will be installed at runtime)
-COPY --from=deps /app/node_modules ./node_modules
-
-# Copy built API and shared packages
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/apps/api/dist ./apps/api/dist
 COPY --from=builder --chown=nodejs:nodejs /app/packages ./packages
-COPY --from=builder --chown=nodejs:nodejs /app/package.json ./
+COPY --chown=nodejs:nodejs package.json ./
 COPY --chown=nodejs:nodejs apps/api/package.json ./apps/api/
 
-# Copy package files for runtime install (if needed)
-COPY package*.json ./
-COPY apps/*/package.json ./apps/*/
-COPY workers/*/package.json ./workers/*/
-COPY packages/*/package.json ./packages/*/
-
-# Create uploads directory
 RUN mkdir -p /app/uploads && chown -R nodejs:nodejs /app/uploads
 
 USER nodejs
 EXPOSE 3001
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api/v1/health || exit 1
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "apps/api/dist/server.js"]
 
 # ============================================================================
-# Web Runtime
+# Web runtime (Next.js standalone)
 # ============================================================================
 FROM base AS web
 
-# Copy dependencies from deps stage (may be empty, will be installed at runtime)
-COPY --from=deps /app/node_modules ./node_modules
-
-# Copy built Next.js app and shared packages
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nodejs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=builder --chown=nodejs:nodejs /app/apps/web/public ./apps/web/public
 COPY --from=builder --chown=nodejs:nodejs /app/packages ./packages
 
-# Copy package files for runtime install (if needed)
-COPY package*.json ./
-COPY apps/*/package.json ./apps/*/
-COPY workers/*/package.json ./workers/*/
-COPY packages/*/package.json ./packages/*/
-
 USER nodejs
 EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "apps/web/server.js"]
 
 # ============================================================================
-# Queue Worker Runtime
+# Queue Worker runtime
 # ============================================================================
 FROM base AS queue
 
-# Copy dependencies from deps stage (may be empty, will be installed at runtime)
-COPY --from=deps /app/node_modules ./node_modules
-
-# Copy built queue worker and shared packages
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/workers/queue/dist ./workers/queue/dist
 COPY --from=builder --chown=nodejs:nodejs /app/packages ./packages
-COPY --from=builder --chown=nodejs:nodejs /app/package.json ./
+COPY --chown=nodejs:nodejs package.json ./
 COPY --chown=nodejs:nodejs workers/queue/package.json ./workers/queue/
-
-# Copy package files for runtime install (if needed)
-COPY package*.json ./
-COPY apps/*/package.json ./apps/*/
-COPY workers/*/package.json ./workers/*/
-COPY packages/*/package.json ./packages/*/
 
 USER nodejs
 
@@ -137,25 +107,15 @@ ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "workers/queue/dist/index.js"]
 
 # ============================================================================
-# Migration/Setup Runtime
+# Migrate — Prisma migrate deploy + seed
 # ============================================================================
 FROM base AS migrate
 
-# Copy dependencies (may be empty, will be installed at runtime)
-COPY --from=deps /app/node_modules ./node_modules
-
-# Copy source and packages for migrations
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/packages ./packages
-COPY --from=builder --chown=nodejs:nodejs /app/package.json ./
-
-# Copy package files for runtime install (if needed)
-COPY package*.json ./
-COPY apps/*/package.json ./apps/*/
-COPY workers/*/package.json ./workers/*/
-COPY packages/*/package.json ./packages/*/
+COPY --chown=nodejs:nodejs package.json ./
 
 USER nodejs
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-# Default migration command
-CMD sh -c "npx prisma migrate deploy --schema=packages/db/prisma/schema.prisma && npx tsx packages/db/prisma/seed.ts"
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=packages/db/prisma/schema.prisma && npx tsx packages/db/prisma/seed.ts"]
