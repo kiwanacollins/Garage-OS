@@ -794,7 +794,7 @@ p {
 
 .register-row {
   display: grid;
-  grid-template-columns: minmax(220px, 1.4fr) minmax(220px, 1.2fr) 100px 140px;
+  grid-template-columns: minmax(140px, 1.2fr) minmax(160px, 1fr) minmax(100px, 1fr) minmax(110px, 1.1fr);
   gap: 16px;
   align-items: center;
   width: 100%;
@@ -809,6 +809,7 @@ p {
   transition:
     background 160ms ease,
     box-shadow 160ms ease;
+  overflow: hidden;
 }
 
 .register-row:hover,
@@ -819,6 +820,16 @@ p {
 
 .register-row span {
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.register-row span:last-child {
+  white-space: normal;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .register-row strong,
