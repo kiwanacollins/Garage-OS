@@ -203,7 +203,7 @@ export default function JobCardsPage() {
                 >
                   <span
                     className="stat-icon-wrap stat-icon-wrap--sm"
-                    style={{ background: `${color}18`, color }}
+                    style={{ color }}
                   >
                     <Icon size={18} />
                   </span>

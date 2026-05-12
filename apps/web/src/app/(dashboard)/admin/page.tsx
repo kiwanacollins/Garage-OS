@@ -33,6 +33,19 @@ import {
   PiGauge,
   PiCarProfile,
 } from "react-icons/pi";
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import { io } from "socket.io-client";
 import {
   ChartIcon,
@@ -69,7 +82,6 @@ function buildAdminNav(
     { key: 'services',    label: 'Services',      href: '/admin', icon: MoneyIcon,       onClick: () => setTab('services') },
     { key: 'suppliers',   label: 'Suppliers',     href: '/admin', icon: PiTruck,         onClick: () => setTab('suppliers') },
     { key: 'purchases',   label: 'Purchases',     href: '/admin', icon: PiClipboardText, onClick: () => setTab('purchases') },
-    { key: 'audit',       label: 'Audit log',     href: '/admin', icon: PiMagnifyingGlass, onClick: () => setTab('audit') },
     { key: 'settings',    label: 'Settings',      href: '/admin', icon: PiGear,          onClick: () => setTab('settings') },
   ];
 }
@@ -81,7 +93,6 @@ type AdminTab =
   | "staff"
   | "services"
   | "operations"
-  | "audit"
   | "settings"
   | "suppliers"
   | "purchases";
@@ -767,43 +778,106 @@ export default function AdminDashboardPage() {
                       <Title order={2}>Revenue and expenses</Title>
                     </Group>
                     <Text c="dimmed">
-                      Net revenue includes operating expenses recorded for the
-                      selected period.
+                      Daily revenue vs operating expenses for the selected period.
                     </Text>
                   </Stack>
                   <Badge color="green">Net {money(metrics.netRevenue)}</Badge>
                 </Group>
-                <div className="bar-chart" aria-label="Revenue trend chart">
-                  {revenueTrend.map((point) => (
-                    <div className="bar-day" key={point.label}>
-                      <span className="bar-stack">
-                        <i style={{ height: `${point.revenue * 24}px` }} />
-                        <b style={{ height: `${point.expenses * 24}px` }} />
-                      </span>
-                      <small>{point.label}</small>
-                    </div>
-                  ))}
+                <div className="chart-container" aria-label="Revenue trend chart">
+                  <ResponsiveContainer width="100%" height={280}>
+                    <BarChart
+                      data={revenueTrend.map((point) => ({
+                        day: point.label,
+                        Revenue: Math.round(point.revenue * 1000000),
+                        Expenses: Math.round(point.expenses * 1000000),
+                      }))}
+                      margin={{ top: 20, right: 30, left: 60, bottom: 20 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="day" stroke="#6b7280" />
+                      <YAxis
+                        stroke="#6b7280"
+                        tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
+                      />
+                      <Tooltip
+                        formatter={(value) => money(Number(value))}
+                        contentStyle={{
+                          backgroundColor: "#fff",
+                          border: "1px solid #e5e7eb",
+                          borderRadius: "6px",
+                        }}
+                      />
+                      <Legend
+                        wrapperStyle={{ paddingTop: "16px" }}
+                        iconType="square"
+                      />
+                      <Bar dataKey="Revenue" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="Expenses" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               </Paper>
 
               <Paper className="analytics-panel">
-                <Group gap="xs">
+                <Group gap="xs" mb={16}>
                   <WorkOrderIcon size={22} />
                   <Title order={2}>Workload status</Title>
                 </Group>
-                <div className="status-bars">
-                  {[
-                    ["Assigned", 34, "garageBlue"],
-                    ["In progress", 28, "garageBlue"],
-                    ["Awaiting parts", 18, "orange"],
-                    ["Quality check", 20, "green"],
-                  ].map(([label, width, color]) => (
-                    <div className="status-bar-row" key={label}>
-                      <span>{label}</span>
-                      <strong>{width}%</strong>
-                      <i style={{ width: `${width}%` }} data-color={color} />
-                    </div>
-                  ))}
+                <div className="chart-container" aria-label="Workload distribution">
+                  <ResponsiveContainer width="100%" height={240}>
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: "Assigned", value: 34, count: Math.round(34 * metrics.open / 100) },
+                          { name: "In progress", value: 28, count: Math.round(28 * metrics.open / 100) },
+                          { name: "Awaiting parts", value: 18, count: Math.round(18 * metrics.open / 100) },
+                          { name: "Quality check", value: 20, count: Math.round(20 * metrics.open / 100) },
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={90}
+                        paddingAngle={2}
+                        dataKey="value"
+                      >
+                        <Cell fill="#2563eb" />
+                        <Cell fill="#7c3aed" />
+                        <Cell fill="#f59e0b" />
+                        <Cell fill="#16a34a" />
+                      </Pie>
+                      <Tooltip
+                        formatter={(value, name, props) =>
+                          name === "value"
+                            ? `${value}%`
+                            : `${props.payload.count} jobs`
+                        }
+                        contentStyle={{
+                          backgroundColor: "#fff",
+                          border: "1px solid #e5e7eb",
+                          borderRadius: "6px",
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="workload-legend">
+                    {(
+                      [
+                        ["Assigned", 34, "#2563eb"] as const,
+                        ["In progress", 28, "#7c3aed"] as const,
+                        ["Awaiting parts", 18, "#f59e0b"] as const,
+                        ["Quality check", 20, "#16a34a"] as const,
+                      ] as const
+                    ).map(([label, width, color]) => (
+                      <div className="legend-item" key={label}>
+                        <span
+                          className="legend-dot"
+                          style={{ backgroundColor: color }}
+                        />
+                        <span className="legend-label">{label}</span>
+                        <span className="legend-value">{width}%</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </Paper>
             </section>

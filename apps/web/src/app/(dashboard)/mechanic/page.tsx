@@ -219,7 +219,7 @@ export default function MechanicOverviewPage() {
             >
               <span
                 className="stat-icon-wrap"
-                style={{ background: `${color}18`, color }}
+                style={{ color, background: 'transparent' }}
               >
                 <Icon size={22} />
               </span>
