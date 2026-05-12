@@ -965,7 +965,7 @@ p {
   grid-template-columns: 1fr auto;
   gap: 10px 14px;
   padding: 13px 0;
-  border-top: 1px solid var(--line);
+  border-top: none;
 }
 
 .vehicle-button {
