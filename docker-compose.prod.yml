@@ -62,6 +62,8 @@ services:
       target: migrate
     environment:
       <<: *common-env
+    volumes:
+      - garage_os_node_modules_cache:/app/node_modules
     depends_on:
       postgres:
         condition: service_healthy
@@ -95,6 +97,7 @@ services:
     ports:
       - "${API_PORT:-3001}:${API_PORT:-3001}"
     volumes:
+      - garage_os_node_modules_cache:/app/node_modules
       - uploads_data:/app/uploads
 # Uses CMD from Dockerfile - node apps/api/dist/server.js
     depends_on:
@@ -127,6 +130,8 @@ services:
       PORT: 3000
     ports:
       - "3000:3000"
+    volumes:
+      - garage_os_node_modules_cache:/app/node_modules
 # Uses CMD from Dockerfile - node apps/web/server.js
     depends_on:
       - api
@@ -151,6 +156,8 @@ services:
     container_name: garageos-queue-worker
     environment:
       <<: *common-env
+    volumes:
+      - garage_os_node_modules_cache:/app/node_modules
 # Uses CMD from Dockerfile - node workers/queue/dist/index.js
     depends_on:
       postgres:
@@ -166,6 +173,7 @@ services:
 volumes:
   postgres_data:
   uploads_data:
+  garage_os_node_modules_cache:
 
 networks:
   garageos-network:

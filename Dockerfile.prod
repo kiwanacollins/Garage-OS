@@ -9,6 +9,10 @@ WORKDIR /app
 RUN apk add --no-cache libc6-compat
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
+# Copy entrypoint script
+COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # ============================================================================
 # Dependencies stage
 # ============================================================================
@@ -20,8 +24,8 @@ COPY apps/*/package.json ./apps/*/
 COPY workers/*/package.json ./workers/*/
 COPY packages/*/package.json ./packages/*/
 
-# Install only production dependencies
-RUN npm ci --omit=dev
+# Create empty node_modules directory (will be populated at runtime or by compose volume)
+RUN mkdir -p /app/node_modules
 
 # ============================================================================
 # Builder stage
@@ -51,7 +55,7 @@ RUN npm run build
 # ============================================================================
 FROM base AS api
 
-# Copy dependencies from deps stage
+# Copy dependencies from deps stage (may be empty, will be installed at runtime)
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copy built API and shared packages
@@ -59,6 +63,12 @@ COPY --from=builder --chown=nodejs:nodejs /app/apps/api/dist ./apps/api/dist
 COPY --from=builder --chown=nodejs:nodejs /app/packages ./packages
 COPY --from=builder --chown=nodejs:nodejs /app/package.json ./
 COPY --chown=nodejs:nodejs apps/api/package.json ./apps/api/
+
+# Copy package files for runtime install (if needed)
+COPY package*.json ./
+COPY apps/*/package.json ./apps/*/
+COPY workers/*/package.json ./workers/*/
+COPY packages/*/package.json ./packages/*/
 
 # Create uploads directory
 RUN mkdir -p /app/uploads && chown -R nodejs:nodejs /app/uploads
@@ -69,6 +79,7 @@ EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api/v1/health || exit 1
 
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "apps/api/dist/server.js"]
 
 # ============================================================================
@@ -76,7 +87,7 @@ CMD ["node", "apps/api/dist/server.js"]
 # ============================================================================
 FROM base AS web
 
-# Copy dependencies from deps stage
+# Copy dependencies from deps stage (may be empty, will be installed at runtime)
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copy built Next.js app and shared packages
@@ -85,12 +96,19 @@ COPY --from=builder --chown=nodejs:nodejs /app/apps/web/.next/static ./apps/web/
 COPY --from=builder --chown=nodejs:nodejs /app/apps/web/public ./apps/web/public
 COPY --from=builder --chown=nodejs:nodejs /app/packages ./packages
 
+# Copy package files for runtime install (if needed)
+COPY package*.json ./
+COPY apps/*/package.json ./apps/*/
+COPY workers/*/package.json ./workers/*/
+COPY packages/*/package.json ./packages/*/
+
 USER nodejs
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
 
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "apps/web/server.js"]
 
 # ============================================================================
@@ -98,7 +116,7 @@ CMD ["node", "apps/web/server.js"]
 # ============================================================================
 FROM base AS queue
 
-# Copy dependencies from deps stage
+# Copy dependencies from deps stage (may be empty, will be installed at runtime)
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copy built queue worker and shared packages
@@ -107,8 +125,15 @@ COPY --from=builder --chown=nodejs:nodejs /app/packages ./packages
 COPY --from=builder --chown=nodejs:nodejs /app/package.json ./
 COPY --chown=nodejs:nodejs workers/queue/package.json ./workers/queue/
 
+# Copy package files for runtime install (if needed)
+COPY package*.json ./
+COPY apps/*/package.json ./apps/*/
+COPY workers/*/package.json ./workers/*/
+COPY packages/*/package.json ./packages/*/
+
 USER nodejs
 
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "workers/queue/dist/index.js"]
 
 # ============================================================================
@@ -116,17 +141,21 @@ CMD ["node", "workers/queue/dist/index.js"]
 # ============================================================================
 FROM base AS migrate
 
-# Copy dependencies
+# Copy dependencies (may be empty, will be installed at runtime)
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copy source and packages for migrations
 COPY --from=builder --chown=nodejs:nodejs /app/packages ./packages
 COPY --from=builder --chown=nodejs:nodejs /app/package.json ./
 
-# Install tsx for running seed script
-RUN npm install tsx
+# Copy package files for runtime install (if needed)
+COPY package*.json ./
+COPY apps/*/package.json ./apps/*/
+COPY workers/*/package.json ./workers/*/
+COPY packages/*/package.json ./packages/*/
 
 USER nodejs
 
+ENTRYPOINT ["docker-entrypoint.sh"]
 # Default migration command
 CMD sh -c "npx prisma migrate deploy --schema=packages/db/prisma/schema.prisma && npx tsx packages/db/prisma/seed.ts"
