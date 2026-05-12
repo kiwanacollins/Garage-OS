@@ -1295,15 +1295,15 @@ p {
 .garage-role-badge {
   display: inline-block;
   width: max-content;
-  padding: 4px 10px;
-  color: #93C5FD;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  padding: 4px 12px;
+  color: var(--ink);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  background: rgb(37 99 235 / 0.12);
-  border: 1px solid rgb(37 99 235 / 0.2);
-  border-radius: 999px;
+  border-radius: 8px;
+  background: var(--line-subtle);
+  border: 1px solid var(--line);
 }
 
 .garage-nav {
