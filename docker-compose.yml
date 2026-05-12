@@ -1,68 +1,102 @@
+# Production Docker Compose for Coolify deployment
+# Build all services on the host first: npm run build
+# Then deploy with: docker-compose -f docker-compose.prod.yml up -d
+
+x-common-env: &common-env
+  NODE_ENV: production
+  DATABASE_URL: postgresql://${POSTGRES_USER:-garageos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-garageos}
+  REDIS_URL: "redis://${REDIS_PASSWORD:+:${REDIS_PASSWORD}@}redis:6379"
+  JWT_SECRET: ${JWT_SECRET}
+  JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+  SMTP_URL: ${SMTP_URL}
+  MAIL_FROM: ${MAIL_FROM}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: garageos-postgres
     environment:
-      POSTGRES_USER: garageos
-      POSTGRES_PASSWORD: garageos_dev
-      POSTGRES_DB: garageos
-    ports:
-      - '5432:5432'
+      POSTGRES_USER: ${POSTGRES_USER:-garageos}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-garageos}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U garageos']
-      interval: 5s
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-garageos}']
+      interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - garageos-network
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
-    container_name: garageos-redis
-    ports:
-      - '6379:6379'
+    command: >
+      sh -c "if [ -n '${REDIS_PASSWORD:-}' ]; then
+               redis-server --requirepass '${REDIS_PASSWORD}';
+             else
+               redis-server;
+             fi"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 5s
+      test: >
+        sh -c "if [ -n '${REDIS_PASSWORD:-}' ]; then
+                 redis-cli --no-auth-warning -a '${REDIS_PASSWORD}' ping;
+               else
+                 redis-cli ping;
+               fi"
+      interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - garageos-network
+    restart: unless-stopped
 
-  mailhog:
-    image: mailhog/mailhog:latest
-    container_name: garageos-mailhog
-    ports:
-      - '1025:1025'   # SMTP
-      - '8025:8025'   # Web UI
+  # ── Database Setup (migrations + seed) ────────────────────────────────────
+  setup:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+      target: migrate
+    environment:
+      <<: *common-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - garageos-network
+    restart: "no"
 
+  # ── API ───────────────────────────────────────────────────────────────────
   api:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile
+      dockerfile: Dockerfile.prod
+      target: api
     container_name: garageos-api
     environment:
-      - NODE_ENV=development
-      - PORT=3001
-      - HOST=0.0.0.0
-      - DATABASE_URL=postgresql://garageos:garageos_dev@postgres:5432/garageos
-      - REDIS_URL=redis://redis:6379
-      - SMTP_URL=smtp://mailhog:1025
-      - JWT_SECRET=dev_jwt_secret_change_in_production
-      - JWT_REFRESH_SECRET=dev_jwt_refresh_secret_change_in_production
-      - CORS_ORIGIN=http://localhost:3000
-      - UPLOAD_STORAGE_DIR=/app/uploads
-      - UPLOAD_MAX_BYTES=10485760
-      - UPLOAD_PUBLIC_BASE_URL=http://localhost:3001/uploads
-      - MAIL_FROM=GarageOS <no-reply@garageos.local>
+      <<: *common-env
+      PORT: ${API_PORT:-3001}
+      HOST: 0.0.0.0
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      UPLOAD_STORAGE_DIR: /app/uploads
+      UPLOAD_MAX_BYTES: ${UPLOAD_MAX_BYTES:-10485760}
+      UPLOAD_PUBLIC_BASE_URL: ${UPLOAD_PUBLIC_BASE_URL}
+      # PesaPal configuration
+      PESAPAL_BASE_URL: ${PESAPAL_BASE_URL}
+      PESAPAL_CONSUMER_KEY: ${PESAPAL_CONSUMER_KEY}
+      PESAPAL_CONSUMER_SECRET: ${PESAPAL_CONSUMER_SECRET}
+      PESAPAL_CALLBACK_URL: ${PESAPAL_CALLBACK_URL}
+      PESAPAL_NOTIFICATION_ID: ${PESAPAL_NOTIFICATION_ID}
     ports:
-      - '3001:3001'
+      - "${API_PORT:-3001}:${API_PORT:-3001}"
     volumes:
-      - ./uploads:/app/uploads
+      - uploads_data:/app/uploads
+# Uses CMD from Dockerfile - node apps/api/dist/server.js
     depends_on:
       postgres:
         condition: service_healthy
@@ -71,34 +105,53 @@ services:
     networks:
       - garageos-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${API_PORT:-3001}/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "coolify.managed=true"
 
+  # ── Web (Next.js) ────────────────────────────────────────────────────────
   web:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
+      dockerfile: Dockerfile.prod
+      target: web
     container_name: garageos-web
     environment:
-      - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://localhost:3001
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      PORT: 3000
     ports:
-      - '3000:3000'
+      - "3000:3000"
+# Uses CMD from Dockerfile - node apps/web/server.js
     depends_on:
       - api
     networks:
       - garageos-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "coolify.managed=true"
 
+  # ── Queue Worker ──────────────────────────────────────────────────────────
   queue-worker:
     build:
       context: .
-      dockerfile: workers/queue/Dockerfile
+      dockerfile: Dockerfile.prod
+      target: queue
     container_name: garageos-queue-worker
     environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://garageos:garageos_dev@postgres:5432/garageos
-      - REDIS_URL=redis://redis:6379
-      - SMTP_URL=smtp://mailhog:1025
-      - MAIL_FROM=GarageOS <no-reply@garageos.local>
+      <<: *common-env
+# Uses CMD from Dockerfile - node workers/queue/dist/index.js
     depends_on:
       postgres:
         condition: service_healthy
@@ -107,9 +160,12 @@ services:
     networks:
       - garageos-network
     restart: unless-stopped
+    labels:
+      - "coolify.managed=true"
 
 volumes:
   postgres_data:
+  uploads_data:
 
 networks:
   garageos-network:
