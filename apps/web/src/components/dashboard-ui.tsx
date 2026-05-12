@@ -17,7 +17,7 @@ export type StatCardProps = {
 export function StatCard({ icon: Icon, value, label, helper, color = '#2563EB' }: StatCardProps) {
   return (
     <div className="ds-stat-card">
-      <div className="ds-stat-icon" style={{ background: `${color}10`, color }}>
+      <div className="ds-stat-icon" style={{ background: color, color: '#fff' }}>
         <Icon size={22} />
       </div>
       <div className="ds-stat-body">
@@ -191,7 +191,7 @@ export type ContextCardProps = {
 export function ContextCard({ icon: Icon, label, value, helper, color = '#64748B' }: ContextCardProps) {
   return (
     <div className="ds-context-card">
-      <div className="ds-context-icon" style={{ background: `${color}12`, color }}>
+      <div className="ds-context-icon" style={{ background: color, color: '#fff' }}>
         <Icon size={20} />
       </div>
       <div className="ds-context-body">
@@ -230,7 +230,7 @@ export function KpiTile({ label, value, helper, icon: Icon, accentColor = '#2563
     <div className="ds-kpi-tile">
       <div className="ds-kpi-top">
         {Icon && (
-          <div className="ds-kpi-icon" style={{ background: `${accentColor}10`, color: accentColor }}>
+          <div className="ds-kpi-icon" style={{ background: accentColor, color: '#fff' }}>
             <Icon size={18} />
           </div>
         )}
