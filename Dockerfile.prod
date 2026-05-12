@@ -25,8 +25,9 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 # ============================================================================
 FROM base AS builder
 
-# Copy package manifests first (layer-cache friendly)
+# Copy package manifests and npm config first (layer-cache friendly)
 COPY package*.json ./
+COPY .npmrc* ./
 COPY apps/api/package.json ./apps/api/
 COPY apps/web/package.json ./apps/web/
 COPY workers/queue/package.json ./workers/queue/
@@ -34,9 +35,8 @@ COPY packages/db/package.json ./packages/db/
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/validation/package.json ./packages/validation/
 
-# --network=host lets npm reach registry.npmjs.org in restricted build
-# environments where the container's default network is isolated (Coolify, etc.)
-RUN --network=host npm install
+# Use npm install (not npm ci) — workspace packages may not be in lock file
+RUN npm install
 
 # Copy full source
 COPY . .
