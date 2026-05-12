@@ -14,11 +14,15 @@ import "@mantine/dates/styles.css";
 import "@mantine/notifications/styles.css";
 import "@mantine/dropzone/styles.css";
 import "./globals.css";
+import { BRAND_NAME, LOGO_PATHS } from "@/lib/branding";
 
 export const metadata: Metadata = {
-  title: "GarageOS",
-  description: "Garage operations platform",
+  title: BRAND_NAME,
+  description: "Professional garage management system",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: LOGO_PATHS.favicon,
+  },
 };
 
 export default function RootLayout({
@@ -29,20 +33,22 @@ export default function RootLayout({
   return (
     <html lang="en" {...mantineHtmlProps}>
       <head>
-        <ColorSchemeScript defaultColorScheme="light" />
+        <ColorSchemeScript />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"
           rel="stylesheet"
         />
       </head>
       <body>
-        <MantineProvider theme={garageTheme} defaultColorScheme="light">
+        <MantineProvider theme={garageTheme}>
           <ModalsProvider>
-            <Notifications position="top-right" />
+            <Notifications />
+            <AuthProvider>
+              {children}
+            </AuthProvider>
             <PwaRegister />
-            <AuthProvider>{children}</AuthProvider>
           </ModalsProvider>
         </MantineProvider>
       </body>

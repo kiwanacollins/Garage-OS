@@ -1246,12 +1246,13 @@ p {
 
 .garage-brand-wrap {
   display: grid;
-  gap: 6px;
-  padding: 26px 20px 18px;
+  gap: 8px;
+  padding: 20px 16px 16px;
   border-bottom: 1px solid #1E293B;
 }
 
 .garage-brand {
+  display: block;
   color: #fff;
   font-family: var(--font);
   font-size: 1.4rem;
@@ -1259,6 +1260,29 @@ p {
   letter-spacing: -0.02em;
   line-height: 1;
   text-decoration: none;
+}
+
+.garage-brand img {
+  max-width: 100%;
+  height: auto;
+  filter: brightness(0) invert(1);
+}
+
+/* Logo responsive adjustments */
+@media (max-width: 768px) {
+  .garage-brand img {
+    width: 100px;
+    height: auto;
+  }
+}
+
+/* Auth page logo styling */
+.mantine-Center-root img {
+  transition: opacity 150ms ease;
+}
+
+.mantine-Center-root img:hover {
+  opacity: 0.9;
 }
 
 .garage-role-badge {

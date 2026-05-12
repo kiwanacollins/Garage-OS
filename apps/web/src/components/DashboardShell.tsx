@@ -2,8 +2,10 @@
 
 import { useEffect, useState, type ElementType, type ReactNode } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { ActionIcon, Badge, Button, Group, Kbd, Menu, Stack, Text, TextInput, Title } from '@mantine/core';
+import { BRAND_ALT_TEXT, LOGO_PATHS, LOGO_DIMENSIONS } from '@/lib/branding';
 import {
   PiBell,
   PiCarProfile,
@@ -128,7 +130,13 @@ export function DashboardShell({
       <aside className="garage-sidebar" aria-label="GarageOS navigation">
         <div className="garage-brand-wrap">
           <Link className="garage-brand" href={brandHref}>
-            GarageOS
+            <Image
+              src={LOGO_PATHS.small}
+              alt={BRAND_ALT_TEXT}
+              width={LOGO_DIMENSIONS.small.width}
+              height={LOGO_DIMENSIONS.small.height}
+              priority
+            />
           </Link>
           <span className="garage-role-badge">{role}</span>
         </div>

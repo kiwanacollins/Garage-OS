@@ -1,6 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="GarageOS">
-  <rect width="64" height="64" rx="14" fill="#3857A3"/>
-  <path d="M17 40h30l-3-12a6 6 0 0 0-5.8-4.5H25.8A6 6 0 0 0 20 28l-3 12Z" fill="#fff"/>
-  <path d="M23 40a5 5 0 1 0 10 0 5 5 0 0 0-10 0Zm17 0a5 5 0 1 0 10 0 5 5 0 0 0-10 0Z" fill="#111318"/>
-  <path d="M25 28h14l1.8 6H23.2L25 28Z" fill="#DCE7FF"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="German Car Medic">
+  <rect width="64" height="64" rx="12" fill="#2563EB"/>
+  <!-- Simplified car silhouette -->
+  <path d="M14 38h36l-2.5-10c-.5-2-2.2-3.5-4.3-3.5H20.8c-2.1 0-3.8 1.5-4.3 3.5L14 38Z" fill="#fff"/>
+  <!-- Wheels -->
+  <circle cx="22" cy="42" r="4" fill="#1e293b"/>
+  <circle cx="42" cy="42" r="4" fill="#1e293b"/>
+  <circle cx="22" cy="42" r="2" fill="#64748b"/>
+  <circle cx="42" cy="42" r="2" fill="#64748b"/>
+  <!-- Medical cross symbol -->
+  <path d="M31 18h2v8h-2v-8Z" fill="#fff"/>
+  <path d="M28 21h6v2h-6v-2Z" fill="#fff"/>
 </svg>

@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button, Center, Paper, Stack, Text, Title } from '@mantine/core';
 import { PiLockKey } from 'react-icons/pi';
 import { useAuth } from '@/components/AuthProvider';
 import { getRoleRoute } from '@/lib/role-route';
+import { BRAND_ALT_TEXT, LOGO_PATHS, LOGO_DIMENSIONS } from '@/lib/branding';
 
 export default function UnauthorizedPage() {
   const { user } = useAuth();
@@ -14,6 +16,12 @@ export default function UnauthorizedPage() {
     <Center component="main" mih="100vh" p="md">
       <Paper w="min(480px, 100%)" p="xl" shadow="sm">
         <Stack align="center" gap="md">
+          <Image
+            src={LOGO_PATHS.medium}
+            alt={BRAND_ALT_TEXT}
+            width={LOGO_DIMENSIONS.medium.width}
+            height={LOGO_DIMENSIONS.medium.height}
+          />
           <PiLockKey size={48} aria-hidden />
           <Title order={2} ta="center">
             Access denied
