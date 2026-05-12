@@ -19,9 +19,17 @@
     "db:migrate": "npm run migrate --workspace=@garage-os/db",
     "db:seed": "npm run seed --workspace=@garage-os/db",
     "db:studio": "npm run studio --workspace=@garage-os/db",
-    "infra:up": "docker compose up -d",
-    "infra:down": "docker compose down",
-    "setup": "npm run infra:up && sleep 3 && npm run db:migrate && npm run db:seed"
+    "infra:up": "docker-compose up -d",
+    "infra:down": "docker-compose down",
+    "setup": "npm run infra:up && sleep 3 && npm run db:migrate && npm run db:seed",
+    "docker:dev": "./scripts/docker-dev.sh",
+    "docker:dev:simple": "./scripts/docker-dev-simple.sh",
+    "docker:infra": "./scripts/docker-infra-only.sh",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:clean": "docker-compose down -v --remove-orphans && docker system prune -f"
   },
   "devDependencies": {
     "postcss": "^8.5.14",

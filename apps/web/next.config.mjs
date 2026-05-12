@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@garage-os/shared-types', '@garage-os/validation'],
+  output: 'standalone',
   experimental: {
     optimizePackageImports: [
       '@mantine/core',

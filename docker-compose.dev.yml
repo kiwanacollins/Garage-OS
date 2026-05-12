@@ -1,4 +1,6 @@
+# Development Docker Compose - Single build, multiple containers
 services:
+  # Infrastructure services
   postgres:
     image: postgres:16-alpine
     container_name: garageos-postgres
@@ -35,16 +37,17 @@ services:
     image: mailhog/mailhog:latest
     container_name: garageos-mailhog
     ports:
-      - '1025:1025'   # SMTP
-      - '8025:8025'   # Web UI
+      - '1025:1025'
+      - '8025:8025'
     networks:
       - garageos-network
 
-  api:
+  # Application services
+  app:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile
-    container_name: garageos-api
+      dockerfile: Dockerfile.single
+    container_name: garageos-app
     environment:
       - NODE_ENV=development
       - PORT=3001
@@ -59,10 +62,14 @@ services:
       - UPLOAD_MAX_BYTES=10485760
       - UPLOAD_PUBLIC_BASE_URL=http://localhost:3001/uploads
       - MAIL_FROM=GarageOS <no-reply@garageos.local>
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./uploads:/app/uploads
     ports:
       - '3001:3001'
-    volumes:
-      - ./uploads:/app/uploads
+    command: npm run dev --workspace=@garage-os/api
     depends_on:
       postgres:
         condition: service_healthy
@@ -75,35 +82,19 @@ services:
   web:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
+      dockerfile: Dockerfile.single
     container_name: garageos-web
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:3001
+    volumes:
+      - .:/app
+      - /app/node_modules
     ports:
       - '3000:3000'
+    command: npm run dev --workspace=@garage-os/web
     depends_on:
-      - api
-    networks:
-      - garageos-network
-    restart: unless-stopped
-
-  queue-worker:
-    build:
-      context: .
-      dockerfile: workers/queue/Dockerfile
-    container_name: garageos-queue-worker
-    environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://garageos:garageos_dev@postgres:5432/garageos
-      - REDIS_URL=redis://redis:6379
-      - SMTP_URL=smtp://mailhog:1025
-      - MAIL_FROM=GarageOS <no-reply@garageos.local>
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - app
     networks:
       - garageos-network
     restart: unless-stopped

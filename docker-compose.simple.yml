@@ -1,0 +1,51 @@
+# Simplified Docker Compose for local development
+# This version uses individual Dockerfiles for each service for better debugging
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: garageos-postgres
+    environment:
+      POSTGRES_USER: garageos
+      POSTGRES_PASSWORD: garageos_dev
+      POSTGRES_DB: garageos
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U garageos']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - garageos-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: garageos-redis
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - garageos-network
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: garageos-mailhog
+    ports:
+      - '1025:1025'   # SMTP
+      - '8025:8025'   # Web UI
+    networks:
+      - garageos-network
+
+volumes:
+  postgres_data:
+
+networks:
+  garageos-network:
+    driver: bridge
