@@ -22,11 +22,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER:-garageos} -d $${POSTGRES_DB:-garageos}']
+      test: ['CMD', 'pg_isready', '-U', 'garageos', '-d', 'garageos']
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 15
+      start_period: 60s
     networks:
       - garageos-network
     restart: unless-stopped
