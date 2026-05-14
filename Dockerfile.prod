@@ -79,6 +79,8 @@ COPY --from=builder --chown=nodejs:nodejs /app/apps/web/.next/static ./apps/web/
 COPY --from=builder --chown=nodejs:nodejs /app/apps/web/public ./apps/web/public
 COPY --from=builder --chown=nodejs:nodejs /app/packages ./packages
 
+ENV HOSTNAME=0.0.0.0
+
 USER nodejs
 EXPOSE 3000
 
