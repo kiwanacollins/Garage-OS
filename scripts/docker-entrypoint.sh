@@ -10,8 +10,12 @@ fi
 
 # Ensure Prisma Client is generated (safe to re-run, very fast if already done)
 if [ -f /app/packages/db/prisma/schema.prisma ]; then
-  echo "🔧 Generating Prisma client..."
-  npx prisma generate --schema=packages/db/prisma/schema.prisma --no-hints 2>&1 | grep -v "^npm" || true
+  if [ -w /app/node_modules/.prisma ] || [ -w /app/node_modules ]; then
+    echo "🔧 Generating Prisma client..."
+    npx prisma generate --schema=packages/db/prisma/schema.prisma --no-hints 2>&1 | grep -v "^npm" || true
+  else
+    echo "ℹ️ Skipping Prisma client generation (runtime node_modules is read-only)."
+  fi
 fi
 
 echo "🚀 Starting: $@"
