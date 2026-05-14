@@ -4,8 +4,8 @@
 
 x-common-env: &common-env
   NODE_ENV: production
-  DATABASE_URL: postgresql://${POSTGRES_USER:-garageos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-garageos}
-  REDIS_URL: "redis://${REDIS_PASSWORD:+:${REDIS_PASSWORD}@}redis:6379"
+  DATABASE_URL: postgresql://${POSTGRES_USER:-garageos}:${POSTGRES_PASSWORD}@garageos-postgres:5432/${POSTGRES_DB:-garageos}
+  REDIS_URL: "redis://${REDIS_PASSWORD:+:${REDIS_PASSWORD}@}garageos-redis:6379"
   JWT_SECRET: ${JWT_SECRET}
   JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
   SMTP_URL: ${SMTP_URL}
@@ -28,7 +28,9 @@ services:
       retries: 15
       start_period: 60s
     networks:
-      - garageos-network
+      garageos-network:
+        aliases:
+          - garageos-postgres
     restart: unless-stopped
 
   redis:
@@ -43,7 +45,9 @@ services:
       retries: 10
       start_period: 20s
     networks:
-      - garageos-network
+      garageos-network:
+        aliases:
+          - garageos-redis
     restart: unless-stopped
 
   # ── Database Setup (migrations + seed) ────────────────────────────────────
