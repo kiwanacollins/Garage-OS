@@ -2,9 +2,15 @@ import fp from 'fastify-plugin';
 import { Server as SocketIOServer } from 'socket.io';
 
 export const realtimePlugin = fp(async (app) => {
+  const corsOrigin = process.env.CORS_ORIGIN?.trim();
+  const resolvedCorsOrigin =
+    corsOrigin && corsOrigin.length > 0
+      ? corsOrigin.split(',').map((origin) => origin.trim())
+      : 'http://localhost:3000';
+
   const io = new SocketIOServer(app.server, {
     cors: {
-      origin: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
+      origin: resolvedCorsOrigin,
       credentials: true,
     },
   });

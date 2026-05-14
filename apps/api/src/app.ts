@@ -72,9 +72,15 @@ export async function buildApp(dependencies: AppDependencies = {}) {
     },
   });
 
+  const corsOrigin = process.env.CORS_ORIGIN?.trim();
+  const resolvedCorsOrigin =
+    corsOrigin && corsOrigin.length > 0
+      ? corsOrigin.split(",").map((origin) => origin.trim())
+      : "http://localhost:3000";
+
   // ── Plugins ──────────────────────────────────────────────────────────────
   await app.register(cors, {
-    origin: process.env.CORS_ORIGIN ?? "http://localhost:3000",
+    origin: resolvedCorsOrigin,
     credentials: true,
   });
 
