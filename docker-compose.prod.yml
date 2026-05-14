@@ -95,6 +95,7 @@ services:
         condition: service_healthy
     networks:
       - garageos-network
+      - coolify
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:${API_PORT:-3001}/api/v1/health"]
@@ -104,6 +105,7 @@ services:
       start_period: 40s
     labels:
       - "coolify.managed=true"
+      - "traefik.docker.network=coolify"
 
   # ── Web (Next.js) ────────────────────────────────────────────────────────
   web:
@@ -123,6 +125,7 @@ services:
       - api
     networks:
       - garageos-network
+      - coolify
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000"]
@@ -132,6 +135,7 @@ services:
       start_period: 40s
     labels:
       - "coolify.managed=true"
+      - "traefik.docker.network=coolify"
 
   # ── Queue Worker ──────────────────────────────────────────────────────────
   queue-worker:
@@ -160,3 +164,6 @@ volumes:
 networks:
   garageos-network:
     driver: bridge
+  coolify:
+    external: true
+    name: coolify
