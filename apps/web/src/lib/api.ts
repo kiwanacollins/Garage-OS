@@ -1,4 +1,13 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() ?? '';
+const isHttpsPage =
+  typeof window !== 'undefined' && window.location.protocol === 'https:';
+const shouldUseRelativeApi =
+  configuredApiUrl.length === 0 ||
+  (isHttpsPage && configuredApiUrl.startsWith('http://'));
+
+export const API_URL = shouldUseRelativeApi
+  ? ''
+  : configuredApiUrl.replace(/\/+$/, '');
 
 export type AuthUser = {
   id: string;
