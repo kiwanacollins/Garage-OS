@@ -1,157 +1,181 @@
-Frontend Skill
-Use this skill when the quality of the work depends on art direction, hierarchy, restraint, imagery, and motion rather than component count.
+# GarageOS — Agent & Copilot Instructions
 
-Goal: ship interfaces that feel deliberate, premium, and current. Default toward award-level composition: one big idea, strong imagery, sparse copy, rigorous spacing, and a small number of memorable motions.
+Use these rules whenever building or modifying code in this repository. They apply to Claude Code, GitHub Copilot, and any other AI agent working in this codebase.
 
-Working Model
-Before building, write three things:
+---
 
-visual thesis: one sentence describing mood, material, and energy
-content plan: hero, support, detail, final CTA
-interaction thesis: 2-3 motion ideas that change the feel of the page
-Each section gets one job, one dominant visual idea, and one primary takeaway or action.
+## System Overview
 
-Beautiful Defaults
-Start with composition, not components.
-Prefer a full-bleed hero or full-canvas visual anchor.
-Make the brand or product name the loudest text.
-Keep copy short enough to scan in seconds.
-Use whitespace, alignment, scale, cropping, and contrast before adding chrome.
-Limit the system: two typefaces max, one accent color by default.
-Default to cardless layouts. Use sections, columns, dividers, lists, and media blocks instead.
-Treat the first viewport as a poster, not a document.
-Landing Pages
-Default sequence:
+GarageOS is a role-based garage management system. **Three roles only:**
 
-Hero: brand or product, promise, CTA, and one dominant visual
-Support: one concrete feature, offer, or proof point
-Detail: atmosphere, workflow, product depth, or story
-Final CTA: convert, start, visit, or contact
-Hero rules:
+| Role | Responsibility |
+|------|---------------|
+| `front_desk` | Registers customers, enters findings, drives every job stage, invoices, records payment, schedules reminders |
+| `customer` | Self-service portal — tracks job, views report/footage, downloads invoices, submits reviews |
+| `admin` | Full oversight — staff, operations, finance, inventory, settings |
 
-One composition only.
-Full-bleed image or dominant visual plane.
-Canonical full-bleed rule: on branded landing pages, the hero itself must run edge-to-edge with no inherited page gutters, framed container, or shared max-width; constrain only the inner text/action column.
-Brand first, headline second, body third, CTA fourth.
-No hero cards, stat strips, logo clouds, pill soup, or floating dashboards by default.
-Keep headlines to roughly 2-3 lines on desktop and readable in one glance on mobile.
-Keep the text column narrow and anchored to a calm area of the image.
-All text over imagery must maintain strong contrast and clear tap targets.
-If the first viewport still works after removing the image, the image is too weak. If the brand disappears after hiding the nav, the hierarchy is too weak.
+> **Mechanics have no system accounts.** All mechanic findings are entered by front desk on their behalf. Do not build or reference a mechanic role, mechanic dashboard, or mechanic-specific routes.
 
-Viewport budget:
+---
 
-If the first screen includes a sticky/fixed header, that header counts against the hero. The combined header + hero content must fit within the initial viewport at common desktop and mobile sizes.
-When using 100vh/100svh heroes, subtract persistent UI chrome (calc(100svh - header-height)) or overlay the header instead of stacking it in normal flow.
-Apps
-Default to Linear-style restraint:
+## Job Status Machine
 
-calm surface hierarchy
-strong typography and spacing
-few colors
-dense but readable information
-minimal chrome
-cards only when the card is the interaction
-For app UI, organize around:
+Jobs move through exactly these statuses. Enforce server-side via `canTransition()`:
 
-primary workspace
-navigation
-secondary context or inspector
-one clear accent for action or state
-Avoid:
+```
+registered → awaiting_approval → in_repair ⇄ quality_check → ready_for_pickup → completed
+```
 
-dashboard-card mosaics
-thick borders on every region
-decorative gradients behind routine product UI
-multiple competing accent colors
-ornamental icons that do not improve scanning
-If a panel can become plain layout without losing meaning, remove the card treatment.
+- QC **failed** loops `quality_check → in_repair`.
+- **Cancel** only from `awaiting_approval` → `cancelled`.
+- Terminals: `completed`, `cancelled`.
+- Status history must be logged on every transition (audit trail).
 
-UI Framework Rule
-For GarageOS app UI, use Mantine as the first-choice UI framework. Prefer Mantine components for dashboards, forms, tables, tabs, segmented controls, badges, modals/drawers, notifications, date inputs, dropzones, and layout primitives before writing custom controls. Map GarageOS brand tokens into the Mantine theme and keep custom CSS limited to workflow-specific composition, dense layout, selected-row affordances, and responsive polish. Do not introduce another UI framework unless the user explicitly requests it or Mantine cannot reasonably handle the requirement.
+---
 
-Icon Rule
-Use `react-icons` as the default icon library for GarageOS React UI. Prefer Phosphor icons from `react-icons/pi` for vehicles, work orders, invoices, payments, scheduling, status, and navigation. Do not add or use Lucide React for new UI. Icons should improve scanning or communicate an action/state; avoid ornamental icons.
+## Tech Stack
 
-Imagery
-Imagery must do narrative work.
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 14 (App Router), React 18, TypeScript |
+| UI framework | **Mantine 8** — use first, always |
+| Icons | `react-icons/pi` (Phosphor) — no Lucide React |
+| Server state | **React Query** (`@tanstack/react-query`) — no raw `useEffect` + `useState` for server data |
+| Backend | Fastify + TypeScript |
+| ORM / DB | Prisma + PostgreSQL |
+| Auth | JWT (access + refresh), bcrypt, RBAC middleware |
+| Workers | BullMQ (notifications, reminders, PDF) |
+| SMS | **EgoSMS** — `POST https://www.egosms.co/api/v1/json/` — creds: `EGOSMS_USERNAME`, `EGOSMS_PASSWORD`, `EGOSMS_SENDER_ID` |
+| Email | Nodemailer |
+| Timezone | Store UTC; display Africa/Kampala (UTC+3) everywhere |
 
-Use at least one strong, real-looking image for brands, venues, editorial pages, and lifestyle products.
-Prefer in-situ photography over abstract gradients or fake 3D objects.
-Choose or crop images with a stable tonal area for text.
-Do not use images with embedded signage, logos, or typographic clutter fighting the UI.
-Do not generate images with built-in UI frames, splits, cards, or panels.
-If multiple moments are needed, use multiple images, not one collage.
-The first viewport needs a real visual anchor. Decorative texture is not enough.
+---
 
-Copy
-Write in product language, not design commentary.
-Let the headline carry the meaning.
-Supporting copy should usually be one short sentence.
-Cut repetition between sections.
-Do not include prompt language or design commentary into the UI.
-Give every section one responsibility: explain, prove, deepen, or convert.
-If deleting 30 percent of the copy improves the page, keep deleting.
+## Hard Rules
 
-Utility Copy For Product UI
-When the work is a dashboard, app surface, admin tool, or operational workspace, default to utility copy over marketing copy.
+### UI Framework
+- **Mantine is mandatory** for dashboards, forms, tables, tabs, segmented controls, badges, modals, drawers, notifications, date inputs, dropzones, and layout primitives.
+- Do not introduce another UI framework. Do not use Tailwind CSS. Map GarageOS brand tokens into the Mantine theme (`apps/web/src/theme.ts`).
+- Keep custom CSS in `globals.css` limited to layout composition, selected-row affordances, and responsive polish.
 
-Prioritize orientation, status, and action over promise, mood, or brand voice.
-Start with the working surface itself: KPIs, charts, filters, tables, status, or task context. Do not introduce a hero section unless the user explicitly asks for one.
-Section headings should say what the area is or what the user can do there.
-Good: "Selected KPIs", "Plan status", "Search metrics", "Top segments", "Last sync".
-Avoid aspirational hero lines, metaphors, campaign-style language, and executive-summary banners on product surfaces unless specifically requested.
-Supporting text should explain scope, behavior, freshness, or decision value in one sentence.
-If a sentence could appear in a homepage hero or ad, rewrite it until it sounds like product UI.
-If a section does not help someone operate, monitor, or decide, remove it.
-Litmus check: if an operator scans only headings, labels, and numbers, can they understand the page immediately?
-Motion
-Use motion to create presence and hierarchy, not noise.
+### Icons
+- Use `react-icons/pi` (Phosphor) for all new icons.
+- Do not add or use Lucide React.
+- Icons must communicate action or state — no ornamental icons.
 
-Ship at least 2-3 intentional motions for visually led work:
+### Data Fetching
+- Use React Query (`useQuery`/`useMutation`) for all server data.
+- No hardcoded mock arrays in page components — delete them as pages are wired to the API.
+- Show loading, empty, error, and success states near every affected surface.
 
-one entrance sequence in the hero
-one scroll-linked, sticky, or depth effect
-one hover, reveal, or layout transition that sharpens affordance
-Prefer Framer Motion when available for:
+### Responsiveness
+- Content must be **centered and fluid** — `margin-inline: auto` on capped width columns.
+- Never left-anchor content in a wider grid leaving a dead band on the right.
+- Use `SimpleGrid` with `cols={{ base: 1, sm: 2, lg: 3 }}` rather than fixed CSS grid columns.
+- Verify at 1024px+, 768px, and 360px.
 
-section reveals
-shared layout transitions
-scroll-linked opacity, translate, or scale shifts
-sticky storytelling
-carousels that advance narrative, not just fill space
-menus, drawers, and modal presence effects
-Motion rules:
+### Loading States
+- Use the **GarageOS global analyzer loader** for all indeterminate loading.
+- Do not use generic spinners, bouncing dots, pulse blobs, or framework-default loaders.
 
-noticeable in a quick recording
-smooth on mobile
-fast and restrained
-consistent across the page
-removed if ornamental only
-Hard Rules
-No cards by default.
-No hero cards by default.
-No boxed or center-column hero when the brief calls for full bleed.
-No more than one dominant idea per section.
-No section should need many tiny UI devices to explain itself.
-No headline should overpower the brand on branded pages.
-No filler copy.
-No split-screen hero unless text sits on a calm, unified side.
-No more than two typefaces without a clear reason.
-No more than one accent color unless the product already has a strong system.
-Reject These Failures
-Generic SaaS card grid as the first impression
-Beautiful image with weak brand presence
-Strong headline with no clear action
-Busy imagery behind text
-Sections that repeat the same mood statement
-Carousel with no narrative purpose
-App UI made of stacked cards instead of layout
-Litmus Checks
-Is the brand or product unmistakable in the first screen?
-Is there one strong visual anchor?
-Can the page be understood by scanning headlines only?
-Does each section have one job?
-Are cards actually necessary?
-Does motion improve hierarchy or atmosphere?
-Would the design still feel premium if all decorative shadows were removed?
+### Customer Portal — Approval
+- Approval is **phone-only**. The customer portal must show a "Call us to approve or decline" callout.
+- Never add an in-app approve/decline button on the customer portal.
+
+### Notifications (three channels)
+- Service reminders and event notifications are delivered via **in-app + email + SMS (EgoSMS)**.
+- Reminder date is set by front desk at job completion.
+- In-app: write a `Notification` row; the bell in `DashboardShell` already reads `/api/v1/notifications`.
+- SMS body schema: `{ method: "SendSms", userdata: { username, password }, msgdata: [{ number, message, senderid }] }`.
+
+### Invoice Generation
+- Pull line items from `job_parts` + `job_services` **server-side**. Never trust client-calculated totals.
+- Invoiceable only when job status ≥ `ready_for_pickup`.
+
+### Footage Uploads
+- Accepted: `mp4`, `mov`, `jpg`, `png`. Max: **100 MB per file**.
+- Validate type + size before uploading to storage.
+- Customer portal views footage via secure URL only.
+
+### Signup Links
+- Front desk triggers email; link uses a 48h signed JWT pre-filled with customer email + job ID.
+- Show sent timestamp + resend affordance on the customer record.
+
+### Timestamps
+- Store UTC in the database.
+- Display in Africa/Kampala (UTC+3) using `Intl.DateTimeFormat` with `timeZone: 'Africa/Kampala'`.
+- Use JetBrains Mono for timestamp values in tables and detail rails.
+
+### Security / RBAC
+- Every route must check `req.user.role` via RBAC middleware before processing.
+- `adminOnly`, `frontDeskOnly`, `requireRoles(...)` — no cross-role data leakage.
+- Admin accounts created only by other admins — not via the signup-link flow.
+
+---
+
+## UI Framework — Mantine First
+
+For app UI:
+
+```tsx
+// Layout primitives
+import { AppShell, Container, SimpleGrid, Stack, Group, Paper } from '@mantine/core';
+
+// Controls
+import { Button, ActionIcon, TextInput, NumberInput, Select, Textarea, Badge, Tabs } from '@mantine/core';
+
+// Overlays
+import { Modal, Drawer, Menu, Tooltip } from '@mantine/core';
+
+// Specialized
+import { DateInput } from '@mantine/dates';
+import { Dropzone } from '@mantine/dropzone';
+import { notifications } from '@mantine/notifications';
+import { useForm } from '@mantine/form';
+```
+
+Organize operational surfaces:
+- **Primary workspace** — queue, table, form, job list.
+- **Navigation** — left sidebar (240px, dark `#0F172A`).
+- **Secondary context / inspector** — detail rail, timeline, notes.
+- **One clear accent** — blue for action/state, red for urgent/destructive only.
+
+Avoid: dashboard-card mosaics, thick borders on every region, decorative gradients behind routine product UI, multiple competing accent colors.
+
+---
+
+## Status Badge Pattern
+
+```tsx
+const STATUS_COLORS: Record<string, string> = {
+  registered:        'gray',
+  awaiting_approval: 'orange',
+  in_repair:         'blue',
+  quality_check:     'orange',
+  ready_for_pickup:  'green',
+  completed:         'teal',
+  cancelled:         'red',
+};
+
+<Badge color={STATUS_COLORS[status]} variant="light">
+  {status.replace(/_/g, ' ')}
+</Badge>
+```
+
+---
+
+## Out of Scope (do not build)
+
+- Mechanic role, mechanic dashboard, mechanic-specific routes or UI.
+- Pesapal / online payment integration.
+- Appointment booking module.
+- Supplier / purchase-order procurement module.
+
+---
+
+## Design Skill Reference
+
+Full design guidance lives in `.codex/skills/frontend-design/`:
+- `SKILL.md` — role definitions, job status machine, project defaults, Mantine rules, icon rules.
+- `references/aesthetic-playbook.md` — visual directions per surface (Service Bay Command, Customer Portal, Admin Analytics, Notification surfaces, Brand moments).
+- `references/implementation-patterns.md` — React Query patterns, responsive rules, component patterns, timestamp helpers, footage upload, loader markup, motion rules, accessibility and QA checklist.

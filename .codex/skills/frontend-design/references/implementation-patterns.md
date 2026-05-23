@@ -1,116 +1,277 @@
 # GarageOS Implementation Patterns
 
-Use these patterns for `apps/web` unless the repo later adopts a component library or Tailwind.
+Use these patterns for `apps/web` unless the repo later changes its stack.
+
+## Stack
+
+- Next.js 14 App Router, React 18, TypeScript
+- Mantine 8 for all component UI
+- React Query (`@tanstack/react-query`) for all server state
+- Plain global CSS (`globals.css`) + CSS modules for GarageOS-specific layout polish only
+- `react-icons/pi` (Phosphor) for all icons
 
 ## Next.js / React Workflow
 
 - Build App Router pages under `apps/web/src/app`.
+- Role routes: `(auth)/`, `(dashboard)/front-desk/`, `(dashboard)/admin/`, `(portal)/customer/`.
 - Keep page components role-focused; extract repeated UI only after a second real use.
-- Prefer plain CSS classes in `globals.css` or route-scoped CSS modules if the screen grows large.
-- Put repeated data such as statuses, tabs, filters, and nav items in typed arrays before mapping.
-- Use native form controls first. Add custom controls only when they improve speed or clarity.
-- For API-backed UI, show loading, empty, error, unauthorized, and success states near the affected surface.
+- No hardcoded mock arrays in pages — all data from React Query hooks backed by `/api/v1/*`.
+- Use `@mantine/form` with Zod for multi-field forms. Plain `FormData` only for single-field trivial forms.
+- Put typed arrays for statuses, nav items, and tab labels near the component that uses them.
+
+## React Query Pattern
+
+Mount `QueryClientProvider` once in `app/layout.tsx`. Build typed hooks per resource:
+
+```tsx
+// Typed query key convention
+const jobKeys = {
+  all: ['jobs'] as const,
+  list: (filters?: JobFilters) => [...jobKeys.all, 'list', filters] as const,
+  detail: (id: string) => [...jobKeys.all, 'detail', id] as const,
+};
+
+// Example query hook
+export function useJobs(filters?: JobFilters) {
+  const { accessToken } = useAuth();
+  return useQuery({
+    queryKey: jobKeys.list(filters),
+    queryFn: () => apiRequest<JobsResponse>('/api/v1/jobs', {
+      headers: { authorization: `Bearer ${accessToken}` },
+    }),
+    enabled: !!accessToken,
+  });
+}
+
+// Example mutation hook
+export function useCreateJob() {
+  const queryClient = useQueryClient();
+  const { accessToken } = useAuth();
+  return useMutation({
+    mutationFn: (body: CreateJobInput) =>
+      apiRequest<Job>('/api/v1/jobs', {
+        method: 'POST',
+        headers: { authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify(body),
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: jobKeys.all }),
+  });
+}
+```
+
+Always show loading, empty, error, and success states near the affected surface — never silently swallow errors.
 
 ## Theme Tokens
 
-Start CSS with GarageOS tokens and aliases:
+GarageOS CSS custom properties (in `globals.css`):
 
 ```css
 :root {
   color-scheme: light;
-  --brand-primary: #3857a3;
+  --brand-primary:      #3857a3;
   --brand-primary-dark: #1c2d5c;
-  --brand-accent: #ee1e24;
-  --success: #16a34a;
-  --warning: #f59e0b;
-  --bg: #f8fafc;
-  --surface: #ffffff;
-  --surface-muted: #f1f5f9;
-  --line: #cbd5e1;
-  --text: #0f172a;
-  --muted: #64748b;
-  --radius: 8px;
-  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --brand-accent:       #ee1e24;
+  --success:            #16a34a;
+  --warning:            #f59e0b;
+  --bg:                 #f8fafc;
+  --surface:            #ffffff;
+  --surface-muted:      #f1f5f9;
+  --line:               #e5e7eb;
+  --line-subtle:        #f1f5f9;
+  --ink:                #0f172a;
+  --muted:              #64748b;
+  --muted-light:        #94a3b8;
+  --radius-card:        16px;
+  --radius-md:          12px;
+  --shadow-card:        0 1px 3px rgb(0 0 0 / 0.04), 0 1px 2px rgb(0 0 0 / 0.02);
+  --shadow-card-hover:  0 8px 25px rgb(0 0 0 / 0.07), 0 2px 6px rgb(0 0 0 / 0.04);
+  --transition:         180ms ease;
+  --font:               'Plus Jakarta Sans', Inter, ui-sans-serif, system-ui, sans-serif;
 }
 ```
 
-Use red sparingly: destructive actions, overdue items, rejected states, urgent CTAs. Use blue for navigation, active states, links, and primary actions.
+Use red sparingly: destructive actions, overdue items, rejected/cancelled states, urgent CTAs. Blue for navigation, active states, links, and primary actions.
+
+## Responsiveness Rule
+
+Content must be centered and fluid. Never left-anchor a capped column inside a wider layout:
+
+```css
+/* Correct — content centers on large screens */
+.garage-content {
+  width: min(100%, 1280px);
+  margin-inline: auto;
+  padding: 32px 40px 56px;
+}
+```
+
+Use `SimpleGrid` with responsive `cols` rather than fixed CSS grid columns that leave empty space:
+
+```tsx
+<SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+  {stats.map(stat => <StatCard key={stat.label} {...stat} />)}
+</SimpleGrid>
+```
+
+Target breakpoints: 1024px+ (full split pane), 768px (collapse secondary), 360px (single column, sticky bottom action).
 
 ## Operational Layouts
 
 ### Queue + Inspector
 
-Use for customers, vehicles, work orders, parts requests, notifications, audit logs.
+Use for: job list, customer register, invoice list, notification log, audit log.
 
-- Left/main: searchable rows with status, owner, vehicle, time, and next action.
-- Right: selected detail rail with timeline, notes, related records, and primary action.
-- Mobile: list first, selected detail opens as a full-width section or route.
+- Left/main: searchable rows — status badge, vehicle plate (mono), customer name, job ID (mono), time (UTC+3), next action.
+- Right rail: selected detail — findings summary, timeline, related records, primary action.
+- Mobile: list first, detail opens as full-width section below or as a drawer.
+- Sticky header row with sort/filter; keyboard-navigable rows; selected row gets `box-shadow: inset 3px 0 0 var(--brand-primary)`.
 
 ### Workbench
 
-Use for mechanic job card detail, invoice editing, inspection forms, appointment booking.
+Use for: findings entry, invoice editing, QC decision, approval logging, payment recording.
 
-- Top: compact context bar with ID, vehicle, customer, status, freshness.
-- Center: task-specific form, tabs, checklist, or document preview.
-- Side/bottom: actions, validation, totals, notes, or activity.
+- Top: compact context bar — job ID (mono), vehicle plate (mono), customer name, status badge, elapsed time.
+- Center: task-specific form, tabs, footage upload, or document preview.
+- Side/bottom: totals, action buttons, validation errors, activity log.
 
-### Analytics Pair
+### Customer Portal Timeline
 
-Use for admin dashboard and reports.
+Use for: job tracking, service history.
 
-- Combine a small KPI strip with chart + supporting table.
-- Every chart needs date range, metric label, and last refreshed time.
+- Lead with current vehicle + status badge.
+- Horizontal stepper on desktop (7 job stages), vertical on mobile.
+- Each step: label, sublabel, done/current/upcoming state.
+- Invoice and footage accessible from the relevant stage.
+- Approval step shows a blue callout: "Call us to approve or decline" — no action button.
+
+### Analytics Pair (Admin)
+
+Use for: dashboard KPIs, revenue reports, staff performance.
+
+- Small KPI strip with counts/amounts, then chart + supporting table below.
+- Every chart: date range selector, metric label, last refreshed timestamp.
 - Avoid decorative charts that do not answer a decision.
 
-### Customer Timeline
+## Job Status Badge
 
-Use for portal tracking and service history.
+```tsx
+const STATUS_COLORS: Record<JobStatus, string> = {
+  registered:        'gray',
+  awaiting_approval: 'orange',
+  in_repair:         'blue',
+  quality_check:     'orange',
+  ready_for_pickup:  'green',
+  completed:         'teal',
+  cancelled:         'red',
+};
 
-- Lead with current vehicle/status.
-- Use a vertical or horizontal lifecycle timeline.
-- Keep invoice/payment/action close to the relevant service event.
+<Badge color={STATUS_COLORS[job.status]} variant="light">
+  {job.status.replace(/_/g, ' ')}
+</Badge>
+```
+
+## Timestamp Display
+
+Always display in Africa/Kampala (UTC+3). Do not display raw UTC strings:
+
+```ts
+export function formatKampala(utc: string) {
+  return new Intl.DateTimeFormat('en-UG', {
+    timeZone: 'Africa/Kampala',
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(utc));
+}
+```
+
+Use JetBrains Mono for rendered timestamps in tables and detail rails.
+
+## Signup-Link UI (Front Desk)
+
+On the customer record, after registration:
+
+```tsx
+// Show sent state + resend action
+<Group gap="sm">
+  <Text size="sm" c="dimmed">Signup link sent {formatKampala(customer.linkSentAt)}</Text>
+  <Button variant="subtle" size="compact-sm" onClick={resendLink}>Resend link</Button>
+</Group>
+```
+
+On error, surface inline: "Failed to send — check email address". On success: Mantine notification toast.
+
+## Service Reminder Scheduling (Job Completion)
+
+At the "Mark collected / completed" step, show a date picker for the next service reminder:
+
+```tsx
+<DateInput
+  label="Schedule next service reminder (optional)"
+  placeholder="Pick a date"
+  minDate={new Date()}
+  clearable
+  value={remindAt}
+  onChange={setRemindAt}
+/>
+```
+
+On submission, `POST /jobs/:id/complete` with `{ remindAt: isoString | null }`. Show a success toast: "Job completed. Reminder set for [date] via in-app, email & SMS."
+
+## Footage Upload (Findings Entry)
+
+Use `@mantine/dropzone` with video + image accept:
+
+```tsx
+<Dropzone
+  accept={['video/mp4', 'video/quicktime', 'image/jpeg', 'image/png']}
+  maxSize={100 * 1024 ** 2} // 100 MB
+  onDrop={handleDrop}
+>
+  <Group justify="center" gap="xl" mih={120}>
+    <PiVideoCamera size={32} />
+    <div>
+      <Text size="sm" fw={600}>Drop footage here or click to browse</Text>
+      <Text size="xs" c="dimmed">mp4, mov, jpg, png — max 100 MB per file</Text>
+    </div>
+  </Group>
+</Dropzone>
+```
+
+Show upload progress per file; preview thumbnails after upload; allow remove/retry; display empty state when no footage yet.
 
 ## Component Patterns
 
-### Status Badge
-
-- Small, stable width where possible.
-- Semantic color, not arbitrary role color.
-- Text must match backend states exactly enough for operators to recognize it.
-
-Suggested mapping:
-
-- `created`, `assigned`: blue/neutral.
-- `in_progress`: blue.
-- `awaiting_parts`, `quality_check`: amber.
-- `completed`, `paid`, `collected`: green.
-- `invoiced`: primary blue.
-- rejected/overdue/error: red.
-
 ### Tables and Rows
 
-- First columns should answer identity: customer, vehicle, plate, work order.
-- Middle columns should answer status and owner.
-- Last columns should answer recency and next action.
-- Keep row actions visible on hover/focus for desktop; visible or menu-based on mobile.
+- Identity columns first: customer name, vehicle plate (mono), job ID (mono).
+- Status and owner in middle columns.
+- Recency and next action in last columns.
+- Row hover: `background: var(--accent-light); box-shadow: inset 3px 0 0 var(--brand-primary)`.
+- Selected row: same, persistent.
+- Mobile: rows may stack as cards only when columns cannot remain readable.
 
 ### Forms
 
-- Group by real-world step: customer, vehicle, service concern, photos, payment.
-- Show inline validation beside the field and summary errors at submit when useful.
-- Disable submit only when truly impossible; otherwise allow submit and report validation.
-- Use confirmation for checkout, invoice finalization, payment recording, deletion, and role changes.
+- Group by real-world step: customer info → vehicle → job/service details → footage → confirmation.
+- Inline validation beside the field; summary errors at submit for longer forms.
+- Confirmation modal for: cancel job, delete record, mark collected, send signup link, record payment.
+- Disable submit only when truly impossible; otherwise allow and report validation errors.
 
-### Photo and Document UI
+### Photo and Footage UI
 
-- Inspection/check-in photos need upload progress, preview, remove, retry, and empty state.
-- Invoice/report previews need amount, status, generated time, and print/download actions.
+- Upload: progress bar, file name, size, remove button, retry on failure.
+- Preview: thumbnail grid (images), video player (video), secure URLs for customer portal.
+- Invoice/report: amount, status badge, generated timestamp, print + download PDF buttons.
+
+## Notification Bell
+
+The `DashboardShell` bell already calls `GET /api/v1/notifications`. Unread count badge shows on top-right of the bell icon. Each item shows title + body + timestamp; click marks as read via `PATCH /api/v1/notifications/:id/read`.
+
+For service reminders surfaced as in-app notifications, use type `service_reminder` and body: "Your [vehicle plate] is due for a service on [date]."
 
 ## Global Analyzer Loader
 
-Use this loader for all indeterminate loading states. Do not introduce generic spinners, bouncing dots, pulse blobs, or framework-default loaders. For determinate work such as uploads or exports, pair this loader with a progress value when the value is available.
-
-Markup:
+Use for all indeterminate loading. Do not introduce generic spinners, bouncing dots, or pulse blobs.
 
 ```tsx
 <div className="global-analyzer-loader" role="status">
@@ -132,143 +293,15 @@ Markup:
 </div>
 ```
 
-CSS:
-
-```css
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.global-analyzer-loader {
-  --loader-size: 148px;
-  --loader-height: 100px;
-  --loader-duration: 1.2s;
-  --loader-dot: var(--brand-primary, #3857a3);
-  --loader-dot-alt: var(--brand-accent, #ee1e24);
-  --loader-shadow: rgb(28 45 92 / 28%);
-  display: inline-grid;
-  place-items: center;
-  width: var(--loader-size);
-  min-height: var(--loader-height);
-}
-
-.global-analyzer-loader__stage,
-.global-analyzer-loader__track {
-  position: relative;
-  width: var(--loader-size);
-  height: var(--loader-height);
-}
-
-.global-analyzer-loader__track {
-  position: absolute;
-  inset: 0;
-}
-
-.global-analyzer-loader__track:nth-child(2) {
-  --loader-delay: 0.15s;
-}
-
-.global-analyzer-loader__track:nth-child(3) {
-  --loader-delay: 0.3s;
-}
-
-.global-analyzer-loader__track::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 1rem;
-  height: 0.25rem;
-  border-radius: 999px;
-  background: var(--loader-shadow);
-  animation: analyzer-shadow var(--loader-duration) infinite linear;
-  animation-delay: var(--loader-delay, 0s);
-}
-
-.global-analyzer-loader__roller {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 70px;
-  height: 70px;
-  transform: rotate(135deg);
-  animation: analyzer-roller-a var(--loader-duration) infinite linear;
-  animation-delay: var(--loader-delay, 0s);
-}
-
-.global-analyzer-loader__roller:nth-child(2) {
-  right: 0;
-  left: auto;
-  transform: rotate(-45deg);
-  animation-name: analyzer-roller-b;
-}
-
-.global-analyzer-loader__roller::before {
-  content: "";
-  display: block;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  background: var(--loader-dot);
-  box-shadow: 0 0 0 4px rgb(56 87 163 / 10%);
-}
-
-.global-analyzer-loader__track:nth-child(2n) .global-analyzer-loader__roller::before {
-  background: var(--loader-dot-alt);
-  box-shadow: 0 0 0 4px rgb(238 30 36 / 10%);
-}
-
-@keyframes analyzer-roller-a {
-  0% { transform: rotate(135deg); opacity: 1; }
-  8% { transform: rotate(240deg); }
-  20% { transform: rotate(300deg); }
-  40% { transform: rotate(380deg); }
-  45% { transform: rotate(440deg); }
-  50% { transform: rotate(495deg); opacity: 1; }
-  50.1%, 100% { transform: rotate(495deg); opacity: 0; }
-}
-
-@keyframes analyzer-roller-b {
-  0%, 49.9% { opacity: 0; }
-  50% { transform: rotate(-45deg); opacity: 1; }
-  58% { transform: rotate(-160deg); }
-  70% { transform: rotate(-240deg); }
-  80% { transform: rotate(-300deg); }
-  90% { transform: rotate(-340deg); }
-  100% { transform: rotate(-405deg); opacity: 1; }
-}
-
-@keyframes analyzer-shadow {
-  0% { transform: translateX(65px) scale(0.5); opacity: 0.3; }
-  8% { transform: translateX(30px) scale(2); }
-  13% { transform: translateX(0) scale(1.3); }
-  30% { transform: translateX(-15px) scale(0.5); opacity: 0.1; }
-  50% { transform: translateX(60px) scale(1.2); opacity: 0.3; }
-  60% { transform: translateX(130px) scale(2); opacity: 0.05; }
-  65% { transform: translateX(145px) scale(1.2); }
-  80% { transform: translateX(120px) scale(0.5); opacity: 0.1; }
-  90% { transform: translateX(80px) scale(0.8); }
-  100% { transform: translateX(60px); opacity: 0.3; }
-}
-```
-
-For full-page loading, center this inside the existing page shell. For local panel loading, keep the loader inside the affected region so operators know which data is pending.
+For full-page loading, center inside the existing page shell. For panel loading, keep it inside the affected region.
 
 ## Motion
 
 Use 2-3 motions only when they improve comprehension:
 
-- Entrance: page toolbar/content fade and translate in under 300ms.
-- Selection: selected row highlights and detail rail slides/fades in.
-- Workflow feedback: save, upload, timer, status transition, or export progress.
+- Entrance: toolbar/content fade + translate-up under 300ms.
+- Selection: selected row highlights; detail rail slides/fades in.
+- Workflow feedback: save, upload progress, status transition, export progress.
 
 Always include:
 
@@ -283,20 +316,13 @@ Always include:
 }
 ```
 
-## Responsive Rules
-
-- Desktop: favor split panes, sticky toolbars, and visible filters.
-- Tablet: keep primary workspace first; collapse secondary context below or into a drawer.
-- Mobile: single column, sticky bottom action when the main task is form completion or approval.
-- Preserve 44px tap targets and avoid hover-only affordances.
-- Tables may become row cards only when columns cannot remain readable.
-
 ## Accessibility and QA
 
-- One `h1`, landmarked `main`, logical headings.
+- One `h1` per page, landmarked `<main>`, logical heading hierarchy.
 - Visible focus for every interactive control.
 - Labels for every input, select, textarea, upload, and search field.
 - `aria-live` for async save, upload, export, and status-update feedback.
-- Color contrast AA minimum; do not rely on color alone for statuses.
-- Run `npm run type-check --workspace=@garage-os/web` after meaningful TSX changes when feasible.
-- Run `npm run test --workspace=@garage-os/web` or targeted Playwright tests after workflow changes when feasible.
+- Color contrast AA minimum; never rely on color alone for status.
+- 44px minimum tap targets on all interactive elements.
+- Run `npm run type-check --workspace=@garage-os/web` after meaningful TSX changes.
+- Run `npm run test --workspace=@garage-os/web` or targeted Playwright tests after workflow changes.
