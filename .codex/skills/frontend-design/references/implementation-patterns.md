@@ -10,6 +10,39 @@ Use these patterns for `apps/web` unless the repo later changes its stack.
 - Plain global CSS (`globals.css`) + CSS modules for GarageOS-specific layout polish only
 - `react-icons/pi` (Phosphor) for all icons
 
+---
+
+## Anti-AI-Slop Code Rules
+
+These catch the "under the hood" tells that reveal AI-generated code. Every item below is a bug — fix it on sight.
+
+### Comments
+- Write **no comments** that describe what code does. `// Create a button` or `// Handle click` are banned.
+- Comments exist only for non-obvious constraints, business-rule workarounds, or subtle invariants a future reader would not infer from the code alone.
+- No multi-line comment blocks describing what a component renders.
+
+### Console
+- **No emoji in `console.log`** or anywhere in source code. `console.log('🚀 Server started')` is banned.
+- Remove all debug `console.log` statements before committing.
+
+### Logic
+- No redundant variable declarations (`const x = x`).
+- No deeply nested conditionals (3+ levels) for simple tasks — extract a helper or simplify the condition.
+- No copy-pasted Mantine demo code adapted verbatim. Every component must be adapted to a real GarageOS workflow, label, and data shape.
+- No unused imports after refactoring — clean them up in the same change.
+
+### Interactions
+- Every button, link, and `onClick` must have a real implementation. No `href="#"`, no empty `onClick={() => {}}`, no `// TODO: implement`.
+- No toast notifications for synchronous local-state changes (tab switch, filter toggle, row select). Toasts only for async outcomes: save succeeded, save failed, SMS sent, upload complete.
+
+### CSS
+- No `box-shadow` with a colored glow (`rgba(99,102,241,0.5)` etc). Shadows are neutral grey only.
+- No `border-radius` above 16px on layout containers. Pill radius (`9999px`) only on status badges and segmented controls.
+- No background gradients on full-page or panel backgrounds — flat `#F8FAFC` / `#FFFFFF` only.
+- No hardcoded color values that are not GarageOS brand tokens — use CSS custom properties from `:root` in `globals.css`.
+
+---
+
 ## Next.js / React Workflow
 
 - Build App Router pages under `apps/web/src/app`.

@@ -51,6 +51,45 @@ registered → awaiting_approval → in_repair ⇄ quality_check → ready_for_p
 
 ---
 
+## Anti-AI-Slop Rules (enforced on every output)
+
+GarageOS must not look or read like a generated UI. The patterns below are banned. Treat any violation as a bug.
+
+**Visual — banned:**
+- Indigo/purple/neon colors or pastel gradients as backgrounds. GarageOS uses `#3857A3` + `#EE1E24` + flat slate neutrals.
+- Colored glowing shadows. Elevation shadows are neutral grey only.
+- `border-radius` above 16px on layout containers or navbars.
+- Hero → badge → headline → CTA → 3-card grid as a default screen structure. Operational screens start from the task surface.
+- Frosted-glass panels stacked on each other. Backdrop blur only on the topbar.
+- Excessive hollow whitespace used as decoration.
+- Stock 3D illustrations, floating gradient blobs, or AI-generated imagery.
+
+**Copy — banned:**
+- Generic headings: "Unlock Productivity", "Streamline Your Experience", "Next-Generation Platform".
+- Generic CTAs: "Get Started", "Learn More", "Discover", "Explore".
+- Every button and heading must name the exact task or action.
+
+**Interactions — banned:**
+- Hover animations on static text.
+- Toast notifications for every click — async outcomes only.
+- Buttons or links with no real destination (`href="#"`, empty `onClick`).
+- Skeleton shimmer on elements that are not actually loading.
+
+**Code — banned:**
+- Comments that describe what code does (`// This is a button`).
+- Emoji in `console.log` or anywhere in source (`🚀`, `✅`, `❌`).
+- Unused imports left after refactoring.
+- Deeply nested conditionals (3+ levels) for simple logic.
+- Copy-pasted Mantine demo code not adapted to real GarageOS data and copy.
+
+**Litmus check before shipping any surface:**
+1. Could this be produced by clicking "Generate UI" in any AI tool? If yes, make a specific design decision that breaks the pattern.
+2. Does every heading describe exactly what the operator sees or can do?
+3. Is every button wired to a real implementation?
+4. Does any shadow glow or use a color other than grey? Remove it.
+
+---
+
 ## Hard Rules
 
 ### UI Framework

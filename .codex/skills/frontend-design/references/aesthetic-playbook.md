@@ -54,7 +54,7 @@ Best for login page, signup-via-link flow, password reset, and any explicitly re
 - Motion: hero entrance, subtle image depth, CTA focus transition.
 - Signup-via-link: pre-filled email (read-only), clear password/name fields, brand trust signals.
 
-## Avoid
+## Avoid (general)
 
 - Generic dashboard mosaics made only of cards.
 - Decorative gradients behind routine operator screens.
@@ -64,3 +64,51 @@ Best for login page, signup-via-link flow, password reset, and any explicitly re
 - In-app approve/decline buttons on the customer portal — approval is phone-only.
 - Left-anchored content with a dead band on the right side of large screens — content must be centered/fluid.
 - Mechanic-role UI — mechanics have no accounts in this system.
+
+---
+
+## Anti-AI-Slop Visual Reference
+
+The following patterns make a design immediately identifiable as AI-generated. They indicate a "technically sound but intentionally vacant" aesthetic — polished but personality-free. Every one of them is banned in GarageOS.
+
+### Color
+- **Banned:** indigo/purple neon (#6366F1, #8B5CF6, Tailwind indigo defaults), pastel gradients as background fills, glowing colored shadows (`box-shadow: 0 0 20px rgba(99,102,241,0.5)`).
+- **GarageOS:** primary steel blue `#3857A3`, accent red `#EE1E24`, neutral slate. Colored shadows do not exist. Backgrounds are flat.
+
+### Shape
+- **Banned:** oversized rounding (`border-radius` 24px+) on layout containers, navbars, hero sections, and panels.
+- **GarageOS:** 8px on controls, 12-16px on cards, pill only for status badges and segmented controls.
+
+### Layout
+- **Banned:** hero → badge → headline → subheadline → dual CTA → 3-card feature grid as a default pattern for any screen.
+- **GarageOS:** operational screens start from the task surface — queue, table, form, or job card. The hero pattern is only for explicitly requested marketing pages.
+
+### Effects
+- **Banned:** glowing borders, luminous card edges, frosted glass panels stacked on top of each other, heavy backdrop-blur on routine panels.
+- **GarageOS:** elevation via subtle grey shadow only (`0 1px 3px rgb(0 0 0/0.04)`). Blur only in the topbar backdrop.
+
+### Space
+- **Banned:** excessive whitespace used decoratively, making the page feel hollow or "premium by emptiness."
+- **GarageOS:** density is a feature. Every pixel of whitespace must earn its place by aiding scan, grouping, or breathing room between distinct sections.
+
+### Copy
+- **Banned generic headings:** "Unlock Productivity", "Streamline Your Experience", "Next-Generation Platform", "Powerful and Flexible", "Everything You Need."
+- **Banned generic CTAs:** "Get Started", "Learn More", "Discover", "Explore."
+- **GarageOS:** every heading names a task or status. Every button says exactly what it does.
+
+### Interactions
+- **Banned:** hover animations on static text; toast for every click; shimmer skeleton on every element regardless of whether data is pending; buttons that go nowhere.
+- **GarageOS:** motion only when it orients the user. Toasts only for async outcomes. Loader only when genuinely fetching.
+
+### Imagery
+- **Banned:** floating 3D object renders, abstract gradient blobs as "illustration," stock photo people who are clearly not mechanics or service staff.
+- **GarageOS:** real automotive photography, actual workshop context, or no imagery at all on operational screens.
+
+### The Litmus Test
+
+Before shipping any surface, ask:
+1. Could this layout have been produced by clicking "Generate UI" in any AI tool? If yes, make a specific design decision that breaks the pattern.
+2. Does every heading describe exactly what the operator can do or see? If not, rewrite it.
+3. Is there a button, link, or interaction with no real destination? Remove it or implement it.
+4. Does any shadow glow, pulse, or use a color other than grey? Remove it.
+5. Is there a badge + headline + CTA above a card grid on a non-marketing screen? Rethink the layout.
