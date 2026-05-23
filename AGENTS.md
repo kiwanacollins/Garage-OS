@@ -55,38 +55,50 @@ registered → awaiting_approval → in_repair ⇄ quality_check → ready_for_p
 
 GarageOS must not look or read like a generated UI. The patterns below are banned. Treat any violation as a bug.
 
+The single strongest tell of AI-generated UI: **the site looks impressive on first load, but after 30 seconds nothing feels memorable, intentional, or connected to what GarageOS actually does.** Every pattern below produces that feeling. Treat violations as bugs.
+
 **Visual — banned:**
-- Indigo/purple/neon colors or pastel gradients as backgrounds. GarageOS uses `#3857A3` + `#EE1E24` + flat slate neutrals.
-- Colored glowing shadows. Elevation shadows are neutral grey only.
-- `border-radius` above 16px on layout containers or navbars.
-- Hero → badge → headline → CTA → 3-card grid as a default screen structure. Operational screens start from the task surface.
-- Frosted-glass panels stacked on each other. Backdrop blur only on the topbar.
-- Excessive hollow whitespace used as decoration.
-- Stock 3D illustrations, floating gradient blobs, or AI-generated imagery.
+- Indigo/purple/neon colors or pastel gradients as backgrounds. GarageOS uses `#3857A3` + `#EE1E24` + flat slate neutrals only.
+- Colored glowing shadows (`box-shadow` with color other than neutral grey). Elevation is neutral grey only.
+- `border-radius` above 16px on layout containers, navbars, or panels. Pill radius only for status badges and segmented controls.
+- Glassmorphism: frosted-glass cards, `backdrop-filter: blur()` outside the topbar, semi-transparent panels stacked on each other.
+- Animated blobs, floating gradient shapes, bento-grid layouts for operational data.
+- Hero → badge → headline → CTA → 3-column feature grid as a default pattern. Operational screens start from the task surface.
+- "Trusted by logos" strips, testimonials sections, FAQ accordions on operational screens.
+- Three identical grid patterns stacked in sequence — algorithmic repetition, not design.
+- Perfect symmetry everywhere — every card the same weight, every column the same width. Intentional visual imbalance creates hierarchy.
+- Excessive hollow whitespace used decoratively. Density is a feature.
+- Stock 3D illustrations, floating gradient blobs, AI-generated people with slightly wrong anatomy.
 
 **Copy — banned:**
-- Generic headings: "Unlock Productivity", "Streamline Your Experience", "Next-Generation Platform".
-- Generic CTAs: "Get Started", "Learn More", "Discover", "Explore".
-- Every button and heading must name the exact task or action.
+- Generic headings: "Unlock Productivity", "Streamline Your Experience", "Next-Generation Platform", "Seamless Digital Experiences", "Transform your workflow", "Empowering businesses."
+- Generic CTAs: "Get Started", "Learn More", "Discover", "Explore."
+- Every heading names a task, status, or entity. Every button names the exact action.
+- Copy test: after reading a heading, can you name what the screen does, who it serves, and why it matters — in 5 seconds? If not, rewrite it.
 
 **Interactions — banned:**
-- Hover animations on static text.
-- Toast notifications for every click — async outcomes only.
+- Scroll-reveal fade-in on every section. Page-load animations without user action. Every section animating.
+- Hover animations on static text or decorative icons.
+- Toast notifications for every click — async outcomes only (save failed, SMS sent, upload complete).
 - Buttons or links with no real destination (`href="#"`, empty `onClick`).
 - Skeleton shimmer on elements that are not actually loading.
+- Inconsistent UX between pages — mixed icon sets, different spacing systems, random pattern breaks.
 
 **Code — banned:**
-- Comments that describe what code does (`// This is a button`).
+- Comments that describe what code does (`// This is a button`, `// Create user`).
 - Emoji in `console.log` or anywhere in source (`🚀`, `✅`, `❌`).
 - Unused imports left after refactoring.
 - Deeply nested conditionals (3+ levels) for simple logic.
 - Copy-pasted Mantine demo code not adapted to real GarageOS data and copy.
+- `href="#"` or `onClick={() => {}}` placeholder stubs.
 
 **Litmus check before shipping any surface:**
 1. Could this be produced by clicking "Generate UI" in any AI tool? If yes, make a specific design decision that breaks the pattern.
-2. Does every heading describe exactly what the operator sees or can do?
-3. Is every button wired to a real implementation?
-4. Does any shadow glow or use a color other than grey? Remove it.
+2. Does every heading name what the operator sees or can do — not a generic promise?
+3. Is every button and link wired to a real implementation?
+4. Does any shadow glow or use a color other than grey?
+5. Are there 3+ identical grid patterns stacked in sequence?
+6. Is there intentional visual hierarchy — one dominant element, supporting details smaller, metadata muted?
 
 ---
 

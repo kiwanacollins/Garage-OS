@@ -69,46 +69,59 @@ Best for login page, signup-via-link flow, password reset, and any explicitly re
 
 ## Anti-AI-Slop Visual Reference
 
-The following patterns make a design immediately identifiable as AI-generated. They indicate a "technically sound but intentionally vacant" aesthetic — polished but personality-free. Every one of them is banned in GarageOS.
+The following patterns make a design immediately identifiable as AI-generated. They indicate a "technically sound but intentionally vacant" aesthetic — polished on first glance, but after 30 seconds nothing feels memorable, intentional, or connected to what GarageOS actually does. Every pattern below is banned.
 
 ### Color
-- **Banned:** indigo/purple neon (#6366F1, #8B5CF6, Tailwind indigo defaults), pastel gradients as background fills, glowing colored shadows (`box-shadow: 0 0 20px rgba(99,102,241,0.5)`).
-- **GarageOS:** primary steel blue `#3857A3`, accent red `#EE1E24`, neutral slate. Colored shadows do not exist. Backgrounds are flat.
+- **Banned:** indigo/purple neon (`#6366F1`, `#8B5CF6`, Tailwind indigo defaults), pastel gradients as background fills, glowing colored shadows (`box-shadow: 0 0 20px rgba(99,102,241,0.5)`).
+- **GarageOS:** primary steel blue `#3857A3`, accent red `#EE1E24`, neutral slate. Colored shadows do not exist. Backgrounds are flat `#F8FAFC` / `#FFFFFF`.
 
-### Shape
-- **Banned:** oversized rounding (`border-radius` 24px+) on layout containers, navbars, hero sections, and panels.
-- **GarageOS:** 8px on controls, 12-16px on cards, pill only for status badges and segmented controls.
+### Shape & Effects
+- **Banned:** `border-radius` 24px+ on layout containers, navbars, hero sections, or panels. Glassmorphism. Frosted-glass cards stacked on each other. Animated blobs. Neon glow borders. Floating cards with heavy drop shadows.
+- **GarageOS:** 8px on controls, 12-16px on cards, pill (`9999px`) only for status badges and segmented controls. Elevation is subtle neutral grey only (`0 1px 3px rgb(0 0 0/0.04)`). Backdrop blur only in the topbar.
 
 ### Layout
-- **Banned:** hero → badge → headline → subheadline → dual CTA → 3-card feature grid as a default pattern for any screen.
-- **GarageOS:** operational screens start from the task surface — queue, table, form, or job card. The hero pattern is only for explicitly requested marketing pages.
+- **Banned as default patterns:**
+  - Hero → badge → headline → subheadline → dual CTA → 3-column feature grid.
+  - "Trusted by logos" strip after the hero.
+  - Testimonials section → pricing section → FAQ → CTA footer repeated on every page.
+  - Bento grid layouts used for operational data.
+  - 3-column feature grid → another 3-column grid → another 3-column pricing grid (repetitive algorithmic sections).
+  - Perfect symmetry everywhere: equally weighted cards, identical column widths, everything centered.
+- **GarageOS:** operational screens start from the task surface — queue, table, form, job card. Section patterns above are only permitted on explicitly requested marketing pages. Asymmetric hierarchy is intentional: not everything deserves equal visual weight.
 
-### Effects
-- **Banned:** glowing borders, luminous card edges, frosted glass panels stacked on top of each other, heavy backdrop-blur on routine panels.
-- **GarageOS:** elevation via subtle grey shadow only (`0 1px 3px rgb(0 0 0/0.04)`). Blur only in the topbar backdrop.
-
-### Space
-- **Banned:** excessive whitespace used decoratively, making the page feel hollow or "premium by emptiness."
-- **GarageOS:** density is a feature. Every pixel of whitespace must earn its place by aiding scan, grouping, or breathing room between distinct sections.
+### Space & Hierarchy
+- **Banned:** excessive hollow whitespace used as decoration to feel "premium." Uniform mechanical spacing where every section, card, and padding value is identical — making everything equally important and therefore nothing scannable.
+- **GarageOS:** density is a feature. Whitespace is used to group, separate, and direct attention — not to fill screen. Intentional visual imbalance creates hierarchy: primary data is large, secondary is smaller, metadata is muted.
 
 ### Copy
-- **Banned generic headings:** "Unlock Productivity", "Streamline Your Experience", "Next-Generation Platform", "Powerful and Flexible", "Everything You Need."
+- **Banned generic headings:** "Unlock Productivity", "Streamline Your Experience", "Next-Generation Platform", "Powerful and Flexible", "Everything You Need", "Seamless Digital Experiences", "Empowering businesses with innovative solutions", "Transform your workflow."
 - **Banned generic CTAs:** "Get Started", "Learn More", "Discover", "Explore."
-- **GarageOS:** every heading names a task or status. Every button says exactly what it does.
+- **The copy test:** after reading a heading, you must know what this screen does, who it is for, and why it matters. If you cannot answer all three, rewrite it.
+- **GarageOS:** every heading names a task, status, or entity. Every button says exactly what happens on click.
 
-### Interactions
-- **Banned:** hover animations on static text; toast for every click; shimmer skeleton on every element regardless of whether data is pending; buttons that go nowhere.
-- **GarageOS:** motion only when it orients the user. Toasts only for async outcomes. Loader only when genuinely fetching.
+### Interactions & Animation
+- **Banned:** scroll-reveal fade-in on every section. Floating animated elements. Hover effects on static text or decorative icons. Every section animating. Excessive transitions that trigger on page load without user action.
+- **GarageOS:** motion only when it orients the user (row selection reveal, detail rail slide, upload progress). 2-3 intentional motions per surface maximum. If removing an animation makes no difference to usability, it should not exist.
 
 ### Imagery
-- **Banned:** floating 3D object renders, abstract gradient blobs as "illustration," stock photo people who are clearly not mechanics or service staff.
+- **Banned:** floating 3D object renders, abstract gradient blobs as "illustration," AI-generated people with slightly wrong hands or overly smooth skin, generic office scenes with no garage context, team photos that have no presence elsewhere.
 - **GarageOS:** real automotive photography, actual workshop context, or no imagery at all on operational screens.
 
-### The Litmus Test
+### Cross-Page Consistency
+- **Banned:** sections generated independently that produce inconsistent typography, mixed icon sets (Phosphor on one page, Heroicons on another), different spacing systems between pages, random UX decisions that break patterns established elsewhere.
+- **GarageOS:** every page uses the same DashboardShell, the same Mantine theme tokens, the same Phosphor icons, the same spacing scale. Consistency is non-negotiable.
 
-Before shipping any surface, ask:
-1. Could this layout have been produced by clicking "Generate UI" in any AI tool? If yes, make a specific design decision that breaks the pattern.
-2. Does every heading describe exactly what the operator can do or see? If not, rewrite it.
-3. Is there a button, link, or interaction with no real destination? Remove it or implement it.
-4. Does any shadow glow, pulse, or use a color other than grey? Remove it.
-5. Is there a badge + headline + CTA above a card grid on a non-marketing screen? Rethink the layout.
+### The Soulless-Perfection Test
+
+The single strongest tell of AI-generated UI: **the site looks impressive on first load, but after 30 seconds nothing feels memorable, intentional, or connected to what the business actually does.**
+
+Before shipping any surface, run this check:
+
+1. **Memorability:** Would an operator remember this screen's layout after using it once, because it fits the task so precisely? If not, it is too generic.
+2. **Specificity:** Does every label, heading, and button refer to something real in GarageOS — a job, a vehicle, a customer, a part, an invoice? If it could apply to any SaaS product, rewrite it.
+3. **Hierarchy:** Is there intentional visual imbalance — one dominant element per surface, supporting details smaller, metadata muted? If everything is equally weighted, break the symmetry deliberately.
+4. **Wiring:** Is every button, link, and interaction backed by a real implementation? If not, remove or implement it.
+5. **Pattern check:** Remove all color and shadow. Does the layout still communicate structure through spacing, size, and type weight alone? If structure collapses without decoration, the composition is weak.
+6. **Copy check:** Read every heading aloud. Does it tell you what this screen does, who it serves, and why it matters in under 5 seconds? If not, it is AI copy.
+7. **Shadow/glow check:** Does any shadow use a color other than grey or have a spread above 8px? Remove it.
+8. **Repetition check:** Count how many times the same card layout or column pattern appears in sequence. If 3+ identical grid patterns stack, the layout is algorithmic. Vary it.
